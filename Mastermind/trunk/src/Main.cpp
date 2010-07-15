@@ -449,7 +449,7 @@ int main(int argc, char* argv[])
 #endif
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	//return TestSumOfSquares(rules, 5000000*LOOP_FLAG);
-	return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
+	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestNewCompare(rules, 100000*LOOP_FLAG);
 	//return TestNewScan(rules, 100000*1);
 	//return BuildLookupTableForLongComparison();
