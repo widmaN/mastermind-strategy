@@ -469,8 +469,8 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 
 	if (times == 0) {
 		int total = 0;
-		count = 1;
-		count_freq_v6(fbl, count, freq);
+		count = 11;
+		count_freq_v11(fbl, count, freq);
 		for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
 			if (freq[i] > 0) {
 				printf("%d A %d B = %d\n",
@@ -493,14 +493,14 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 	for (int pass = 0; pass < 10; pass++) {
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			count_freq_v5(fbl, count, freq);
-			//count_freq_v1(fbl, count, freq);
+			count_freq_v10(fbl, count, freq);
+			//count_freq_v9(fbl, count, freq);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			count_freq_v6(fbl, count, freq);
+			count_freq_v11(fbl, count, freq);
 			//count_freq_v1(fbl, count, freq);
 		}
 		t2 += timer.Stop();
@@ -508,6 +508,7 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 
 	printf("Algorithm 1: %6.3f\n", t1);
 	printf("Algorithm 2: %6.3f\n", t2);
+	printf("Improvement: %5.1f%%\n", (t1/t2-1)*100);
 
 	delete fblist;
 	system("PAUSE");

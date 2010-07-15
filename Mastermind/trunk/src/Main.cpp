@@ -382,8 +382,8 @@ int main(int argc, char* argv[])
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
 	} else {
-		rules.length = 4;
-		rules.ndigits = 6;
+		rules.length = 5;
+		rules.ndigits = 8;
 		rules.allow_repetition = true;
 	}
 
@@ -449,7 +449,7 @@ int main(int argc, char* argv[])
 #endif
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	//return TestSumOfSquares(rules, 5000000*LOOP_FLAG);
-	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
+	return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestNewCompare(rules, 100000*LOOP_FLAG);
 	//return TestNewScan(rules, 100000*1);
 	//return BuildLookupTableForLongComparison();

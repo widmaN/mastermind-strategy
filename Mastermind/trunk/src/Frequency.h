@@ -54,4 +54,14 @@ void count_freq_v9(
 	unsigned int count,
 	unsigned int freq[64]);
 
+void count_freq_v10(
+	const unsigned char *feedbacks,
+	unsigned int count,
+	unsigned int freq[64]);
+
+void count_freq_v11(
+	const unsigned char *feedbacks,
+	unsigned int count,
+	unsigned int freq[64]);
+
 #endif
