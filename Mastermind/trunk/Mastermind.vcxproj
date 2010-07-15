@@ -62,6 +62,8 @@
     <ClInclude Include="src\Test.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="doc\Doxyfile" />
+    <None Include="doc\newstyle.css" />
     <None Include="Results.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

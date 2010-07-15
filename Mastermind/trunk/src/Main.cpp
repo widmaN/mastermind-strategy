@@ -377,7 +377,7 @@ int main(int argc, char* argv[])
 	string s;
 	
 	CodewordRules rules;
-	if (0) {
+	if (1) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;

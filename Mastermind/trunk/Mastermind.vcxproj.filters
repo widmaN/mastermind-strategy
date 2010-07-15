@@ -94,5 +94,11 @@
     <None Include="Results.txt">
       <Filter>Data Files</Filter>
     </None>
+    <None Include="doc\Doxyfile">
+      <Filter>Data Files</Filter>
+    </None>
+    <None Include="doc\newstyle.css">
+      <Filter>Data Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
