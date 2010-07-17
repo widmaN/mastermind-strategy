@@ -5,6 +5,27 @@
 
 #include "MMConfig.h"
 
+
+typedef void (*COMPARISON_ROUTINE)(
+	const codeword_t& secret, 
+	const codeword_t guesses[], 
+	unsigned int count, 
+	unsigned char results[]);
+
+extern COMPARISON_ROUTINE Compare_Impl;
+
+typedef struct ComparisonRoutineEntry 
+{
+	const char *name;
+	const char *description;
+	COMPARISON_ROUTINE routine;
+} ComparisonRoutineEntry;
+
+extern ComparisonRoutineEntry Compare_Impls[];
+
+void Compare_SelectImpl(const char *name);
+
+
 /// Compares an array of guesses to the secret, allowing digit repetition
 /// in the codewords.
 void Compare_Rep(
@@ -31,3 +52,6 @@ void Compare_NoRep(
 	unsigned int count, 
 	/// [out] An array to store feedbacks
 	unsigned char results[]);
+
+
+
