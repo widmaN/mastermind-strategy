@@ -226,11 +226,25 @@ namespace Mastermind
 		int m_count;
 		int m_alloctype; // 0=new, 1=malloc, 2=alloca(on stack)
 
+		void Allocate(int count, int type)
+		{
+			m_alloctype = type;
+			m_count = count;
+			switch (type) {
+			default:
+			case 0:
+				m_values = (unsigned char *)malloc(m_count);
+				break;
+			case 1:
+				m_values = (unsigned char *)_malloca(count);
+				break;
+			}
+		}
+
 	public:
 		FeedbackList(int count)
 		{
-			m_values = (unsigned char *)_malloca(count);
-			m_count = count;
+			Allocate(count, 0);
 		}
 
 		FeedbackList(const Codeword &guess, const CodewordList &secrets);
@@ -238,8 +252,15 @@ namespace Mastermind
 		~FeedbackList()
 		{
 			if (m_values != NULL) {
-				//delete [] m_values;
-				_freea(m_values);
+				switch (m_alloctype) {
+				default:
+				case 0:
+					free(m_values);
+					break;
+				case 1:
+					_freea(m_values);
+					break;
+				}
 				m_values = NULL;
 				m_count = 0;
 			}
