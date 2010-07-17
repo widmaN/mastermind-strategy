@@ -462,9 +462,10 @@ int TestCompare(CodewordRules rules, long times)
 int TestFrequencyCounting(CodewordRules rules, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
-	FeedbackList *fblist = list[0].CompareTo(list);
-	int count = fblist->GetCount();
-	const unsigned char *fbl = fblist->GetData();
+	FeedbackList fblist(list.GetCount());
+	list[0].CompareTo(list, fblist);
+	int count = fblist.GetCount();
+	const unsigned char *fbl = fblist.GetData();
 	unsigned int freq[MM_FEEDBACK_COUNT];
 
 	if (times == 0) {
@@ -481,7 +482,6 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 		}
 		printf("Expected count: %d\n", count);
 		printf("Actual total:   %d\n", total);
-		delete fblist;
 		system("PAUSE");
 		return 0;
 	}
@@ -510,7 +510,6 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 	printf("Algorithm 2: %6.3f\n", t2);
 	printf("Improvement: %5.1f%%\n", (t1/t2-1)*100);
 
-	delete fblist;
 	system("PAUSE");
 	return 0;
 }
@@ -636,9 +635,9 @@ unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT]);
 int TestSumOfSquares(CodewordRules rules, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
-	FeedbackList *fbl = list[0].CompareTo(list);
+	FeedbackList fbl(list[0], list);
 	FeedbackFrequencyTable freq;
-	fbl->CountFrequencies(&freq);
+	fbl.CountFrequencies(&freq);
 
 	unsigned int ss;
 

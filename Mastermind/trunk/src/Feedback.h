@@ -10,6 +10,9 @@
 
 namespace Mastermind 
 {
+	class Codeword;
+	class CodewordList;
+
 	/// Represents the feedback from comparing two codewords.
 	class Feedback
 	{
@@ -219,21 +222,24 @@ namespace Mastermind
 	class FeedbackList
 	{
 	private:
-
 		unsigned char *m_values;
 		int m_count;
+		int m_alloctype; // 0=new, 1=malloc, 2=alloca(on stack)
 
 	public:
+		FeedbackList(int count)
+		{
+			m_values = (unsigned char *)_malloca(count);
+			m_count = count;
+		}
 
-		FeedbackList() : m_values(NULL), m_count(0) { }
-
-		FeedbackList(unsigned char *values, int count) 
-			: m_values(values), m_count(count) { }
+		FeedbackList(const Codeword &guess, const CodewordList &secrets);
 
 		~FeedbackList()
 		{
 			if (m_values != NULL) {
-				delete [] m_values;
+				//delete [] m_values;
+				_freea(m_values);
 				m_values = NULL;
 				m_count = 0;
 			}

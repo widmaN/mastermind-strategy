@@ -100,9 +100,9 @@ Codeword SimpleCodeBreaker::MakeGuess(CodewordList &possibilities)
 void SimpleCodeBreaker::FillStrategy(StrategyTree *tree, CodewordList possibilities, const Codeword &first_guess)
 {
 	Codeword guess = first_guess.IsEmpty()? MakeGuess(possibilities) : first_guess;
-	FeedbackList *fbl = guess.CompareTo(possibilities);
+	FeedbackList fbl(guess, possibilities);
 	FeedbackFrequencyTable freq;
-	fbl->CountFrequencies(&freq);
+	fbl.CountFrequencies(&freq);
 
 	for (unsigned char fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
 		Feedback fb(fbv);
@@ -115,7 +115,6 @@ void SimpleCodeBreaker::FillStrategy(StrategyTree *tree, CodewordList possibilit
 			tree->Pop();
 		}
 	}
-	delete fbl;
 }
 
 void SimpleCodeBreaker::BuildStrategyTree(StrategyTree *tree, const Codeword& first_guess)
@@ -201,9 +200,9 @@ void HeuristicCodeBreaker::FillStrategy(
 {
 	Codeword guess = first_guess.IsEmpty()?
 		MakeGuess(possibilities, unguessed_mask, impossible_mask) : first_guess;
-	FeedbackList *fbl = guess.CompareTo(possibilities);
+	FeedbackList fbl(guess, possibilities);
 	FeedbackFrequencyTable freq;
-	fbl->CountFrequencies(&freq);
+	fbl.CountFrequencies(&freq);
 
 	for (unsigned char fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
 		Feedback fb(fbv);
@@ -226,7 +225,6 @@ void HeuristicCodeBreaker::FillStrategy(
 			tree->Pop();
 		}
 	}
-	delete fbl;
 }
 
 void HeuristicCodeBreaker::BuildStrategyTree(StrategyTree *tree, const Codeword& first_guess)
@@ -270,11 +268,12 @@ Codeword HeuristicCodeBreaker::MakeGuess()
 	int choose_i = -1;
 	int choose_ispos = false;
 	Feedback target = Feedback(m_rules.length, 0);
+	FeedbackList fbl(m_possibilities.GetCount());
 	for (int i = 0; i < candidates.GetCount(); i++) {
 		Codeword guess = candidates[i];
-		FeedbackList *fbl = guess.CompareTo(m_possibilities);
+		guess.CompareTo(m_possibilities, fbl);
 		FeedbackFrequencyTable freq;
-		fbl->CountFrequencies(&freq);
+		fbl.CountFrequencies(&freq);
 
 		// Evaluate each potential guess, and find the minimum
 		int score = 0;
@@ -313,7 +312,6 @@ Codeword HeuristicCodeBreaker::MakeGuess()
 				choose_ispos = (freq[target] > 0);
 			}
 		}
-		delete fbl;
 	}
 	return candidates[choose_i];
 }
@@ -338,11 +336,12 @@ Codeword HeuristicCodeBreaker::MakeGuess(
 	int choose_i = -1;
 	int choose_ispos = false;
 	Feedback target = Feedback(m_rules.length, 0);
+	FeedbackList fbl(possibilities.GetCount());
 	for (int i = 0; i < candidates.GetCount(); i++) {
 		Codeword guess = candidates[i];
-		FeedbackList *fbl = guess.CompareTo(possibilities);
+		guess.CompareTo(possibilities, fbl);
 		FeedbackFrequencyTable freq;
-		fbl->CountFrequencies(&freq);
+		fbl.CountFrequencies(&freq);
 
 		// Evaluate each potential guess, and find the minimum
 		int score = 0;
@@ -381,7 +380,6 @@ Codeword HeuristicCodeBreaker::MakeGuess(
 				choose_ispos = (freq[target] > 0);
 			}
 		}
-		delete fbl;
 	}
 	return candidates[choose_i];
 }
@@ -417,11 +415,11 @@ void OptimalCodeBreaker::FillStrategy(
 {
 	Codeword guess = first_guess.IsEmpty()?
 		MakeGuess(possibilities, unguessed_mask, impossible_mask) : first_guess;
-	FeedbackList *fbl = guess.CompareTo(possibilities);
 	FeedbackFrequencyTable freq;
-	fbl->CountFrequencies(&freq);
-	delete fbl;
-	fbl = NULL;
+	if (1) {
+		FeedbackList fbl(guess, possibilities);
+		fbl.CountFrequencies(&freq);
+	}
 
 	Feedback perfect = Feedback(m_rules.length, 0);
 	for (unsigned char fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
@@ -481,11 +479,11 @@ int OptimalCodeBreaker::SearchLowestSteps(
 	int best_i = 0;
 	for (int i = 0; i < candidates.GetCount(); i++) {
 		Codeword guess = candidates[i];
-		FeedbackList *fbl = guess.CompareTo(possibilities);
 		FeedbackFrequencyTable freq;
-		fbl->CountFrequencies(&freq);
-		delete fbl;
-		fbl = NULL;
+		if (1) {
+			FeedbackList fbl(guess, possibilities);
+			fbl.CountFrequencies(&freq);
+		}
 		//assert(freq.GetPartitionCount() > 1);
 		if (freq.GetPartitionCount() <= 1) {
 			continue;

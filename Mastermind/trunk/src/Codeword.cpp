@@ -75,6 +75,21 @@ std::string Codeword::ToString() const
 	return buf;
 }
 
+void Codeword::CompareTo(const CodewordList& list, FeedbackList& fbl) const
+{
+	assert(list.GetCount() == fbl.GetCount());
+
+	int count = list.GetCount();
+	unsigned char *results = fbl.GetData();
+
+	if (list.GetRules().allow_repetition) {
+		Compare_Rep(m_value, list.GetData(), count, results);
+	} else {
+		Compare_NoRep(m_value, list.GetData(), count, results);
+	}
+}
+
+/*
 FeedbackList* Codeword::CompareTo(const CodewordList& list) const
 {
 	int count = list.GetCount();
@@ -88,6 +103,7 @@ FeedbackList* Codeword::CompareTo(const CodewordList& list) const
 
 	return new FeedbackList(results, count);
 }
+*/
 
 /// Compares this codeword to another codeword. 
 /// \return The feedback of the comparison.
@@ -172,13 +188,14 @@ CodewordList CodewordList::FilterByFeedback(
 {
 	// TODO: try stack alloc - it's fast!
 	unsigned char fb = feedback.GetValue();
-	FeedbackList *fblist = guess.CompareTo(*this);
+	FeedbackList fblist(this->GetCount());
+	guess.CompareTo(*this, fblist);
 
 	// Count feedbacks equal to fb
 	int count = 0;
 	if (1) {
-		const unsigned char *pfb = fblist->GetData();
-		int total = fblist->GetCount();
+		const unsigned char *pfb = fblist.GetData();
+		int total = fblist.GetCount();
 		while (total-- > 0) {
 			if (*(pfb++) == fb)
 				count++;
@@ -189,12 +206,11 @@ CodewordList CodewordList::FilterByFeedback(
 	CodewordList cwl(m_rules);
 	codeword_t *data = cwl.Allocate(count);
 	int j = 0;
-	for (int i = 0; i < fblist->GetCount(); i++) {
-		if ((*fblist)[i] == fb) 
+	for (int i = 0; i < fblist.GetCount(); i++) {
+		if (fblist[i] == fb) 
 			data[j++] = m_data[i];
 	}
 
-	delete fblist;
 	return cwl;
 }
 

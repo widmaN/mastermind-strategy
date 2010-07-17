@@ -167,7 +167,7 @@ Frequency Table
   A4: 5.500    1    9  103 1515 14073 16006 1060    1    -    -   107.60 (entropy)
   A5: 5.549    1   14  163 1424 12882 16787 1488    9    -    -    66.83 (max parts)
 
-[Intel processor is 30% faster in time.]
+[Intel processor is twice faster.]
 
 ==================
  3 Pegs, 6 Colors

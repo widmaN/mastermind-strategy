@@ -155,12 +155,13 @@ static int RegressionTestUnit()
 	}
 
 	// Comparison
-	FeedbackList *fbl = list[0].CompareTo(list);
-	if (!(fbl->GetCount() == 5040)) {
+	FeedbackList fbl(list.GetCount());
+	list[0].CompareTo(list, fbl);
+	if (!(fbl.GetCount() == 5040)) {
 		printf("FAILED: Codeword::CompareTo() returns wrong length of feedback\n");
 		return -1;
 	}
-	if (!(fbl->GetAt(3) == Feedback(3, 0))) {
+	if (!(fbl.GetAt(3) == Feedback(3, 0))) {
 		printf("FAILED: Incorrect comparison results\n");
 		return -1;
 	}
@@ -377,7 +378,7 @@ int main(int argc, char* argv[])
 	string s;
 	
 	CodewordRules rules;
-	if (1) {
+	if (0) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
@@ -407,32 +408,34 @@ int main(int argc, char* argv[])
 
 		Feedback check(1, 3);
 		// Find out the partition of 1223
-		const char *s;
-		s = "1233";
-		guess = Codeword::Parse(s, rules);
-		FeedbackList *fbl = guess.CompareTo(list);
-		FeedbackFrequencyTable freq;
-		fbl->CountFrequencies(&freq);
-		//printf("Frequency table %s:\n", s);
-		//freq.DebugPrint();
-		printf("Guess=0011, Feedback=0A1B\n");
-		printf("Guess=%s, Feedback=%s: ", s, check.ToString().c_str());
-		list.FilterByFeedback(guess, check).DebugPrint();
-		printf("\n");
-		delete fbl;
+		if (1) {
+			const char *s = "1233";
+			guess = Codeword::Parse(s, rules);
+			FeedbackList fbl(guess, list);
+			FeedbackFrequencyTable freq;
+			fbl.CountFrequencies(&freq);
+			//printf("Frequency table %s:\n", s);
+			//freq.DebugPrint();
+			printf("Guess=0011, Feedback=0A1B\n");
+			printf("Guess=%s, Feedback=%s: ", s, check.ToString().c_str());
+			list.FilterByFeedback(guess, check).DebugPrint();
+			printf("\n");
+		}
 
 		// Find out the partition of 1233
-		s = "1223";
-		guess = Codeword::Parse(s, rules);
-		fbl = guess.CompareTo(list);
-		fbl->CountFrequencies(&freq);
-		//printf("Frequency table %s:\n", s);
-		//freq.DebugPrint();
-		printf("Guess=0011, Feedback=0A1B\n");
-		printf("Guess=%s, Feedback=%s: ", s, check.ToString().c_str());
-		list.FilterByFeedback(guess, check).DebugPrint();
-		printf("\n");
-		delete fbl;
+		if (1) {
+			const char *s = "1223";
+			guess = Codeword::Parse(s, rules);
+			FeedbackList fbl(guess, list);
+			FeedbackFrequencyTable freq;
+			fbl.CountFrequencies(&freq);
+			//printf("Frequency table %s:\n", s);
+			//freq.DebugPrint();
+			printf("Guess=0011, Feedback=0A1B\n");
+			printf("Guess=%s, Feedback=%s: ", s, check.ToString().c_str());
+			list.FilterByFeedback(guess, check).DebugPrint();
+			printf("\n");
+		}
 
 		system("PAUSE");
 		return 0;
@@ -463,10 +466,10 @@ int main(int argc, char* argv[])
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
 		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
 		// new OptimalCodeBreaker(rules),
 	};
 
@@ -474,7 +477,7 @@ int main(int argc, char* argv[])
 	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
 	printf("\n");
 
-	if (1) {
+	if (0) {
 		printf("\nRun again:\n");
 		CountFrequencies_SelectImpl("c_p8_il_os");
 		TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);

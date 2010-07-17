@@ -119,7 +119,9 @@ namespace Mastermind
 
 		/// Compares this codeword to a codeword list. 
 		/// Returns a list of feedbacks.
-		FeedbackList* CompareTo(const CodewordList& list) const;
+		//FeedbackList* CompareTo(const CodewordList& list) const;
+
+		void CompareTo(const CodewordList& list, FeedbackList& fbl) const;
 
 		/// Returns a 16-bit mask of digits present in the codeword.
 		unsigned short GetDigitMask() const;
