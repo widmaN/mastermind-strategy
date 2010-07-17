@@ -2,22 +2,33 @@
 
 #include "MMConfig.h"
 
-void CountFrequencies_Impl(
+typedef void (*FREQUENCY_COUNTING_ROUTINE)(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[MM_FEEDBACK_COUNT]);
 
-#ifndef NTEST
+extern FREQUENCY_COUNTING_ROUTINE CountFrequencies_Impl;
 
-void count_freq_v1(
+typedef struct FrequencyCountingRoutineEntry 
+{
+	const char *name;
+	const char *description;
+	FREQUENCY_COUNTING_ROUTINE routine;
+} FrequencyCountingRoutineEntry;
+
+extern FrequencyCountingRoutineEntry CountFrequencies_Impls[];
+
+void CountFrequencies_SelectImpl(const char *name);
+
+void count_freq_c(
 	const unsigned char *feedbacks,
 	unsigned int count,
-	unsigned int freq[256]);
+	unsigned int freq[64]);
 
-void count_freq_v3(
+void count_freq_c_luf4(
 	const unsigned char *feedbacks,
-	int count,
-	unsigned int freq[256]);
+	unsigned int count,
+	unsigned int freq[64]);
 
 void count_freq_v9(
 	const unsigned char *feedbacks,
@@ -29,4 +40,3 @@ void count_freq_v10(
 	unsigned int count,
 	unsigned int freq[64]);
 
-#endif

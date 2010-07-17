@@ -377,7 +377,7 @@ int main(int argc, char* argv[])
 	string s;
 	
 	CodewordRules rules;
-	if (1) {
+	if (0) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
@@ -447,9 +447,9 @@ int main(int argc, char* argv[])
 #else
 #define LOOP_FLAG 0
 #endif
+	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	//return TestSumOfSquares(rules, 5000000*LOOP_FLAG);
-	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestNewCompare(rules, 100000*LOOP_FLAG);
 	//return TestNewScan(rules, 100000*1);
 	//return BuildLookupTableForLongComparison();
@@ -463,15 +463,25 @@ int main(int argc, char* argv[])
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
 		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
 		// new OptimalCodeBreaker(rules),
 	};
-	//TestGuessing(rules, breakers, sizeof(breakers)/sizeof(breakers[0]));
+
+	CountFrequencies_SelectImpl("c");
 	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
 	printf("\n");
+
+	printf("\nRun again:\n");
+	CountFrequencies_SelectImpl("c_p8_il_os");
+	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
+	printf("\n");
+
+	void PrintFrequencyStatistics();
+	//PrintFrequencyStatistics();
+
 	system("PAUSE");
 	return 0;
 

@@ -493,14 +493,14 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 	for (int pass = 0; pass < 10; pass++) {
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			count_freq_v9(fbl, count, freq);
+			count_freq_c(fbl, count, freq);
 			//count_freq_v9(fbl, count, freq);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			count_freq_v10(fbl, count, freq);
+			count_freq_c_luf4(fbl, count, freq);
 			//count_freq_v1(fbl, count, freq);
 		}
 		t2 += timer.Stop();

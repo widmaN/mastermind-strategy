@@ -1,72 +1,44 @@
 #include <assert.h>
 #include <memory.h>
 #include <emmintrin.h>
+#include <stdio.h>
+#include <intrin.h>
 
 #include "MMConfig.h"
 #include "Frequency.h"
 
-// Implementation in C.
-// It's very astonishing that by changing the parameter <code>count</code>
-// from unsigned to signed, it degrades performance significantly.
-// The compiler generates an extra instruction to test the loop 
-// condition <code>count < 0</code>, 
-// probably because the DEC instruction doesn't modify the CF flag.
-MM_IMPLEMENTATION 
-void count_freq_v1(
+static inline void UpdateStatistics(unsigned int count);
+
+// Simplistic implementation in C. In practice, if the feedback list is small,
+// this routine actually performs better than more complicated Out-of-order Execution
+// routines. So we use this as the choice routine.
+void count_freq_c(
+	const unsigned char *feedbacks,
+	unsigned int count,
+	unsigned int freq[MM_FEEDBACK_COUNT])
+{
+	memset(freq, 0, sizeof(unsigned int)*MM_FEEDBACK_COUNT);
+	for (; count > 0; count--) {
+		++freq[*(feedbacks++) & 0x3f];
+	}
+}
+
+// Implementation in C, with loop unfolding.
+void count_freq_c_luf4(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[64])
 {
-	assert(feedbacks != 0);
-	assert(freq != 0);
+	memset(freq, 0, sizeof(unsigned int)*MM_FEEDBACK_COUNT);
 
-	if (0) {
-		memset(freq, 0, 64*4);
-		while (count-- > 0) {
-			++freq[*(feedbacks++)];
-		}
-	} else {
-		unsigned char cache = 0xff;
-		int cache_count = 0;
-		int switch_count = 0;
-		memset(freq, 0, 64*4);
-		while (count-- > 0) {
-			unsigned char fb = *(feedbacks++);
-			if (fb == cache) {
-				cache_count++;
-			} else {
-				switch_count++;
-				freq[cache] += cache_count;
-				cache_count = 1;
-				cache = fb;
-			}
-		}
-		if (cache_count > 0) {
-			freq[cache] += cache_count;
-		}
-		//printf("Switch count: %d\n", switch_count);
+	for (; count >= 4; count -= 4) {
+		++freq[*(feedbacks++) & 0x3f];
+		++freq[*(feedbacks++) & 0x3f];
+		++freq[*(feedbacks++) & 0x3f];
+		++freq[*(feedbacks++) & 0x3f];
 	}
-}
-
-// Implementation in C, with an attempt to enable Out-of-Order execution.
-MM_IMPLEMENTATION
-void count_freq_v3(
-	const unsigned char *feedbacks,
-	int count,
-	unsigned int freq[256])
-{
-	assert(feedbacks != 0);
-	assert(freq != 0);
-	assert(count >= 0);
-
-	memset(freq, 0, 1024);
-
-	for (; count > 0; count -= 4) {
-		++freq[feedbacks[0]];
-		++freq[feedbacks[1]];
-		++freq[feedbacks[2]];
-		++freq[feedbacks[3]];
-		feedbacks += 4;
+	for (; count > 0; count--) {
+		++freq[*(feedbacks++) & 0x3f];
 	}
 }
 
@@ -184,6 +156,8 @@ void count_freq_v10(
 	// to a smaller integer, and allocate smaller memory for 'matrix'.
 	int i;
 
+	// UpdateStatistics(count);
+
 #define INTERLACED 1
 
 #if INTERLACED
@@ -230,10 +204,109 @@ void count_freq_v10(
 				+ matrix[i][4]+matrix[i][5]+matrix[i][6]+matrix[i][7];
 	}
 #else
+	//for (i = 0; i < 63; i++) {
+	//	freq[i] = matrix[0][i]+matrix[1][i]+matrix[2][i]+matrix[3][i]
+	//			+ matrix[4][i]+matrix[5][i]+matrix[6][i]+matrix[7][i];
+	//}
 	for (i = 0; i < 63; i++) {
-		freq[i] = matrix[0][i]+matrix[1][i]+matrix[2][i]+matrix[3][i]
-				+ matrix[4][i]+matrix[5][i]+matrix[6][i]+matrix[7][i];
+		freq[i] = matrix[0][i]+matrix[1][i]+matrix[2][i]+matrix[3][i];
 	}
+	for (i = 0; i < 63; i++) {
+		freq[i] += matrix[4][i]+matrix[5][i]+matrix[6][i]+matrix[7][i];
+	}
+
+#endif
+
+#undef INTERLACED
+
+	for (; count > 0; count--) {
+		unsigned char fb = *(feedbacks++);
+		fb &= 0x3f;
+		++freq[fb];
+	}
+	freq[63] = 0;
+}
+
+void count_freq_v11(
+	const unsigned char *feedbacks,
+	unsigned int count,
+	unsigned int freq[64])
+{
+	if (count <= 160) {
+		memset(freq, 0, sizeof(unsigned int)*64);
+		for (; count > 0; count--) {
+			unsigned char fb = *(feedbacks++);
+			fb &= 0x3f;
+			++freq[fb];
+		}
+		freq[63] = 0;
+		return;
+	}
+
+	// We build eight frequency tables in parallel.
+	// Note: we could probably improve performance marginally by mapping feedback
+	// to a smaller integer, and allocate smaller memory for 'matrix'.
+	int i;
+
+	// UpdateStatistics(count);
+
+#define INTERLACED 1
+
+#if INTERLACED
+	unsigned int matrix[64][8];
+#else
+	unsigned int matrix[8][64];
+#endif
+
+	memset(matrix, 0, sizeof(matrix));
+	for (; count >= 8; count -= 8) {
+		unsigned int a1 = ((int *)feedbacks)[0];	// a1 contains 4 feedbacks
+		unsigned int a2 = ((int *)feedbacks)[1];	// a2 contains 4 feedbacks
+		a1 &= 0x3f3f3f3f;
+		a2 &= 0x3f3f3f3f;
+
+#if INTERLACED
+		++matrix[a1 & 0xff][0];
+		++matrix[(a1>>8) & 0xff][1];
+		++matrix[(a1>>16) & 0xff][2];
+		++matrix[(a1>>24) & 0xff][3];
+
+		++matrix[a2 & 0xff][4];
+		++matrix[(a2>>8) & 0xff][5];
+		++matrix[(a2>>16) & 0xff][6];
+		++matrix[(a2>>24) & 0xff][7];
+#else
+		++matrix[0][a1 & 0xff];
+		++matrix[1][(a1>>8) & 0xff];
+		++matrix[2][(a1>>16) & 0xff];
+		++matrix[3][(a1>>24) & 0xff];
+
+		++matrix[4][a2 & 0xff];
+		++matrix[5][(a2>>8) & 0xff];
+		++matrix[6][(a2>>16) & 0xff];
+		++matrix[7][(a2>>24) & 0xff];
+#endif
+		feedbacks += 8;
+	}
+
+	// Add up the eight frequency tables to get the final result
+#if INTERLACED
+	for (i = 0; i < 63; i++) {
+		freq[i] = matrix[i][0]+matrix[i][1]+matrix[i][2]+matrix[i][3]
+				+ matrix[i][4]+matrix[i][5]+matrix[i][6]+matrix[i][7];
+	}
+#else
+	//for (i = 0; i < 63; i++) {
+	//	freq[i] = matrix[0][i]+matrix[1][i]+matrix[2][i]+matrix[3][i]
+	//			+ matrix[4][i]+matrix[5][i]+matrix[6][i]+matrix[7][i];
+	//}
+	for (i = 0; i < 63; i++) {
+		freq[i] = matrix[0][i]+matrix[1][i]+matrix[2][i]+matrix[3][i];
+	}
+	for (i = 0; i < 63; i++) {
+		freq[i] += matrix[4][i]+matrix[5][i]+matrix[6][i]+matrix[7][i];
+	}
+
 #endif
 
 #undef INTERLACED
@@ -270,18 +343,80 @@ unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT])
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// Calling statistic routines
+//
+
+// The count_freq() calling statistics for 4 pegs, 10 colors, no rep
+//List length >=  4096 : 9
+//List length >=  1024 : 1682
+//List length >=   512 : 841
+//List length >=   256 : 22893
+//List length >=   128 : 24938
+//List length >=    64 : 135980
+//List length >=    32 : 222630
+//List length >=    16 : 652336
+//List length >=     8 : 1111720
+//List length >=     4 : 1678683
+//List length >=     2 : 825598
+//List length >=     1 : 17404
+//count_freq() called times: 4694714
+//Number of codes compared:  73869707
+//Average comparison per call: 15.73
+
+static unsigned int _cfprof_calls = 0;
+static unsigned int _cfprof_comps = 0;
+static unsigned int _cfprof_call_stat[32] = {0};
+static unsigned int _cfprof_comp_stat[32] = {0};
+
+void PrintFrequencyStatistics()
+{
+	printf("Total number of calls to count_freq: %d\n", _cfprof_calls);
+	printf("Total number of codewords compared:  %d\n", _cfprof_comps);
+	printf("Average comparison per call: %.2f\n", (double)_cfprof_comps / _cfprof_calls);
+
+	for (int k = 31; k >= 0; k--) {
+		if (_cfprof_call_stat[k] > 0) {
+			printf("List length >=%6d : %6.2f%%  %6.2f%%\n", 1<<k, 
+				(double)_cfprof_call_stat[k] / _cfprof_calls * 100.0,
+				(double)_cfprof_comp_stat[k] / _cfprof_comps * 100.0);
+		}
+	}
+}
+
+static inline void UpdateStatistics(unsigned int count)
+{
+	unsigned long pos;
+	if (_BitScanReverse(&pos, count)) {
+		_cfprof_call_stat[pos]++;
+		_cfprof_comp_stat[pos] += count;
+		_cfprof_calls++;
+		_cfprof_comps += count;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////
 // Interface routine
 //
 
-void CountFrequencies_Impl(
-	const unsigned char *feedbacks,
-	unsigned int count,
-	unsigned int freq[MM_FEEDBACK_COUNT])
+FrequencyCountingRoutineEntry CountFrequencies_Impls[] = {
+	{ "c", "Simple implementation", count_freq_c },
+	{ "c_luf4", "Simple implementation with loop unfolding", count_freq_c_luf4 },
+	{ "c_p8_il", "Standard implementation (8-parallel, interlaced)", count_freq_v10 },
+	{ "c_p8_il_os", "Standard implementation (8-parallel, interlaced, optimized for small list)", count_freq_v11 },
+	{ NULL, NULL, NULL },
+};
+
+FREQUENCY_COUNTING_ROUTINE CountFrequencies_Impl = count_freq_c;
+
+void CountFrequencies_SelectImpl(const char *name)
 {
-#if THIS_IS_AMD_PROCESSOR
-	count_freq_v9(feedbacks, count, freq);
-#else
-	count_freq_v10(feedbacks, count, freq);
-	//count_freq_v9(feedbacks, count, freq);
-#endif
+	const FrequencyCountingRoutineEntry *entry = CountFrequencies_Impls;
+	for (; entry->name != NULL; entry++) {
+		if (strcmp(entry->name, name) == 0) {
+			CountFrequencies_Impl = entry->routine;
+			return;
+		}
+	}
+	assert(0);
+	// CountFrequencies_Impl = CountFrequencies_Impls[0].routine;
 }
