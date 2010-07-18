@@ -192,12 +192,12 @@ namespace Mastermind
 			return ret;
 		}
 
-		double GetModifiedEntropy() const 
+		float GetModifiedEntropy() const 
 		{
-			double ret = 0;
+			float ret = 0.0;
 			for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
 				if (m_freq[i] > 0) {
-					ret += log((double)m_freq[i]) * (double)m_freq[i];
+					ret += log((float)m_freq[i]) * (float)m_freq[i];
 
 				}
 			}

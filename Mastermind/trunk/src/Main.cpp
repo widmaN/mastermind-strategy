@@ -362,23 +362,18 @@ int TestOutputStrategyTree(CodewordRules rules)
 // -r, --rep           allow repetition
 // -nr, --norep        don't allow repetition
 
-// TODO: FilterByEquivalence_rep_v1 fails regression test! Find out why it
-//       is wrong.
-// TODO: count_freq_v6 doesn't handle malformed feedback input (stack overflow)
-// TODO: find out why count_freq_v6 performance varies with the number of
-//       feedbacks allocated
 // TODO: Use feedback_map to put feedbacks together, if this can improve
 //       the performance of count_freq_v6 and GetSumOfSquares
-// TODO: implement count_freq without using ASM (and match >=90% performance)
 // TODO: Try use the CodewordList::Partition() method to speed up strategy
 //       tree calculation for Logik setup (5 pegs, 8 colors, with rep)
-// TODO: improve FeedbackList to reduce memory allocation and reuse memory
+// TODO: Improve strategy tree to save memory (pointer) and be thread-safe
+//       to prepare for multithreading.
 int main(int argc, char* argv[])
 {
 	string s;
 	
 	CodewordRules rules;
-	if (1) {
+	if (0) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
@@ -466,8 +461,8 @@ int main(int argc, char* argv[])
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
 		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
+		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
 		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
 		// new OptimalCodeBreaker(rules),
 	};
@@ -484,10 +479,10 @@ int main(int argc, char* argv[])
 	}
 
 	void PrintFrequencyStatistics();
-	PrintFrequencyStatistics();
+	//PrintFrequencyStatistics();
 
 	void PrintCompareStatistics();
-	PrintCompareStatistics();
+	//PrintCompareStatistics();
 
 	system("PAUSE");
 	return 0;

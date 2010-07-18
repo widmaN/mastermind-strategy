@@ -331,7 +331,7 @@ Codeword HeuristicCodeBreaker::MakeGuess(
 	CodewordList candidates = m_posonly? possibilities : m_all;
 	candidates = candidates.FilterByEquivalence(unguessed_mask, impossible_mask);
 
-	double choose_dscore = 1.0e10;
+	float choose_dscore = 1.0e10;
 	int choose_score = 0x7fffffff;
 	int choose_i = -1;
 	int choose_ispos = false;
@@ -345,7 +345,7 @@ Codeword HeuristicCodeBreaker::MakeGuess(
 
 		// Evaluate each potential guess, and find the minimum
 		int score = 0;
-		double dscore = 0.0;
+		float dscore = 0.0;
 		bool use_double = false;
 		switch (m_criteria) {
 		default:
