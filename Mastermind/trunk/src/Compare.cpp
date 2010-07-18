@@ -106,7 +106,8 @@ static void compare_long_codeword_r3(
 	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
 	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
 
-	for (; count > 0; count -= 2) {
+	for (; count > 0; count -= 4) {
+		if (1) {
 		__m128i guess1 = *(guesses++);
 		__m128i guess2 = *(guesses++);
 
@@ -137,6 +138,39 @@ static void compare_long_codeword_r3(
 		unsigned char nAnB2 = (unsigned char)((nA2 << MM_FEEDBACK_ASHIFT) | (nB2 - nA2));
 		*(results++) = nAnB1;		
 		*(results++) = nAnB2;
+		}
+		if (1) {
+		__m128i guess1 = *(guesses++);
+		__m128i guess2 = *(guesses++);
+
+		// count nA
+		__m128i tA1 = _mm_cmpeq_epi8(secret, guess1);
+		__m128i tA2 = _mm_cmpeq_epi8(secret, guess2);
+
+		tA1 = _mm_and_si128(tA1, mask_high6);
+		tA2 = _mm_and_si128(tA2, mask_high6);
+			
+		tA1 = _mm_sad_epu8(tA1, zero);
+		tA2 = _mm_sad_epu8(tA2, zero);
+			
+		// count nB
+		__m128i tB1 = _mm_min_epu8(secret_low10, guess1);
+		__m128i tB2 = _mm_min_epu8(secret_low10, guess2);
+
+		tB1 = _mm_sad_epu8(tB1, zero);
+		tB2 = _mm_sad_epu8(tB2, zero);
+
+		int nA1 = _mm_extract_epi16(tA1, 4);// + _mm_cvtsi128_si32(tA);
+		int nA2 = _mm_extract_epi16(tA2, 4);// + _mm_cvtsi128_si32(tA);
+
+		int nB1 = _mm_extract_epi16(tB1, 4) + _mm_cvtsi128_si32(tB1);
+		int nB2 = _mm_extract_epi16(tB2, 4) + _mm_cvtsi128_si32(tB2);
+
+		unsigned char nAnB1 = (unsigned char)((nA1 << MM_FEEDBACK_ASHIFT) | (nB1 - nA1));
+		unsigned char nAnB2 = (unsigned char)((nA2 << MM_FEEDBACK_ASHIFT) | (nB2 - nA2));
+		*(results++) = nAnB1;		
+		*(results++) = nAnB2;
+		}
 	}
 }
 

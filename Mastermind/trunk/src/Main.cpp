@@ -378,7 +378,7 @@ int main(int argc, char* argv[])
 	string s;
 	
 	CodewordRules rules;
-	if (1) {
+	if (0) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
@@ -450,7 +450,7 @@ int main(int argc, char* argv[])
 #else
 #define LOOP_FLAG 0
 #endif
-	//return TestCompare(rules, "r_p1a", "r_p1b", 10000*LOOP_FLAG);
+	return TestCompare(rules, "r_p1a", "r_p1b", 10000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	//return TestSumOfSquares(rules, 5000000*LOOP_FLAG);
