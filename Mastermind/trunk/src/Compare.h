@@ -8,18 +8,22 @@
 #include "RoutineSelector.h"
 
 /// Compares an array of guesses to the secret.
+/// @param[in]	secret	The secret codeword
+/// @param[in]	guesses	An array of guesses
+/// @param[in]	count	Number of guesses in the array
+/// @param[out]	results	An array to store feedbacks
 typedef void COMPARISON_ROUTINE(
-	/// [in] The secret codeword
 	__m128i secret, 
-	/// [in] An array of guesses
 	const __m128i guesses[], 
-	/// [in] Number of guesses in the array
 	unsigned int count, 
-	/// [out] An array to store feedbacks
 	unsigned char results[]);
 
+/// Codeword comparison implementation selector.
 typedef Utilities::RoutineSelector<COMPARISON_ROUTINE> ComparisonRoutineSelector;
 
+/// Routine table for codeword comparison (allowing repetition).
 extern ComparisonRoutineSelector *CompareRepImpl;
+
+/// Routine table for codeword comparison (without repetition).
 extern ComparisonRoutineSelector *CompareNoRepImpl;
 
