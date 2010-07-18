@@ -206,14 +206,17 @@ namespace Mastermind
 
 		void DebugPrint() const 
 		{
+			int total = 0;
 			for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
 				if (m_freq[i] != 0) {
 					printf("%d A %d B = %d\n", 
 						i >> MM_FEEDBACK_ASHIFT,
 						i & MM_FEEDBACK_BMASK,
 						m_freq[i]);
+					total += m_freq[i];
 				}
 			}
+			printf("Total: %d\n", total);
 		}
 
 	};
@@ -224,7 +227,7 @@ namespace Mastermind
 	private:
 		unsigned char *m_values;
 		int m_count;
-		int m_alloctype; // 0=new, 1=malloc, 2=alloca(on stack)
+		int m_alloctype; // 0=no alloc, 1=malloc, 2=alloca(on stack)
 
 		void Allocate(int count, int type)
 		{
@@ -233,9 +236,12 @@ namespace Mastermind
 			switch (type) {
 			default:
 			case 0:
-				m_values = (unsigned char *)malloc(m_count);
+				m_values = NULL;
 				break;
 			case 1:
+				m_values = (unsigned char *)malloc(m_count);
+				break;
+			case 2:
 				m_values = (unsigned char *)_malloca(count);
 				break;
 			}
@@ -244,26 +250,34 @@ namespace Mastermind
 	public:
 		FeedbackList(int count)
 		{
-			Allocate(count, 0);
+			Allocate(count, 1);
+		}
+
+		FeedbackList(unsigned char *values, int count)
+		{
+			m_alloctype = 0;
+			m_values = values;
+			m_count = count;
 		}
 
 		FeedbackList(const Codeword &guess, const CodewordList &secrets);
 
 		~FeedbackList()
 		{
-			if (m_values != NULL) {
-				switch (m_alloctype) {
-				default:
-				case 0:
-					free(m_values);
-					break;
-				case 1:
-					_freea(m_values);
-					break;
-				}
-				m_values = NULL;
-				m_count = 0;
+			switch (m_alloctype) {
+			default:
+			case 0:
+				break;
+			case 1:
+				free(m_values);
+				break;
+			case 2:
+				_freea(m_values);
+				break;
 			}
+			m_values = NULL;
+			m_count = 0;
+			m_alloctype = 0;
 		}
 
 		unsigned char * GetData() { return m_values; }

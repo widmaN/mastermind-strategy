@@ -341,106 +341,6 @@ int TestScan(CodewordRules rules, long times)
 }
 #endif
 
-#if 0
-/// Compares codeword comparison algorithms.
-///
-/// Test: 
-///   - For 16-bit routines, compare one secret to 5040 guesses. 
-///     The codewords do not contain repetitive digits. Run the 
-///     comparison for 50,000 times.
-///   - For 32-bit routines, compare one secret to 2520 guesses. 
-///     The codewords contains repetitive digits. Run the 
-///     comparison for 50,000 times.
-///
-/// Results:
-/// <pre>
-/// compare_16bit_norep_c:     10.32 s
-/// compare_16bit_norep_asm:    3.25 s
-/// compare_16bit_norep (SSE2): 1.24 s
-/// compare_16bit_rep (SSE2):   2.33 s
-/// compare_32bit_norep (SSE2): 3.02 s
-/// compare_32bit_rep (SSE2):   5.35 s</pre>
-/// 
-/// Conclusion:
-///   - Parallel implementations using SSE2 intrinsics permform
-///     significantly better than non-parallel implementations. The SSE2
-///     routine is 10 times faster than the C routine, and twice faster 
-///     than the hand-tuned ASM.
-///   - Assuming non-repetition significant improves performance. This
-///     means we need to keep specialized implementation for non-rep
-///     comparison.
-///   - 32-bit routines are twice slower than 16-bit routines.
-int TestCompare(CodewordRules rules, long times)
-{
-	CodewordList list = CodewordList::Enumerate(rules);
-	bool test32 = true;
-
-	const CodewordList::codeword_t *guesses = list.GetData();
-	int n = list.GetCount();
-	CodewordList::codeword_t secret = list[0].GetValue();
-
-	//unsigned long secret32 = 0xffff2058;
-	//unsigned short secret = (unsigned short)secret32;
-	//const unsigned short *guesses = list.GetData();
-	//const unsigned long *guesses32 = (const unsigned long *)guesses;
-	unsigned char *results = new unsigned char [n];
-
-	if (times == 0) {
-		Compare_Rep(secret, guesses, n, results);
-
-		//for (int i = 0; i < n*0+21; i++) {
-		for (int i = 0; i < n; i++) {
-			if (test32) {
-				if (i>2435 && i < 2450)
-				printf("[%4d] %08x %08x = %d A %d B\n", i+1, 
-					secret32, guesses32[i], 
-					(int)(results[i] >> 4), (int)(results[i] & 0xf));
-			} else {
-				printf("[%4d] %04x %04x = %d A %d B\n", i+1, 
-					secret, guesses[i], 
-					(int)(results[i] >> 4), (int)(results[i] & 0xf));
-			}
-		}
-		delete [] results;
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-	t1 = t2 = 0;
-
-	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
-		for (int j = 0; j < times / 10; j++) {
-			if (test32) {
-				Compare_Rep_Impl(secret32, guesses32, n, results);
-			} else {
-				Compare_Rep_Impl(secret, guesses, n, results);
-			}
-		}
-		t1 += timer.Stop();
-
-		timer.Start();
-		for (int j = 0; j < times / 10; j++) {
-			if (test32) {
-				Compare_Rep_Impl(secret32, guesses32, n, results);
-			} else {
-				Compare_Rep_Impl(secret, guesses, n, results);
-			}
-		}
-		t2 += timer.Stop();
-	}
-
-	printf("Algorithm 1: %6.3f\n", t1);
-	printf("Algorithm 2: %6.3f\n", t2);
-
-	delete [] results;
-	system("PAUSE");
-	return 0;
-}
-#endif
-
 #ifndef NTEST
 /// Compares frequency counting algorithms.
 ///
@@ -516,33 +416,35 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 }
 #endif
 
-#if 0
-int TestNewCompare(CodewordRules rules, long times)
+int TestCompare(CodewordRules rules, const char *routine1, const char *routine2, long times)
 {
-	CodewordListImpl<unsigned short> list = CodewordListImpl<unsigned short>::Enumerate(rules);
-	int count = list.GetCount();
-	const unsigned short *data = list.GetData();
+	CodewordList list = CodewordList::Enumerate(rules);
+	unsigned int count = list.GetCount();
+	const __m128i *data = (const __m128i *)list.GetData();
+	__m128i secret = data[count / 2];
+	unsigned char *results = new unsigned char [count];
 
-	__m128i big[5040];
-	convert_codeword_to_long_format(data, count, big);
-	unsigned char results[5040];
-//	unsigned int freq[64];
+	COMPARISON_ROUTINE *func1 = CompareRepImpl->GetRoutine(routine1);
+	COMPARISON_ROUTINE *func2 = CompareRepImpl->GetRoutine(routine2);
 
 	int k = 0;
-
 	if (times == 0) {
-		//Compare_NoRep_Impl(data[0], data, count, results);
-		compare_long_codeword_v4(big[0], big, count, results);
+		func2(secret, data, count, results);
 		if (1) {
-			for (int i = 0; i < count; i++) {
-				unsigned char *t0 = (unsigned char *)&big[0];
-				unsigned char *t = (unsigned char *)&big[i];
-				printf("%x%x%x%x %x%x%x%x = %s\n",
-					t0[15],t0[14],t0[13],t0[12],
-					t[15],t[14],t[13],t[12],
+			FeedbackList fbl(results, count);
+			FeedbackFrequencyTable freq;
+			fbl.CountFrequencies(&freq);
+			freq.DebugPrint();
+		}
+		if (0) {
+			for (unsigned int i = 0; i < count*0+25; i++) {
+				printf("%s %s = %s\n",
+					Codeword(secret).ToString().c_str(),
+					Codeword(data[i]).ToString().c_str(),
 					Feedback(results[i]).ToString().c_str());
 			}
 		}
+		delete [] results;
 		system("PAUSE");
 		return 0;
 	}
@@ -554,16 +456,13 @@ int TestNewCompare(CodewordRules rules, long times)
 	for (int pass = 0; pass < 10; pass++) {
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			Compare_NoRep(data[0], data, count, results);
-			//compare_long_codeword_v3(&big[0], big, count, results);
-
+			func1(secret, data, count, results);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			//Compare_NoRep_Impl(big[0], big, count, results);
-			compare_long_codeword_v4(big[0], big, count, results);
+			func2(secret, data, count, results);
 		}
 		t2 += timer.Stop();
 	}
@@ -572,10 +471,10 @@ int TestNewCompare(CodewordRules rules, long times)
 	printf("Algorithm 2:  %6.3f\n", t2);
 	printf("Improvement: %5.1f%%\n", (t1/t2-1)*100);
 
+	delete [] results;
 	system("PAUSE");
 	return 0;
 }
-#endif
 
 #if 0
 int TestNewScan(CodewordRules rules, long times)

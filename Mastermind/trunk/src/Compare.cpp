@@ -17,8 +17,7 @@
 // This is the benchmark routine for codeword comparison
 // which ALLOWS REPETITION.
 // The implementation is very simple and clean.
-MM_IMPLEMENTATION
-void compare_long_codeword_v1(
+static void compare_long_codeword_r1(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
@@ -54,8 +53,7 @@ void compare_long_codeword_v1(
 // This is the chosen implementation for "long" codeword comparison
 // which ALLOWS REPETITION.
 // It is a tiny improvement over v1.
-MM_IMPLEMENTATION
-void compare_long_codeword_v2(
+static void compare_long_codeword_r2(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
@@ -71,7 +69,7 @@ void compare_long_codeword_v2(
 	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
 	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
 
-	for (unsigned int i = 0; i < count; i++) {
+	for (; count > 0; count--) {
 		__m128i guess = *(guesses++);
 
 		// count nA
@@ -83,11 +81,62 @@ void compare_long_codeword_v2(
 		__m128i tB = _mm_min_epu8(secret_low10, guess);
 		tB = _mm_sad_epu8(tB, zero);
 
-		int nAnB = _mm_extract_epi16(tA, 4);
-		nAnB <<= 4;
-		nAnB += _mm_extract_epi16(tB, 4); // BUG: nA not deducted from nB
-		nAnB += _mm_cvtsi128_si32(tB); // _mm_extract_epi16(tB, 0);
+		int nA = _mm_extract_epi16(tA, 4);
+		int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
+		unsigned char nAnB = (unsigned char)((nA << (MM_FEEDBACK_BITS / 2)) | (nB - nA));
 		*(results++) = nAnB;
+	}
+}
+
+// ALLOWS REPETITION.
+// Small improvement over v2.
+static void compare_long_codeword_r3(
+	__m128i secret,
+	const __m128i *guesses,
+	unsigned int count,
+	unsigned char *results)
+{
+	// Change 0xff in secret to 0x0f
+	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
+
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i zero = _mm_setzero_si128();
+
+	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
+	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
+	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
+
+	for (; count > 0; count -= 2) {
+		__m128i guess1 = *(guesses++);
+		__m128i guess2 = *(guesses++);
+
+		// count nA
+		__m128i tA1 = _mm_cmpeq_epi8(secret, guess1);
+		__m128i tA2 = _mm_cmpeq_epi8(secret, guess2);
+
+		tA1 = _mm_and_si128(tA1, mask_high6);
+		tA2 = _mm_and_si128(tA2, mask_high6);
+			
+		tA1 = _mm_sad_epu8(tA1, zero);
+		tA2 = _mm_sad_epu8(tA2, zero);
+			
+		// count nB
+		__m128i tB1 = _mm_min_epu8(secret_low10, guess1);
+		__m128i tB2 = _mm_min_epu8(secret_low10, guess2);
+
+		tB1 = _mm_sad_epu8(tB1, zero);
+		tB2 = _mm_sad_epu8(tB2, zero);
+
+		int nA1 = _mm_extract_epi16(tA1, 4);// + _mm_cvtsi128_si32(tA);
+		int nA2 = _mm_extract_epi16(tA2, 4);// + _mm_cvtsi128_si32(tA);
+
+		int nB1 = _mm_extract_epi16(tB1, 4) + _mm_cvtsi128_si32(tB1);
+		int nB2 = _mm_extract_epi16(tB2, 4) + _mm_cvtsi128_si32(tB2);
+
+		unsigned char nAnB1 = (unsigned char)((nA1 << MM_FEEDBACK_ASHIFT) | (nB1 - nA1));
+		unsigned char nAnB2 = (unsigned char)((nA2 << MM_FEEDBACK_ASHIFT) | (nB2 - nA2));
+		*(results++) = nAnB1;		
+		*(results++) = nAnB2;
 	}
 }
 
@@ -107,8 +156,7 @@ static int count_bits(unsigned short a)
 // It uses a memory table to lookup.
 // Would have been much faster if we had the POPCNT instruction
 // (which is part of SSE 4.2)
-MM_IMPLEMENTATION
-void compare_long_codeword_v3(
+static void compare_long_codeword_nr1(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
@@ -149,8 +197,7 @@ void compare_long_codeword_v3(
 // that assumes NO REPETITION!!!
 // It is a 4-parallel version of v3, and doubles performance because
 // it can do something at the expensive memory access time.
-MM_IMPLEMENTATION
-void compare_long_codeword_v4(
+static void compare_long_codeword_nr2(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
@@ -223,19 +270,20 @@ void compare_long_codeword_v4(
 //
 
 static ComparisonRoutineSelector::RoutineEntry CompareRep_Entries[] = {
-	{ "r_p1", "Allow repetition - simple implementation", compare_long_codeword_v1 },
-	{ "r_p1a", "Allow repetition - improved implementation", compare_long_codeword_v2 },
+	{ "r_p1", "Allow repetition - simple implementation", compare_long_codeword_r1 },
+	{ "r_p1a", "Allow repetition - improved implementation", compare_long_codeword_r2 },
+	{ "r_p1b", "Allow repetition - improved implementation", compare_long_codeword_r3 },
 	{ NULL, NULL, NULL },
 };
 
 static ComparisonRoutineSelector::RoutineEntry CompareNoRep_Entries[] = {
-	{ "nr_p1", "No repetition - simple implementation", compare_long_codeword_v3 },
-	{ "nr_p4", "No repetition - four parallel", compare_long_codeword_v4 },
+	{ "nr_p1", "No repetition - simple implementation", compare_long_codeword_nr1 },
+	{ "nr_p4", "No repetition - four parallel", compare_long_codeword_nr2 },
 	{ NULL, NULL, NULL },
 };
 
 ComparisonRoutineSelector *CompareRepImpl = 
-	new ComparisonRoutineSelector(CompareRep_Entries, "r_p1");
+	new ComparisonRoutineSelector(CompareRep_Entries, "r_p1a");
 
 ComparisonRoutineSelector *CompareNoRepImpl = 
 	new ComparisonRoutineSelector(CompareNoRep_Entries, "nr_p4");

@@ -17,6 +17,9 @@ static void count_freq_c(
 	unsigned int count,
 	unsigned int freq[MM_FEEDBACK_COUNT])
 {
+	//if (count <= 2) {
+	//	int k = 1;
+	//}
 	memset(freq, 0, sizeof(unsigned int)*MM_FEEDBACK_COUNT);
 	for (; count > 0; count--) {
 		++freq[*(feedbacks++) & 0x3f];
