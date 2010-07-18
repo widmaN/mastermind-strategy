@@ -1,25 +1,18 @@
 #pragma once
 
 #include "MMConfig.h"
+#include "RoutineSelector.h"
 
-typedef void (*FREQUENCY_COUNTING_ROUTINE)(
+typedef void FREQUENCY_COUNTING_ROUTINE(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[MM_FEEDBACK_COUNT]);
 
-extern FREQUENCY_COUNTING_ROUTINE CountFrequencies_Impl;
+typedef Utilities::RoutineSelector<FREQUENCY_COUNTING_ROUTINE> FrequencyCountingRoutineSelector;
 
-typedef struct FrequencyCountingRoutineEntry 
-{
-	const char *name;
-	const char *description;
-	FREQUENCY_COUNTING_ROUTINE routine;
-} FrequencyCountingRoutineEntry;
+extern FrequencyCountingRoutineSelector *CountFrequenciesImpl;
 
-extern FrequencyCountingRoutineEntry CountFrequencies_Impls[];
-
-void CountFrequencies_SelectImpl(const char *name);
-
+/*
 void count_freq_c(
 	const unsigned char *feedbacks,
 	unsigned int count,
@@ -40,3 +33,4 @@ void count_freq_v10(
 	unsigned int count,
 	unsigned int freq[64]);
 
+	*/

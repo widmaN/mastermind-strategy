@@ -12,7 +12,7 @@ static inline void UpdateStatistics(unsigned int count);
 // Simplistic implementation in C. In practice, if the feedback list is small,
 // this routine actually performs better than more complicated Out-of-order Execution
 // routines. So we use this as the choice routine.
-void count_freq_c(
+static void count_freq_c(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[MM_FEEDBACK_COUNT])
@@ -24,7 +24,7 @@ void count_freq_c(
 }
 
 // Implementation in C, with loop unfolding.
-void count_freq_c_luf4(
+static void count_freq_c_luf4(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[64])
@@ -45,7 +45,7 @@ void count_freq_c_luf4(
 // This is a asm-free implementation of the freqency counting procedure.
 // It works fine on my AMD64 processor with a 32-bit OS, though not as fast as the
 // ASM implementation. The INTERLACED version works better.
-void count_freq_v9(
+static void count_freq_v9(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[64])
@@ -146,7 +146,7 @@ void count_freq_v9(
 
 // This is the choice implementation for my Intel Core i5 processor. It is as fast
 // as the ASM version. The non-INTERLACED version works better.
-void count_freq_v10(
+static void count_freq_v10(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[64])
@@ -227,7 +227,7 @@ void count_freq_v10(
 	freq[63] = 0;
 }
 
-void count_freq_v11(
+static void count_freq_v11(
 	const unsigned char *feedbacks,
 	unsigned int count,
 	unsigned int freq[64])
@@ -398,7 +398,7 @@ static inline void UpdateStatistics(unsigned int count)
 // Interface routine
 //
 
-FrequencyCountingRoutineEntry CountFrequencies_Impls[] = {
+static FrequencyCountingRoutineSelector::RoutineEntry CountFrequencies_Entries[] = {
 	{ "c", "Simple implementation", count_freq_c },
 	{ "c_luf4", "Simple implementation with loop unfolding", count_freq_c_luf4 },
 	{ "c_p8_il", "Standard implementation (8-parallel, interlaced)", count_freq_v10 },
@@ -406,17 +406,6 @@ FrequencyCountingRoutineEntry CountFrequencies_Impls[] = {
 	{ NULL, NULL, NULL },
 };
 
-FREQUENCY_COUNTING_ROUTINE CountFrequencies_Impl = count_freq_c;
+FrequencyCountingRoutineSelector *CountFrequenciesImpl = 
+	new FrequencyCountingRoutineSelector(CountFrequencies_Entries, "c");
 
-void CountFrequencies_SelectImpl(const char *name)
-{
-	const FrequencyCountingRoutineEntry *entry = CountFrequencies_Impls;
-	for (; entry->name != NULL; entry++) {
-		if (strcmp(entry->name, name) == 0) {
-			CountFrequencies_Impl = entry->routine;
-			return;
-		}
-	}
-	assert(0);
-	// CountFrequencies_Impl = CountFrequencies_Impls[0].routine;
-}

@@ -57,6 +57,7 @@
     <ClInclude Include="src\Frequency.h" />
     <ClInclude Include="src\HRTimer.h" />
     <ClInclude Include="src\MMConfig.h" />
+    <ClInclude Include="src\RoutineSelector.h" />
     <ClInclude Include="src\Scan.h" />
     <ClInclude Include="src\StrategyTree.h" />
     <ClInclude Include="src\Test.h" />

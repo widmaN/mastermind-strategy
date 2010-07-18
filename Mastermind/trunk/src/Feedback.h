@@ -283,7 +283,7 @@ namespace Mastermind
 
 		void CountFrequencies(FeedbackFrequencyTable *freq) const
 		{
-			CountFrequencies_Impl(this->m_values, this->m_count, freq->GetData());
+			CountFrequenciesImpl->Run(this->m_values, this->m_count, freq->GetData());
 		}
 
 

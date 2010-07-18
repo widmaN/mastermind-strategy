@@ -473,13 +473,13 @@ int main(int argc, char* argv[])
 		// new OptimalCodeBreaker(rules),
 	};
 
-	CountFrequencies_SelectImpl("c");
+	CountFrequenciesImpl->SelectRoutine("c");
 	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
 	printf("\n");
 
 	if (0) {
 		printf("\nRun again:\n");
-		CountFrequencies_SelectImpl("c_p8_il_os");
+		CountFrequenciesImpl->SelectRoutine("c_p8_il_os");
 		TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
 		printf("\n");
 	}

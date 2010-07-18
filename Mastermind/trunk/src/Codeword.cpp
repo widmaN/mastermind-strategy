@@ -83,9 +83,9 @@ void Codeword::CompareTo(const CodewordList& list, FeedbackList& fbl) const
 	unsigned char *results = fbl.GetData();
 
 	if (list.GetRules().allow_repetition) {
-		Compare_Rep(m_value, list.GetData(), count, results);
+		CompareRepImpl->Run(m_value.value, (const __m128i*)list.GetData(), count, results);
 	} else {
-		Compare_NoRep(m_value, list.GetData(), count, results);
+		CompareNoRepImpl->Run(m_value.value, (const __m128i*)list.GetData(), count, results);
 	}
 }
 
@@ -111,7 +111,7 @@ Feedback Codeword::CompareTo(Codeword& guess) const
 {
 	unsigned char fb;
 	codeword_t guess_value = guess.GetValue();
-	Compare_Rep(m_value, &guess_value, 1, &fb);
+	CompareRepImpl->Run(m_value.value, (const __m128i*)&guess_value, 1, &fb);
 	return Feedback(fb);
 }
 

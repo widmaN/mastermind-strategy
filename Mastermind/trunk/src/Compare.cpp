@@ -222,28 +222,25 @@ void compare_long_codeword_v4(
 // Interface routines
 //
 
-ComparisonRoutineEntry Compare_Impls[] = {
+static ComparisonRoutineSelector::RoutineEntry CompareRep_Entries[] = {
 	{ "r_p1", "Allow repetition - simple implementation", compare_long_codeword_v1 },
-	{ "r_p1a", "Allow repetition - simple improved", compare_long_codeword_v2 },
+	{ "r_p1a", "Allow repetition - improved implementation", compare_long_codeword_v2 },
+	{ NULL, NULL, NULL },
+};
+
+static ComparisonRoutineSelector::RoutineEntry CompareNoRep_Entries[] = {
 	{ "nr_p1", "No repetition - simple implementation", compare_long_codeword_v3 },
 	{ "nr_p4", "No repetition - four parallel", compare_long_codeword_v4 },
 	{ NULL, NULL, NULL },
 };
 
-COMPARISON_ROUTINE Compare_Impl = compare_long_codeword_v1;
+ComparisonRoutineSelector *CompareRepImpl = 
+	new ComparisonRoutineSelector(CompareRep_Entries, "r_p1");
 
-void Compare_SelectImpl(const char *name)
-{
-	const ComparisonRoutineEntry *entry = Compare_Impls;
-	for (; entry->name != NULL; entry++) {
-		if (strcmp(entry->name, name) == 0) {
-			Compare_Impl = entry->routine;
-			return;
-		}
-	}
-	assert(0);
-}
+ComparisonRoutineSelector *CompareNoRepImpl = 
+	new ComparisonRoutineSelector(CompareNoRep_Entries, "nr_p4");
 
+/*
 void Compare_Rep(
 	const codeword_t& secret,
 	const codeword_t guesses[],
@@ -261,3 +258,4 @@ void Compare_NoRep(
 {
 	return compare_long_codeword_v4(secret.value, (__m128i*)guesses, count, results);
 }
+*/
