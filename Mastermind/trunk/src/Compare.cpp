@@ -9,6 +9,21 @@
 
 #include "MMConfig.h"
 #include "Compare.h"
+#include "CallCounter.h"
+
+#ifndef NDEBUG
+static bool _update_stat = true;
+static Utilities::CallCounter _call_counter("CompareCodewords");
+#endif
+
+static inline void UpdateCallCounter(unsigned int comp)
+{
+#ifndef NDEBUG
+	if (_update_stat) {
+		_call_counter.AddCall(comp);
+	}
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // Codeword comparison routines
@@ -23,6 +38,8 @@ static void compare_long_codeword_r1(
 	unsigned int count,
 	unsigned char *results)
 {
+	UpdateCallCounter(count);
+
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
@@ -59,6 +76,8 @@ static void compare_long_codeword_r2(
 	unsigned int count,
 	unsigned char *results)
 {
+	UpdateCallCounter(count);
+
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
@@ -85,6 +104,8 @@ static void compare_long_codeword_r2(
 		int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
 		unsigned char nAnB = (unsigned char)((nA << (MM_FEEDBACK_BITS / 2)) | (nB - nA));
 		*(results++) = nAnB;
+		//unsigned char nAnB = (unsigned char)((nA << 4) | (nB - nA));
+		//*(results++) = feedback_revmap[nAnB];
 	}
 }
 
@@ -96,6 +117,8 @@ static void compare_long_codeword_r3(
 	unsigned int count,
 	unsigned char *results)
 {
+	UpdateCallCounter(count);
+
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
@@ -166,9 +189,10 @@ static void compare_long_codeword_r3(
 		int nB1 = _mm_extract_epi16(tB1, 4) + _mm_cvtsi128_si32(tB1);
 		int nB2 = _mm_extract_epi16(tB2, 4) + _mm_cvtsi128_si32(tB2);
 
+		// MM_FEEDBACK_ASHIFT
 		unsigned char nAnB1 = (unsigned char)((nA1 << MM_FEEDBACK_ASHIFT) | (nB1 - nA1));
 		unsigned char nAnB2 = (unsigned char)((nA2 << MM_FEEDBACK_ASHIFT) | (nB2 - nA2));
-		*(results++) = nAnB1;		
+		*(results++) = nAnB1;
 		*(results++) = nAnB2;
 		}
 	}
@@ -196,6 +220,8 @@ static void compare_long_codeword_nr1(
 	unsigned int count,
 	unsigned char *results)
 {
+	UpdateCallCounter(count);
+
 	// Change 0xFF in secret to 0x0F
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
@@ -237,6 +263,8 @@ static void compare_long_codeword_nr2(
 	unsigned int count,
 	unsigned char *results)
 {
+	UpdateCallCounter(count);
+
 	// Change 0xFF in secret to 0x0F
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
@@ -302,6 +330,13 @@ static void compare_long_codeword_nr2(
 ///////////////////////////////////////////////////////////////////////////
 // Interface routines
 //
+
+void PrintCompareStatistics()
+{
+#ifndef NDEBUG
+	_call_counter.DebugPrint();
+#endif
+}
 
 static ComparisonRoutineSelector::RoutineEntry CompareRep_Entries[] = {
 	{ "r_p1", "Allow repetition - simple implementation", compare_long_codeword_r1 },

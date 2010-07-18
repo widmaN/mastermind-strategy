@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\CallCounter.cpp" />
     <ClCompile Include="src\CodeBreaker.cpp" />
     <ClCompile Include="src\Codeword.cpp" />
     <ClCompile Include="src\Compare.cpp" />
@@ -58,6 +59,7 @@
     <ClInclude Include="src\HRTimer.h" />
     <ClInclude Include="src\MMConfig.h" />
     <ClInclude Include="src\RoutineSelector.h" />
+    <ClInclude Include="src\CallCounter.h" />
     <ClInclude Include="src\Scan.h" />
     <ClInclude Include="src\StrategyTree.h" />
     <ClInclude Include="src\Test.h" />

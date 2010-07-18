@@ -6,8 +6,21 @@
 
 #include "MMConfig.h"
 #include "Frequency.h"
+#include "CallCounter.h"
 
-static inline void UpdateStatistics(unsigned int count);
+#ifndef NDEBUG
+static bool _update_stat = true;
+static Utilities::CallCounter _call_counter("CountFrequencies");
+#endif
+
+static inline void UpdateCallCounter(unsigned int comp)
+{
+#ifndef NDEBUG
+	if (_update_stat) {
+		_call_counter.AddCall(comp);
+	}
+#endif
+}
 
 // Simplistic implementation in C. In practice, if the feedback list is small,
 // this routine actually performs better than more complicated Out-of-order Execution
@@ -17,6 +30,8 @@ static void count_freq_c(
 	unsigned int count,
 	unsigned int freq[MM_FEEDBACK_COUNT])
 {
+	UpdateCallCounter(count);
+
 	//if (count <= 2) {
 	//	int k = 1;
 	//}
@@ -32,6 +47,8 @@ static void count_freq_c_luf4(
 	unsigned int count,
 	unsigned int freq[64])
 {
+	UpdateCallCounter(count);
+
 	memset(freq, 0, sizeof(unsigned int)*MM_FEEDBACK_COUNT);
 
 	for (; count >= 4; count -= 4) {
@@ -82,6 +99,8 @@ static void count_freq_v9(
 	// feedback >= 0x80. However, doing so degrades performance 
 	// significantly (like 10%). So we need to figure out a better way,
 	// probably mapping them to smaller memory further!
+
+	UpdateCallCounter(count);
 
 	int i;
 
@@ -154,6 +173,8 @@ static void count_freq_v10(
 	unsigned int count,
 	unsigned int freq[64])
 {
+	UpdateCallCounter(count);
+
 	// We build eight frequency tables in parallel.
 	// Note: we could probably improve performance marginally by mapping feedback
 	// to a smaller integer, and allocate smaller memory for 'matrix'.
@@ -366,35 +387,11 @@ unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT])
 //Number of codes compared:  73869707
 //Average comparison per call: 15.73
 
-static unsigned int _cfprof_calls = 0;
-static unsigned int _cfprof_comps = 0;
-static unsigned int _cfprof_call_stat[32] = {0};
-static unsigned int _cfprof_comp_stat[32] = {0};
-
 void PrintFrequencyStatistics()
 {
-	printf("Total number of calls to count_freq: %d\n", _cfprof_calls);
-	printf("Total number of codewords compared:  %d\n", _cfprof_comps);
-	printf("Average comparison per call: %.2f\n", (double)_cfprof_comps / _cfprof_calls);
-
-	for (int k = 31; k >= 0; k--) {
-		if (_cfprof_call_stat[k] > 0) {
-			printf("List length >=%6d : %6.2f%%  %6.2f%%\n", 1<<k, 
-				(double)_cfprof_call_stat[k] / _cfprof_calls * 100.0,
-				(double)_cfprof_comp_stat[k] / _cfprof_comps * 100.0);
-		}
-	}
-}
-
-static inline void UpdateStatistics(unsigned int count)
-{
-	unsigned long pos;
-	if (_BitScanReverse(&pos, count)) {
-		_cfprof_call_stat[pos]++;
-		_cfprof_comp_stat[pos] += count;
-		_cfprof_calls++;
-		_cfprof_comps += count;
-	}
+#ifndef NDEBUG
+	_call_counter.DebugPrint();
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////
