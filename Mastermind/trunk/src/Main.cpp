@@ -362,6 +362,8 @@ int TestOutputStrategyTree(CodewordRules rules)
 // -r, --rep           allow repetition
 // -nr, --norep        don't allow repetition
 
+// TODO: Find out why it slows down so much by changing feedback bits from
+//       6 to 8: because of GetSumOfSquares()
 // TODO: Use feedback_map to put feedbacks together, if this can improve
 //       the performance of count_freq_v6 and GetSumOfSquares
 // TODO: Try use the CodewordList::Partition() method to speed up strategy
@@ -445,7 +447,7 @@ int main(int argc, char* argv[])
 #else
 #define LOOP_FLAG 0
 #endif
-	//return TestCompare(rules, "r_p1a", "r_p1b", 10000*LOOP_FLAG);
+	return TestCompare(rules, "r_p1b", "r_p1c", 10000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	//return TestSumOfSquares(rules, 5000000*LOOP_FLAG);
@@ -461,8 +463,8 @@ int main(int argc, char* argv[])
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
 		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
+		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
 		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
 		// new OptimalCodeBreaker(rules),
 	};

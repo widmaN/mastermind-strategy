@@ -104,7 +104,7 @@ void SimpleCodeBreaker::FillStrategy(StrategyTree *tree, CodewordList possibilit
 	FeedbackFrequencyTable freq;
 	fbl.CountFrequencies(&freq);
 
-	for (unsigned char fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
+	for (int fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
 		Feedback fb(fbv);
 		if (freq[fb] > 0) {
 			tree->Push(guess, fb);
@@ -204,7 +204,7 @@ void HeuristicCodeBreaker::FillStrategy(
 	FeedbackFrequencyTable freq;
 	fbl.CountFrequencies(&freq);
 
-	for (unsigned char fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
+	for (int fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
 		Feedback fb(fbv);
 		if (freq[fb] > 0) {
 			tree->Push(guess, fb);
@@ -422,7 +422,7 @@ void OptimalCodeBreaker::FillStrategy(
 	}
 
 	Feedback perfect = Feedback(m_rules.length, 0);
-	for (unsigned char fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
+	for (int fbv = 0; fbv < MM_FEEDBACK_COUNT; fbv++) {
 		Feedback fb(fbv);
 		if (freq[fb] > 0) {
 			tree->Push(guess, fb);

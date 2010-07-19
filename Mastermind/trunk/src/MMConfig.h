@@ -53,6 +53,6 @@ typedef union codeword_t codeword_t;
 #define MM_FEEDBACK_ASHIFT (MM_FEEDBACK_BITS / 2)
 #define MM_FEEDBACK_BMASK ((1<<MM_FEEDBACK_ASHIFT)-1)
 
-extern unsigned char feedback_count[MM_MAX_PEGS+1];
-extern unsigned char feedback_map[256];
-extern unsigned char feedback_revmap[256];
+extern const unsigned char feedback_count[MM_MAX_PEGS+1];
+extern const unsigned char feedback_map[256];
+extern const unsigned char feedback_revmap[256];

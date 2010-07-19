@@ -429,6 +429,13 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 
 	int k = 0;
 	if (times == 0) {
+		func1(secret, data, count, results);
+		if (1) {
+			FeedbackList fbl(results, count);
+			FeedbackFrequencyTable freq;
+			fbl.CountFrequencies(&freq);
+			freq.DebugPrint();
+		}
 		func2(secret, data, count, results);
 		if (1) {
 			FeedbackList fbl(results, count);

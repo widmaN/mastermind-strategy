@@ -102,7 +102,7 @@ static void compare_long_codeword_r2(
 
 		int nA = _mm_extract_epi16(tA, 4);
 		int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
-		unsigned char nAnB = (unsigned char)((nA << (MM_FEEDBACK_BITS / 2)) | (nB - nA));
+		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nB - nA));
 		*(results++) = nAnB;
 		//unsigned char nAnB = (unsigned char)((nA << 4) | (nB - nA));
 		//*(results++) = feedback_revmap[nAnB];
@@ -128,6 +128,9 @@ static void compare_long_codeword_r3(
 	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
 	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
 	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
+
+	unsigned int count0 = count;
+	unsigned char *results0 = results;
 
 	for (; count > 0; count -= 4) {
 		if (1) {
@@ -195,6 +198,73 @@ static void compare_long_codeword_r3(
 		*(results++) = nAnB1;
 		*(results++) = nAnB2;
 		}
+	}
+	return;
+	count = count0;
+	results = results0;
+	for (; count >= 4; count -= 4) {
+		results[0] = feedback_revmap[results[0]];
+		results[1] = feedback_revmap[results[1]];
+		results[2] = feedback_revmap[results[2]];
+		results[3] = feedback_revmap[results[3]];
+		results += 4;
+	}
+}
+
+static void compare_long_codeword_r4(
+	__m128i secret,
+	const __m128i *guesses,
+	unsigned int count,
+	unsigned char *results)
+{
+	UpdateCallCounter(count);
+
+	unsigned int count0 = count;
+	unsigned char *results0 = results;
+
+	// Change 0xff in secret to 0x0f
+	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
+	__m128i zero = _mm_setzero_si128();
+
+	//__m128i mask_high6 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
+	//__m128i secret_high6 = _mm_or_si128(mask_high6, secret);
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
+
+	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
+	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
+	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
+
+#define ONE_OP() do { \
+		__m128i guess = *(guesses++); \
+		__m128i tA = _mm_cmpeq_epi8(secret, guess); \
+		tA = _mm_and_si128(tA, mask_high6); \
+		tA = _mm_sad_epu8(tA, zero); \
+		__m128i tB = _mm_min_epu8(secret_low10, guess); \
+		tB = _mm_sad_epu8(tB, zero); \
+		unsigned char nA = _mm_extract_epi16(tA, 4); \
+		unsigned char nAB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB); \
+		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nAB - nA)); \
+		*(results++) = nAnB; \
+	} while (0)
+
+	for (; count >= 4; count -= 4) {
+		ONE_OP();
+		ONE_OP();
+		ONE_OP();
+		ONE_OP();
+	}
+	for (; count > 0; count--) {
+		ONE_OP();
+	}
+	return;
+
+	count = count0;
+	results = results0;
+	for (; count >= 4; count -= 4) {
+		*results = feedback_revmap[*results]; results++;
+		*results = feedback_revmap[*results]; results++;
+		*results = feedback_revmap[*results]; results++;
+		*results = feedback_revmap[*results]; results++;
 	}
 }
 
@@ -341,7 +411,8 @@ void PrintCompareStatistics()
 static ComparisonRoutineSelector::RoutineEntry CompareRep_Entries[] = {
 	{ "r_p1", "Allow repetition - simple implementation", compare_long_codeword_r1 },
 	{ "r_p1a", "Allow repetition - improved implementation", compare_long_codeword_r2 },
-	{ "r_p1b", "Allow repetition - improved implementation", compare_long_codeword_r3 },
+	{ "r_p1b", "Allow repetition - four parallel", compare_long_codeword_r3 },
+	{ "r_p1c", "Allow repetition - feedback_revmap", compare_long_codeword_r4 },
 	{ NULL, NULL, NULL },
 };
 

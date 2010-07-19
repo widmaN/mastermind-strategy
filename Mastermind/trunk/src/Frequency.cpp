@@ -32,12 +32,9 @@ static void count_freq_c(
 {
 	UpdateCallCounter(count);
 
-	//if (count <= 2) {
-	//	int k = 1;
-	//}
 	memset(freq, 0, sizeof(unsigned int)*MM_FEEDBACK_COUNT);
 	for (; count > 0; count--) {
-		++freq[*(feedbacks++) & 0x3f];
+		++freq[*(feedbacks++) & ((1<<MM_FEEDBACK_BITS)-1)];
 	}
 }
 
