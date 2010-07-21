@@ -19,19 +19,6 @@
 /// will produce a compile-time error.
 #define MM_MAX_COLORS 10
 
-
-#ifdef NTEST
-#define MM_IMPLEMENTATION static
-#else
-#define MM_IMPLEMENTATION
-#endif
-
-#ifdef _WIN64
-#define MM_ALLOW_ASM 0
-#else
-#define MM_ALLOW_ASM 1
-#endif
-
 #if (MM_MAX_PEGS + MM_MAX_COLORS) != 16
 # error Invalid combination of MM_MAX_PEGS and MM_MAX_COLORS; they must add up to 16.
 #endif
@@ -48,10 +35,16 @@ union codeword_t {
 
 typedef union codeword_t codeword_t;
 
+// Whether to store feedback in compact format
+#define MM_FEEDBACK_COMPACT 0
+
+#if MM_FEEDBACK_COMPACT
+#else
 #define MM_FEEDBACK_BITS 6
 #define MM_FEEDBACK_COUNT (1 << MM_FEEDBACK_BITS)
 #define MM_FEEDBACK_ASHIFT (MM_FEEDBACK_BITS / 2)
 #define MM_FEEDBACK_BMASK ((1<<MM_FEEDBACK_ASHIFT)-1)
+#endif
 
 extern const unsigned char feedback_count[MM_MAX_PEGS+1];
 extern const unsigned char feedback_map[256];

@@ -447,7 +447,8 @@ int main(int argc, char* argv[])
 #else
 #define LOOP_FLAG 0
 #endif
-	//return TestCompare(rules, "r_p1b", "r_p1c", 10000*LOOP_FLAG);
+	//return TestCompare(rules, "r_p1a", "r_p8b", 10000*LOOP_FLAG);
+	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	//return TestSumOfSquares(rules, "c", "sse4", 15000000*LOOP_FLAG);
@@ -469,7 +470,7 @@ int main(int argc, char* argv[])
 		// new OptimalCodeBreaker(rules),
 	};
 
-	CountFrequenciesImpl->SelectRoutine("c");
+	// CountFrequenciesImpl->SelectRoutine("c");
 	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
 	printf("\n");
 

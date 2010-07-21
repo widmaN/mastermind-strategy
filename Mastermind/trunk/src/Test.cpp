@@ -422,36 +422,49 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 	unsigned int count = list.GetCount();
 	const __m128i *data = (const __m128i *)list.GetData();
 	__m128i secret = data[count / 2];
-	unsigned char *results = new unsigned char [count];
+	unsigned char *results1 = new unsigned char [count];
+	unsigned char *results2 = new unsigned char [count];
 
 	COMPARISON_ROUTINE *func1 = CompareRepImpl->GetRoutine(routine1);
 	COMPARISON_ROUTINE *func2 = CompareRepImpl->GetRoutine(routine2);
 
+	count = 7;
+	//count--;
 	int k = 0;
 	if (times == 0) {
-		func1(secret, data, count, results);
+		func1(secret, data, count, results1);
 		if (1) {
-			FeedbackList fbl(results, count);
+			FeedbackList fbl(results1, count);
 			FeedbackFrequencyTable freq;
 			fbl.CountFrequencies(&freq);
 			freq.DebugPrint();
 		}
-		func2(secret, data, count, results);
+		func2(secret, data, count, results2);
 		if (1) {
-			FeedbackList fbl(results, count);
+			FeedbackList fbl(results2, count);
 			FeedbackFrequencyTable freq;
 			fbl.CountFrequencies(&freq);
 			freq.DebugPrint();
+		}
+		for (unsigned int i = 0; i < count; i++) {
+			if (results1[i] != results2[i]) {
+				printf("**** ERROR: Inconsistent [%d]: Compare(%s, %s) = %s v %s\n", i,
+					Codeword(secret).ToString().c_str(),
+					Codeword(data[i]).ToString().c_str(),
+					Feedback(results1[i]).ToString().c_str(),
+					Feedback(results2[i]).ToString().c_str());
+			}
 		}
 		if (0) {
 			for (unsigned int i = 0; i < count*0+25; i++) {
 				printf("%s %s = %s\n",
 					Codeword(secret).ToString().c_str(),
 					Codeword(data[i]).ToString().c_str(),
-					Feedback(results[i]).ToString().c_str());
+					Feedback(results1[i]).ToString().c_str());
 			}
 		}
-		delete [] results;
+		delete [] results1;
+		delete [] results2;
 		system("PAUSE");
 		return 0;
 	}
@@ -463,13 +476,13 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 	for (int pass = 0; pass < 10; pass++) {
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			func1(secret, data, count, results);
+			func1(secret, data, count, results1);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			func2(secret, data, count, results);
+			func2(secret, data, count, results2);
 		}
 		t2 += timer.Stop();
 	}
@@ -478,7 +491,8 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 	printf("Algorithm 2:  %6.3f\n", t2);
 	printf("Improvement: %5.1f%%\n", (t1/t2-1)*100);
 
-	delete [] results;
+	delete [] results1;
+	delete [] results2;
 	system("PAUSE");
 	return 0;
 }

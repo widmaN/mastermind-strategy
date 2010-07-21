@@ -32,7 +32,7 @@ static inline void UpdateCallCounter(unsigned int comp)
 // This is the benchmark routine for codeword comparison
 // which ALLOWS REPETITION.
 // The implementation is very simple and clean.
-static void compare_long_codeword_r1(
+static void compare_codeword_rep_p1(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
@@ -70,7 +70,7 @@ static void compare_long_codeword_r1(
 // This is the chosen implementation for "long" codeword comparison
 // which ALLOWS REPETITION.
 // It is a tiny improvement over v1.
-static void compare_long_codeword_r2(
+static void compare_codeword_rep_p1a(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
@@ -109,162 +109,82 @@ static void compare_long_codeword_r2(
 	}
 }
 
-// ALLOWS REPETITION.
-// Small improvement over v2.
-static void compare_long_codeword_r3(
+static void compare_codeword_rep_p8(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
 	unsigned char *results)
 {
+	// TODO: This function works not well for small list.
+	// Should find a way to integrate this with compare_codeword_rep_p1a to
+	// speed up the actual speed.
+	// We could also try out storing codewords in 8-bytes, so that we can
+	// save a bunch of SAD instructions.
 	UpdateCallCounter(count);
+
+	if (count == 0)
+		return;
 
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
-	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
-	__m128i zero = _mm_setzero_si128();
-
-	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
-	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
-	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
-
-	unsigned int count0 = count;
-	unsigned char *results0 = results;
-
-	for (; count > 0; count -= 4) {
-		if (1) {
-		__m128i guess1 = *(guesses++);
-		__m128i guess2 = *(guesses++);
-
-		// count nA
-		__m128i tA1 = _mm_cmpeq_epi8(secret, guess1);
-		__m128i tA2 = _mm_cmpeq_epi8(secret, guess2);
-
-		tA1 = _mm_and_si128(tA1, mask_high6);
-		tA2 = _mm_and_si128(tA2, mask_high6);
-			
-		tA1 = _mm_sad_epu8(tA1, zero);
-		tA2 = _mm_sad_epu8(tA2, zero);
-			
-		// count nB
-		__m128i tB1 = _mm_min_epu8(secret_low10, guess1);
-		__m128i tB2 = _mm_min_epu8(secret_low10, guess2);
-
-		tB1 = _mm_sad_epu8(tB1, zero);
-		tB2 = _mm_sad_epu8(tB2, zero);
-
-		int nA1 = _mm_extract_epi16(tA1, 4);// + _mm_cvtsi128_si32(tA);
-		int nA2 = _mm_extract_epi16(tA2, 4);// + _mm_cvtsi128_si32(tA);
-
-		int nB1 = _mm_extract_epi16(tB1, 4) + _mm_cvtsi128_si32(tB1);
-		int nB2 = _mm_extract_epi16(tB2, 4) + _mm_cvtsi128_si32(tB2);
-
-		unsigned char nAnB1 = (unsigned char)((nA1 << MM_FEEDBACK_ASHIFT) | (nB1 - nA1));
-		unsigned char nAnB2 = (unsigned char)((nA2 << MM_FEEDBACK_ASHIFT) | (nB2 - nA2));
-		*(results++) = nAnB1;		
-		*(results++) = nAnB2;
-		}
-		if (1) {
-		__m128i guess1 = *(guesses++);
-		__m128i guess2 = *(guesses++);
-
-		// count nA
-		__m128i tA1 = _mm_cmpeq_epi8(secret, guess1);
-		__m128i tA2 = _mm_cmpeq_epi8(secret, guess2);
-
-		tA1 = _mm_and_si128(tA1, mask_high6);
-		tA2 = _mm_and_si128(tA2, mask_high6);
-			
-		tA1 = _mm_sad_epu8(tA1, zero);
-		tA2 = _mm_sad_epu8(tA2, zero);
-			
-		// count nB
-		__m128i tB1 = _mm_min_epu8(secret_low10, guess1);
-		__m128i tB2 = _mm_min_epu8(secret_low10, guess2);
-
-		tB1 = _mm_sad_epu8(tB1, zero);
-		tB2 = _mm_sad_epu8(tB2, zero);
-
-		int nA1 = _mm_extract_epi16(tA1, 4);// + _mm_cvtsi128_si32(tA);
-		int nA2 = _mm_extract_epi16(tA2, 4);// + _mm_cvtsi128_si32(tA);
-
-		int nB1 = _mm_extract_epi16(tB1, 4) + _mm_cvtsi128_si32(tB1);
-		int nB2 = _mm_extract_epi16(tB2, 4) + _mm_cvtsi128_si32(tB2);
-
-		// MM_FEEDBACK_ASHIFT
-		unsigned char nAnB1 = (unsigned char)((nA1 << MM_FEEDBACK_ASHIFT) | (nB1 - nA1));
-		unsigned char nAnB2 = (unsigned char)((nA2 << MM_FEEDBACK_ASHIFT) | (nB2 - nA2));
-		*(results++) = nAnB1;
-		*(results++) = nAnB2;
-		}
-	}
-	return;
-	count = count0;
-	results = results0;
-	for (; count >= 4; count -= 4) {
-		results[0] = feedback_revmap[results[0]];
-		results[1] = feedback_revmap[results[1]];
-		results[2] = feedback_revmap[results[2]];
-		results[3] = feedback_revmap[results[3]];
-		results += 4;
-	}
-}
-
-static void compare_long_codeword_r4(
-	__m128i secret,
-	const __m128i *guesses,
-	unsigned int count,
-	unsigned char *results)
-{
-	UpdateCallCounter(count);
-
-	unsigned int count0 = count;
-	unsigned char *results0 = results;
-
-	// Change 0xff in secret to 0x0f
-	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
-	__m128i zero = _mm_setzero_si128();
-
-	//__m128i mask_high6 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
-	//__m128i secret_high6 = _mm_or_si128(mask_high6, secret);
 	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
+	__m128i zero = _mm_setzero_si128();
 
 	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
 	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
 	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
 
-#define ONE_OP() do { \
-		__m128i guess = *(guesses++); \
-		__m128i tA = _mm_cmpeq_epi8(secret, guess); \
-		tA = _mm_and_si128(tA, mask_high6); \
-		tA = _mm_sad_epu8(tA, zero); \
-		__m128i tB = _mm_min_epu8(secret_low10, guess); \
-		tB = _mm_sad_epu8(tB, zero); \
-		unsigned char nA = _mm_extract_epi16(tA, 4); \
-		unsigned char nAB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB); \
-		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nAB - nA)); \
-		*(results++) = nAnB; \
+	for (; count >= 8; count -= 8) {
+		__m128i bigA = _mm_setzero_si128();
+		__m128i bigB = _mm_setzero_si128();
+
+#define COMPUTE_AND_SHIFT(i) do { \
+		__m128i guess = guesses[(i)]; \
+		__m128i tA = _mm_sad_epu8(_mm_and_si128(_mm_cmpeq_epi8(secret, guess), mask_high6), zero); \
+		__m128i tB = _mm_sad_epu8(_mm_min_epu8(secret_low10, guess), zero); \
+		bigA = _mm_or_si128(_mm_slli_si128(bigA, 1), tA); \
+		bigB = _mm_or_si128(_mm_slli_si128(bigB, 1), tB); \
 	} while (0)
 
-	for (; count >= 4; count -= 4) {
-		ONE_OP();
-		ONE_OP();
-		ONE_OP();
-		ONE_OP();
-	}
-	for (; count > 0; count--) {
-		ONE_OP();
-	}
-	return;
+		COMPUTE_AND_SHIFT(7); // 1
+		COMPUTE_AND_SHIFT(6);
+		COMPUTE_AND_SHIFT(5);
+		COMPUTE_AND_SHIFT(4);
+		COMPUTE_AND_SHIFT(3); // 5
+		COMPUTE_AND_SHIFT(2);
+		COMPUTE_AND_SHIFT(1);
+		COMPUTE_AND_SHIFT(0);
+		guesses += 8;
 
-	count = count0;
-	results = results0;
-	for (; count >= 4; count -= 4) {
-		*results = feedback_revmap[*results]; results++;
-		*results = feedback_revmap[*results]; results++;
-		*results = feedback_revmap[*results]; results++;
-		*results = feedback_revmap[*results]; results++;
+#undef COMPUTE_AND_SHIFT
+
+		bigA = _mm_add_epi8(bigA, _mm_srli_si128(bigA, 8));
+		bigB = _mm_add_epi8(bigB, _mm_srli_si128(bigB, 8));
+
+#if MM_FEEDBACK_COMPACT
+		bigA = _mm_unpacklo_epi8(bigA, zero);
+		bigB = _mm_unpacklo_epi8(bigB, zero);
+		__m128i bigAB = _mm_add_epi16(_mm_avg_epu16(_mm_mullo_epi16(bigB, bigB), bigB), bigA);
+		bigAB = _mm_packs_epi16(bigAB, bigAB);
+#else
+		bigB = _mm_sub_epi8(bigB, bigA);
+		__m128i bigAB = _mm_or_si128(_mm_slli_epi16(bigA, MM_FEEDBACK_ASHIFT), bigB);
+#endif
+
+		_mm_storel_epi64((__m128i*)results, bigAB);
+		results += 8;
+	}
+
+	// Process the unaligned codewords
+	for (; count > 0; count--) {
+		__m128i guess = *(guesses++);
+		__m128i tA = _mm_sad_epu8(_mm_and_si128(_mm_cmpeq_epi8(secret, guess), mask_high6), zero);
+		__m128i tB = _mm_sad_epu8(_mm_min_epu8(secret_low10, guess), zero);
+		int nA = _mm_extract_epi16(tA, 4) + _mm_cvtsi128_si32(tA);
+		int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
+		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nB - nA));
+		*(results++) = nAnB;
 	}
 }
 
@@ -409,10 +329,9 @@ void PrintCompareStatistics()
 }
 
 static ComparisonRoutineSelector::RoutineEntry CompareRep_Entries[] = {
-	{ "r_p1", "Allow repetition - simple implementation", compare_long_codeword_r1 },
-	{ "r_p1a", "Allow repetition - improved implementation", compare_long_codeword_r2 },
-	{ "r_p1b", "Allow repetition - four parallel", compare_long_codeword_r3 },
-	{ "r_p1c", "Allow repetition - feedback_revmap", compare_long_codeword_r4 },
+	{ "r_p1", "Allow repetition - simple implementation", compare_codeword_rep_p1 },
+	{ "r_p1a", "Allow repetition - improved implementation", compare_codeword_rep_p1a },
+	{ "r_p8", "Allow repetition - 8-parallel", compare_codeword_rep_p8 },
 	{ NULL, NULL, NULL },
 };
 
@@ -423,27 +342,7 @@ static ComparisonRoutineSelector::RoutineEntry CompareNoRep_Entries[] = {
 };
 
 ComparisonRoutineSelector *CompareRepImpl = 
-	new ComparisonRoutineSelector(CompareRep_Entries, "r_p1a");
+	new ComparisonRoutineSelector(CompareRep_Entries, "r_p8");
 
 ComparisonRoutineSelector *CompareNoRepImpl = 
 	new ComparisonRoutineSelector(CompareNoRep_Entries, "nr_p4");
-
-/*
-void Compare_Rep(
-	const codeword_t& secret,
-	const codeword_t guesses[],
-	unsigned int count,
-	unsigned char results[])
-{
-	return compare_long_codeword_v1(secret.value, (__m128i*)guesses, count, results);
-}
-
-void Compare_NoRep(
-	const codeword_t& secret,
-	const codeword_t guesses[],
-	unsigned int count,
-	unsigned char results[])
-{
-	return compare_long_codeword_v4(secret.value, (__m128i*)guesses, count, results);
-}
-*/
