@@ -36,7 +36,7 @@ union codeword_t {
 typedef union codeword_t codeword_t;
 
 // Whether to store feedback in compact format
-#define MM_FEEDBACK_COMPACT 0
+#define MM_FEEDBACK_COMPACT 1
 
 #if MM_FEEDBACK_COMPACT
 #else

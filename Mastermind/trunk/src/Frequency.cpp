@@ -30,16 +30,20 @@ static inline void UpdateCallCounter(unsigned int comp)
 static void count_freq_c(
 	const unsigned char *feedbacks,
 	unsigned int count,
-	unsigned int freq[MM_FEEDBACK_COUNT])
+	unsigned int freq[],
+	unsigned char max_fb)
 {
 	UpdateCallCounter(count);
 
-	memset(freq, 0, sizeof(unsigned int)*MM_FEEDBACK_COUNT);
+	memset(freq, 0, sizeof(unsigned int)*((int)max_fb+1));
 	for (; count > 0; count--) {
-		++freq[*(feedbacks++) & ((1<<MM_FEEDBACK_BITS)-1)];
+		unsigned char fb = *(feedbacks++);
+		assert(fb <= max_fb);
+		++freq[fb];
 	}
 }
 
+#if 0
 // Implementation in C, with loop unfolding.
 static void count_freq_c_luf4(
 	const unsigned char *feedbacks,
@@ -60,7 +64,9 @@ static void count_freq_c_luf4(
 		++freq[*(feedbacks++) & 0x3f];
 	}
 }
+#endif
 
+#if 0
 // This is a asm-free implementation of the freqency counting procedure.
 // It works fine on my AMD64 processor with a 32-bit OS, though not as fast as the
 // ASM implementation. The INTERLACED version works better.
@@ -164,7 +170,9 @@ static void count_freq_v9(
 
 #undef INTERLACED
 }
+#endif
 
+#if 0
 // This is the choice implementation for my Intel Core i5 processor. It is as fast
 // as the ASM version. The non-INTERLACED version works better.
 static void count_freq_v10(
@@ -249,7 +257,9 @@ static void count_freq_v10(
 	}
 	freq[63] = 0;
 }
+#endif
 
+#if 0
 static void count_freq_v11(
 	const unsigned char *feedbacks,
 	unsigned int count,
@@ -341,16 +351,20 @@ static void count_freq_v11(
 	}
 	freq[63] = 0;
 }
+#endif
 
-static unsigned int ComputeSumOfSquares_v1(const unsigned int freq[MM_FEEDBACK_COUNT])
+static unsigned int ComputeSumOfSquares_v1(
+	const unsigned int freq[],
+	unsigned char max_fb)
 {
 	unsigned int ret = 0;
-	for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
+	for (int i = 0; i <= (int)max_fb; i++) {
 		ret += freq[i] * freq[i];
 	}
 	return ret;
 }
 
+#if 0
 static unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT])
 {
 	unsigned int ret = 0;
@@ -364,7 +378,9 @@ static unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_C
 	}
 	return ret;
 }
+#endif
 
+#if 0
 // Require SSE4
 static unsigned int ComputeSumOfSquares_v3(const unsigned int _freq[MM_FEEDBACK_COUNT])
 {
@@ -385,6 +401,7 @@ static unsigned int ComputeSumOfSquares_v3(const unsigned int _freq[MM_FEEDBACK_
 	ss = _mm_hadd_epi32(ss, ss);
 	return _mm_cvtsi128_si32(ss);
 }
+#endif
 
 #if 0
 // This routine uses four paralle. However, the performance is actually slower
@@ -460,9 +477,9 @@ void PrintFrequencyStatistics()
 
 static FrequencyCountingRoutineSelector::RoutineEntry CountFrequencies_Entries[] = {
 	{ "c", "Simple implementation", count_freq_c },
-	{ "c_luf4", "Simple implementation with loop unfolding", count_freq_c_luf4 },
-	{ "c_p8_il", "Standard implementation (8-parallel, interlaced)", count_freq_v10 },
-	{ "c_p8_il_os", "Standard implementation (8-parallel, interlaced, optimized for small list)", count_freq_v11 },
+	//{ "c_luf4", "Simple implementation with loop unfolding", count_freq_c_luf4 },
+	//{ "c_p8_il", "Standard implementation (8-parallel, interlaced)", count_freq_v10 },
+	//{ "c_p8_il_os", "Standard implementation (8-parallel, interlaced, optimized for small list)", count_freq_v11 },
 	{ NULL, NULL, NULL },
 };
 
@@ -471,11 +488,12 @@ FrequencyCountingRoutineSelector *CountFrequenciesImpl =
 
 static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[] = {
 	{ "c", "Simple implementation", ComputeSumOfSquares_v1 },
-	{ "c_p2", "Simple implementation with 2-parallel", ComputeSumOfSquares_v2 },
-	{ "sse4", "SIMD implementation (requires SSE4 instruction set)", ComputeSumOfSquares_v3 },
+	//{ "c_p2", "Simple implementation with 2-parallel", ComputeSumOfSquares_v2 },
+	//{ "sse4", "SIMD implementation (requires SSE4 instruction set)", ComputeSumOfSquares_v3 },
 	{ NULL, NULL, NULL },
 };
 
 FrequencySumSquaresRoutineSelector *GetSumOfSquaresImpl =
 	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries, 
-	(Utilities::CpuInfo::Features.WithSSE41)? "sse4" : "c");
+	//(Utilities::CpuInfo::Features.WithSSE41)? "sse4" : "c");
+	"c");

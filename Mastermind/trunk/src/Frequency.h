@@ -14,10 +14,12 @@
 /// @param[in]	feedbacks	A list of feedbacks to count frequencies on
 /// @param[in]	count		Number of feedbacks in the list
 /// @param[out]	freq		The frequency table
+/// @param[in]	max_fb		The maximum feedback value allowed
 typedef void FREQUENCY_COUNTING_ROUTINE(
 	const unsigned char *feedbacks,
 	unsigned int count,
-	unsigned int freq[MM_FEEDBACK_COUNT]);
+	unsigned int freq[],
+	unsigned char max_fb);
 
 /// Frequency counting implementation selector.
 typedef Utilities::RoutineSelector<FREQUENCY_COUNTING_ROUTINE> FrequencyCountingRoutineSelector;
@@ -31,7 +33,10 @@ extern FrequencyCountingRoutineSelector *CountFrequenciesImpl;
 
 /// Computes the sum of squares of the frequencies.
 /// @param[in]	freq	The frequency table to compute statistic on
-typedef unsigned int FREQUENCY_SUMSQUARES_ROUTINE(const unsigned int freq[MM_FEEDBACK_COUNT]);
+/// @param[in]	max_fb	The maximum feedback value allowed
+typedef unsigned int FREQUENCY_SUMSQUARES_ROUTINE(
+	const unsigned int freq[],
+	unsigned char max_fb);
 
 /// Frequency sum-of-squares implementation selector.
 typedef Utilities::RoutineSelector<FREQUENCY_SUMSQUARES_ROUTINE> FrequencySumSquaresRoutineSelector;

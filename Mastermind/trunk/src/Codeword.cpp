@@ -121,7 +121,16 @@ unsigned short Codeword::GetDigitMask() const
 	return ScanDigitMask(&m_value, 1);
 }
 
-
+int Codeword::GetPegCount() const
+{
+	int k;
+	for (k = 0; k < MM_MAX_PEGS; k++) {
+		unsigned char d = m_value.digit[k];
+		if (d == 0xFF)
+			break;
+	}
+	return k;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // CodewordList implementations
@@ -186,10 +195,9 @@ CodewordList CodewordList::FilterByFeedback(
 	Codeword &guess, 
 	Feedback feedback) const
 {
-	// TODO: try stack alloc - it's fast!
+	// TODO: Does this function take a lot of time?
 	unsigned char fb = feedback.GetValue();
-	FeedbackList fblist(this->GetCount());
-	guess.CompareTo(*this, fblist);
+	FeedbackList fblist(guess, *this);
 
 	// Count feedbacks equal to fb
 	int count = 0;

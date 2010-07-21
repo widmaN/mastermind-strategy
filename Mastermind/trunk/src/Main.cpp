@@ -155,8 +155,7 @@ static int RegressionTestUnit()
 	}
 
 	// Comparison
-	FeedbackList fbl(list.GetCount());
-	list[0].CompareTo(list, fbl);
+	FeedbackList fbl(list[0], list);
 	if (!(fbl.GetCount() == 5040)) {
 		printf("FAILED: Codeword::CompareTo() returns wrong length of feedback\n");
 		return -1;
@@ -375,7 +374,7 @@ int main(int argc, char* argv[])
 	string s;
 	
 	CodewordRules rules;
-	if (0) {
+	if (1) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
@@ -409,8 +408,7 @@ int main(int argc, char* argv[])
 			const char *s = "1233";
 			guess = Codeword::Parse(s, rules);
 			FeedbackList fbl(guess, list);
-			FeedbackFrequencyTable freq;
-			fbl.CountFrequencies(&freq);
+			FeedbackFrequencyTable freq(fbl);
 			//printf("Frequency table %s:\n", s);
 			//freq.DebugPrint();
 			printf("Guess=0011, Feedback=0A1B\n");
@@ -424,8 +422,7 @@ int main(int argc, char* argv[])
 			const char *s = "1223";
 			guess = Codeword::Parse(s, rules);
 			FeedbackList fbl(guess, list);
-			FeedbackFrequencyTable freq;
-			fbl.CountFrequencies(&freq);
+			FeedbackFrequencyTable freq(fbl);
 			//printf("Frequency table %s:\n", s);
 			//freq.DebugPrint();
 			printf("Guess=0011, Feedback=0A1B\n");
@@ -463,10 +460,10 @@ int main(int argc, char* argv[])
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
+		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
 		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
+		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
+		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
 		// new OptimalCodeBreaker(rules),
 	};
 

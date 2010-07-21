@@ -126,6 +126,9 @@ namespace Mastermind
 		/// Returns a 16-bit mask of digits present in the codeword.
 		unsigned short GetDigitMask() const;
 
+		/// Gets the number of pegs in the codeword.
+		int GetPegCount() const;
+
 	public:
 
 		/// Returns an empty codeword.

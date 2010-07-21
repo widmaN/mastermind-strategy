@@ -362,11 +362,11 @@ int TestScan(CodewordRules rules, long times)
 int TestFrequencyCounting(CodewordRules rules, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
-	FeedbackList fblist(list.GetCount());
-	list[0].CompareTo(list, fblist);
+	FeedbackList fblist(list[0], list);
 	int count = fblist.GetCount();
 	const unsigned char *fbl = fblist.GetData();
-	unsigned int freq[MM_FEEDBACK_COUNT];
+	const unsigned char maxfb = 63;
+	unsigned int freq[(int)maxfb+1];
 
 	FREQUENCY_COUNTING_ROUTINE *func1 = CountFrequenciesImpl->GetRoutine("c");
 	FREQUENCY_COUNTING_ROUTINE *func2 = CountFrequenciesImpl->GetRoutine("c_luf4");
@@ -374,12 +374,12 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 	if (times == 0) {
 		int total = 0;
 		//count = 11;
-		func2(fbl, count, freq);
-		for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
+		func2(fbl, count, freq, maxfb);
+		for (int i = 0; i <= maxfb; i++) {
 			if (freq[i] > 0) {
-				printf("%d A %d B = %d\n",
-					(int)(i >> MM_FEEDBACK_ASHIFT), 
-					(int)(i & MM_FEEDBACK_BMASK), freq[i]);
+				printf("%s = %d\n",
+					Feedback(i).ToString().c_str(),
+					freq[i]);
 				total += freq[i];
 			}
 		}
@@ -396,13 +396,13 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 	for (int pass = 0; pass < 10; pass++) {
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			func1(fbl, count, freq);
+			func1(fbl, count, freq, maxfb);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			func2(fbl, count, freq);
+			func2(fbl, count, freq, maxfb);
 		}
 		t2 += timer.Stop();
 	}
@@ -434,16 +434,14 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 	if (times == 0) {
 		func1(secret, data, count, results1);
 		if (1) {
-			FeedbackList fbl(results1, count);
-			FeedbackFrequencyTable freq;
-			fbl.CountFrequencies(&freq);
+			FeedbackList fbl(results1, count, rules.length);
+			FeedbackFrequencyTable freq(fbl);
 			freq.DebugPrint();
 		}
 		func2(secret, data, count, results2);
 		if (1) {
-			FeedbackList fbl(results2, count);
-			FeedbackFrequencyTable freq;
-			fbl.CountFrequencies(&freq);
+			FeedbackList fbl(results2, count, rules.length);
+			FeedbackFrequencyTable freq(fbl);
 			freq.DebugPrint();
 		}
 		for (unsigned int i = 0; i < count; i++) {
@@ -554,8 +552,8 @@ int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *rout
 {
 	CodewordList list = CodewordList::Enumerate(rules);
 	FeedbackList fbl(list[0], list);
-	FeedbackFrequencyTable freq;
-	fbl.CountFrequencies(&freq);
+	FeedbackFrequencyTable freq(fbl);
+	unsigned char maxfb = fbl.GetMaxFeedbackValue();
 
 	FREQUENCY_SUMSQUARES_ROUTINE *func1 = GetSumOfSquaresImpl->GetRoutine(routine1);
 	FREQUENCY_SUMSQUARES_ROUTINE *func2 = GetSumOfSquaresImpl->GetRoutine(routine2);
@@ -563,8 +561,8 @@ int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *rout
 
 	// Find sum of squres
 	if (times == 0) {
-		ss1 = func1(freq.GetData());
-		ss2 = func2(freq.GetData());
+		ss1 = func1(freq.GetData(), maxfb);
+		ss2 = func2(freq.GetData(), maxfb);
 		printf("SS1 = %x\n", ss1);
 		printf("SS2 = %x\n", ss2);
 		system("PAUSE");
@@ -578,13 +576,13 @@ int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *rout
 	for (int pass = 0; pass < 10; pass++) {
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			ss1 = func1(freq.GetData());
+			ss1 = func1(freq.GetData(), maxfb);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			ss2 = func2(freq.GetData());
+			ss2 = func2(freq.GetData(), maxfb);
 		}
 		t2 += timer.Stop();
 	}

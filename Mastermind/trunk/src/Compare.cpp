@@ -62,7 +62,11 @@ static void compare_codeword_rep_p1(
 
 		int nA = _mm_extract_epi16(tA, 4);
 		int nB = _mm_extract_epi16(tB, 0) + _mm_extract_epi16(tB, 4);
+#if MM_FEEDBACK_COMPACT
+		unsigned char nAnB = (nB*nB+nB)/2+nA;
+#else
 		unsigned char nAnB = (unsigned char)((nA << (MM_FEEDBACK_BITS / 2)) | (nB - nA));
+#endif
 		*(results++) = nAnB;
 	}
 }
@@ -102,7 +106,11 @@ static void compare_codeword_rep_p1a(
 
 		int nA = _mm_extract_epi16(tA, 4);
 		int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
+#if MM_FEEDBACK_COMPACT
+		unsigned char nAnB = (nB*nB+nB)/2+nA;
+#else
 		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nB - nA));
+#endif
 		*(results++) = nAnB;
 		//unsigned char nAnB = (unsigned char)((nA << 4) | (nB - nA));
 		//*(results++) = feedback_revmap[nAnB];
@@ -183,7 +191,11 @@ static void compare_codeword_rep_p8(
 		__m128i tB = _mm_sad_epu8(_mm_min_epu8(secret_low10, guess), zero);
 		int nA = _mm_extract_epi16(tA, 4) + _mm_cvtsi128_si32(tA);
 		int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
+#if MM_FEEDBACK_COMPACT
+		unsigned char nAnB = (nB*nB+nB)/2+nA;
+#else
 		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nB - nA));
+#endif
 		*(results++) = nAnB;
 	}
 }
@@ -197,6 +209,7 @@ static int count_bits(unsigned short a)
 	}
 	return n;
 }
+
 
 // This is the benchmark routine for "long" codeword comparasion 
 // that assumes NO REPETITION!!!
@@ -227,8 +240,12 @@ static void compare_long_codeword_nr1(
 	if (!counter_ready) {
 		for (int i = 0; i < 0x10000; i++) {
 			int nA = count_bits(i >> MM_MAX_COLORS);
-			int nB = count_bits(i & ((1<<MM_MAX_COLORS)-1)) - nA;
-			counter[i] = (nA << MM_FEEDBACK_ASHIFT) | nB;
+			int nAB = count_bits(i & ((1<<MM_MAX_COLORS)-1));
+#if MM_FEEDBACK_COMPACT
+			counter[i] = (nAB*nAB+nAB)/2+nA;
+#else
+			counter[i] = (nA << MM_FEEDBACK_ASHIFT) | (nAB - nA);
+#endif
 		}
 		counter_ready = true;
 	}
@@ -270,8 +287,12 @@ static void compare_long_codeword_nr2(
 	if (!counter_ready) {
 		for (int i = 0; i < 0x10000; i++) {
 			int nA = count_bits(i >> MM_MAX_COLORS);
-			int nB = count_bits(i & ((1<<MM_MAX_COLORS)-1)) - nA;
-			counter[i] = (nA << MM_FEEDBACK_ASHIFT) | nB;
+			int nAB = count_bits(i & ((1<<MM_MAX_COLORS)-1));
+#if MM_FEEDBACK_COMPACT
+			counter[i] = (nAB*nAB+nAB)/2+nA;
+#else
+			counter[i] = (nA << MM_FEEDBACK_ASHIFT) | (nAB - nA);
+#endif
 		}
 		counter_ready = true;
 	}

@@ -19,9 +19,9 @@ namespace Mastermind
 	private:
 
 		/// The internal representation of the feedback. 
-		/// The high nibble contains <code>nA</code>, i.e. the number of
-		/// digits in the right places. The low nibble contains <code>nB</code>,
-		/// i.e. the number of digits in wrong places.
+		// The high nibble contains <code>nA</code>, i.e. the number of
+		// digits in the right places. The low nibble contains <code>nB</code>,
+		// i.e. the number of digits in wrong places.
 		unsigned char value;
 
 	public:
@@ -34,17 +34,22 @@ namespace Mastermind
 		Feedback(unsigned char v) : value(v) { }
 
 		/// Sets the content of the feedback.
-		void SetValue(int nexact, int ncommon)
+		void SetValue(int nA, int nB)
 		{
-			assert(nexact >= 0 && nexact <= MM_MAX_PEGS);
-			assert(ncommon >= 0 && ncommon <= MM_MAX_PEGS);
-			value = ((nexact << (MM_FEEDBACK_BITS/2)) | ncommon) & ((1<<MM_FEEDBACK_BITS)-1);
+			assert(nA >= 0 && nA <= MM_MAX_PEGS);
+			assert(nB >= 0 && nB <= MM_MAX_PEGS);
+#if MM_FEEDBACK_COMPACT
+			int nAB = nA + nB;
+			value = (nAB+1)*nAB/2+nA;
+#else
+			value = (nA << MM_FEEDBACK_ASHIFT) | nB;
+#endif
 		}
 
 		/// Creates the feedback with the given <code>nA</code> and <code>nB</code>.
-		Feedback(int nexact, int ncommon)
+		Feedback(int nA, int nB)
 		{
-			SetValue(nexact, ncommon);
+			SetValue(nA, nB);
 		}
 
 		/// Gets the internal BYTE presentation of the feedback.
@@ -60,16 +65,40 @@ namespace Mastermind
 
 		/// Returns <code>nA</code>, the number of correct digits (colors) 
 		/// in the correct places (pegs).
-		int GetExact() const 
+		int GetExact() const
 		{
-			return (int)(value >> (MM_FEEDBACK_BITS/2));
+#if MM_FEEDBACK_COMPACT
+			int k = 0;
+			for (int nAB = 0; nAB <= MM_MAX_PEGS; nAB++) {
+				if (value >= k && value <= (k+nAB)) {
+					return (value - k);
+				}
+				k += (nAB + 1);
+			}
+			assert(0);
+			return 0;
+#else
+			return (int)(value >> MM_FEEDBACK_ASHIFT);
+#endif
 		}
 
 		/// Returns <code>nB</code>, the number of correct digits (colors)
 		/// in the wrong places (pegs).
 		int GetCommon() const
 		{
-			return (int)(value & ((1<<(MM_FEEDBACK_BITS/2))-1));
+#if MM_FEEDBACK_COMPACT
+			int k = 0;
+			for (int nAB = 0; nAB <= MM_MAX_PEGS; nAB++) {
+				if (value >= k && value <= (k+nAB)) {
+					return (nAB - (value - k));
+				}
+				k += (nAB + 1);
+			}
+			assert(0);
+			return 0;
+#else
+			return (int)(value & MM_FEEDBACK_BMASK);
+#endif
 		}
 
 		/// Converts the feedback to a string, in the form of "1A2B".
@@ -130,105 +159,84 @@ namespace Mastermind
 		}
 	};
 
+	class FeedbackList;
 
 	class FeedbackFrequencyTable
 	{
 	private:
-		unsigned int m_freq[MM_FEEDBACK_COUNT];
+		unsigned int m_freq[256];
+		unsigned char m_maxfb;
 
 	public:
-		FeedbackFrequencyTable()
+		FeedbackFrequencyTable(unsigned char maxfb)
 		{
+			m_maxfb = maxfb;
 		}
 
+		FeedbackFrequencyTable(const FeedbackList &fblist);
+
+		int GetMaxFeedbackValue() const 
+		{
+			return m_maxfb;
+		}
+
+		/*
 		void Clear()
 		{
-			memset(m_freq, 0, sizeof(m_freq));
+			memset(m_freq, 0, sizeof(unsigned int)*((int)m_maxfb+1));
 		}
+		*/
 
 		unsigned int *GetData() { return m_freq; }
 
 		unsigned int operator [] (Feedback fb) const 
 		{
-			unsigned char i = fb.GetValue();
-			assert(i >= 0 && i < MM_FEEDBACK_COUNT);
-			return m_freq[i]; 
+			unsigned char k = fb.GetValue();
+			assert(k >= 0 && k <= m_maxfb);
+			return m_freq[k]; 
 		}
 
-		// unsigned int& operator [] (Feedback fb) { return m_freq[fb.GetValue()]; }
-
+		/// Gets the number of feedbacks with frequency greater than zero.
 		int GetPartitionCount() const;
 
+		/// Gets the maximum frequency value.
 		unsigned int GetMaximum() const;
 
+		/// Computes the sum of squares of the frequency values.
 		unsigned int GetSumOfSquares() const;
 
+		/// Computes the entropy of the feedback frequencies.
 		float GetModifiedEntropy() const;
 
+		/// Displays the feedback frequencies in the console.
 		void DebugPrint() const;
 
 	};
-
 
 	class FeedbackList
 	{
 	private:
 		unsigned char *m_values;
 		int m_count;
-		int m_alloctype; // 0=no alloc, 1=malloc, 2=alloca(on stack)
-
-		void Allocate(int count, int type)
-		{
-			m_alloctype = type;
-			m_count = count;
-			switch (type) {
-			default:
-			case 0:
-				m_values = NULL;
-				break;
-			case 1:
-				m_values = (unsigned char *)malloc(m_count);
-				break;
-			case 2:
-				m_values = (unsigned char *)_malloca(count);
-				break;
-			}
-		}
+		unsigned char m_maxfb;
 
 	public:
-		FeedbackList(int count)
-		{
-			Allocate(count, 1);
-		}
+		FeedbackList(int count, int pegs);
 
-		FeedbackList(unsigned char *values, int count)
+		FeedbackList(unsigned char *values, int count, int pegs)
 		{
-			m_alloctype = 0;
 			m_values = values;
 			m_count = count;
+			m_maxfb = Feedback(pegs, 0).GetValue();
 		}
 
 		FeedbackList(const Codeword &guess, const CodewordList &secrets);
 
-		~FeedbackList()
-		{
-			switch (m_alloctype) {
-			default:
-			case 0:
-				break;
-			case 1:
-				free(m_values);
-				break;
-			case 2:
-				_freea(m_values);
-				break;
-			}
-			m_values = NULL;
-			m_count = 0;
-			m_alloctype = 0;
-		}
+		~FeedbackList();
 
 		unsigned char * GetData() { return m_values; }
+
+		const unsigned char * GetData() const { return m_values; }
 
 		int GetCount() const { return m_count; }
 
@@ -243,11 +251,16 @@ namespace Mastermind
 			return GetAt(index);
 		}
 
-		void CountFrequencies(FeedbackFrequencyTable *freq) const
+		/*
+		const FeedbackFrequencyTable* CountFrequencies()
 		{
-			CountFrequenciesImpl->Run(this->m_values, this->m_count, freq->GetData());
+			CountFrequenciesImpl->Run(this->m_values, this->m_count, m_freq.GetData(), m_maxfb);
 		}
-
+		*/
+		unsigned char GetMaxFeedbackValue() const
+		{
+			return m_maxfb;
+		}
 
 	};
 
