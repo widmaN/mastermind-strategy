@@ -2,6 +2,7 @@
 
 #include "Feedback.h"
 #include "Codeword.h"
+#include "Frequency.h"
 
 using namespace Mastermind;
 
@@ -13,11 +14,12 @@ FeedbackList::FeedbackList(const Codeword &guess, const CodewordList &secrets)
 
 unsigned int FeedbackFrequencyTable::GetSumOfSquares() const
 {
-	unsigned int ret = 0;
-	for (int i = 0; i < sizeof(m_freq)/sizeof(m_freq[0]); i++) {
-		ret += m_freq[i] * m_freq[i];
-	}
-	return ret;
+	//unsigned int ret = 0;
+	//for (int i = 0; i < sizeof(m_freq)/sizeof(m_freq[0]); i++) {
+	//	ret += m_freq[i] * m_freq[i];
+	//}
+	//return ret;
+	return GetSumOfSquaresImpl->Run(m_freq);
 }
 
 float FeedbackFrequencyTable::GetModifiedEntropy() const 

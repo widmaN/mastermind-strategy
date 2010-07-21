@@ -5,6 +5,7 @@
 #include <intrin.h>
 #include <smmintrin.h>
 
+#include "CpuInfo.h"
 #include "MMConfig.h"
 #include "Frequency.h"
 #include "CallCounter.h"
@@ -476,4 +477,5 @@ static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[
 };
 
 FrequencySumSquaresRoutineSelector *GetSumOfSquaresImpl =
-	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries, "sse4");
+	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries, 
+	(Utilities::CpuInfo::Features.WithSSE41)? "sse4" : "c");

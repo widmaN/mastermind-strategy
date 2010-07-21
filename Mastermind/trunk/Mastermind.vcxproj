@@ -39,6 +39,7 @@
     <ClCompile Include="src\CodeBreaker.cpp" />
     <ClCompile Include="src\Codeword.cpp" />
     <ClCompile Include="src\Compare.cpp" />
+    <ClCompile Include="src\CpuInfo.cpp" />
     <ClCompile Include="src\Enumerate.cpp" />
     <ClCompile Include="src\Feedback.cpp" />
     <ClCompile Include="src\Frequency.cpp" />
@@ -53,6 +54,7 @@
     <ClInclude Include="src\CodeBreaker.h" />
     <ClInclude Include="src\Codeword.h" />
     <ClInclude Include="src\Compare.h" />
+    <ClInclude Include="src\CpuInfo.h" />
     <ClInclude Include="src\Enumerate.h" />
     <ClInclude Include="src\Feedback.h" />
     <ClInclude Include="src\Frequency.h" />

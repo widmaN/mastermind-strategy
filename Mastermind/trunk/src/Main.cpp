@@ -450,7 +450,7 @@ int main(int argc, char* argv[])
 	//return TestCompare(rules, "r_p1b", "r_p1c", 10000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
-	return TestSumOfSquares(rules, "c", "sse4", 15000000*LOOP_FLAG);
+	//return TestSumOfSquares(rules, "c", "sse4", 15000000*LOOP_FLAG);
 	//return TestNewScan(rules, 100000*1);
 	//return BuildLookupTableForLongComparison();
 	//return TestEnumerationDirect(200000*1);
