@@ -157,67 +157,15 @@ namespace Mastermind
 
 		// unsigned int& operator [] (Feedback fb) { return m_freq[fb.GetValue()]; }
 
-		int GetPartitionCount() const 
-		{
-			int n = 0;
-			for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
-				if (m_freq[i] != 0)
-					n++;
-			}
-			return n;
-		}
+		int GetPartitionCount() const;
 
-		unsigned int GetMaximum(Feedback *p = NULL) const 
-		{
-			unsigned int k = 0;
-			int pos = 0;
-			for (int i = 0; i < sizeof(m_freq)/sizeof(m_freq[0]); i++) {
-				if (m_freq[i] > k) {
-					k = m_freq[i];
-					pos = i;
-				}
-			}
-			if (p) {
-				*p = Feedback((unsigned char)pos);
-			}
-			return k;
-		}
+		unsigned int GetMaximum() const;
 
-		unsigned int GetSumOfSquares() const 
-		{
-			unsigned int ret = 0;
-			for (int i = 0; i < sizeof(m_freq)/sizeof(m_freq[0]); i++) {
-				ret += m_freq[i] * m_freq[i];
-			}
-			return ret;
-		}
+		unsigned int GetSumOfSquares() const;
 
-		float GetModifiedEntropy() const 
-		{
-			float ret = 0.0;
-			for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
-				if (m_freq[i] > 0) {
-					ret += log((float)m_freq[i]) * (float)m_freq[i];
+		float GetModifiedEntropy() const;
 
-				}
-			}
-			return ret;
-		}
-
-		void DebugPrint() const 
-		{
-			int total = 0;
-			for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
-				if (m_freq[i] != 0) {
-					printf("%d A %d B = %d\n", 
-						i >> MM_FEEDBACK_ASHIFT,
-						i & MM_FEEDBACK_BMASK,
-						m_freq[i]);
-					total += m_freq[i];
-				}
-			}
-			printf("Total: %d\n", total);
-		}
+		void DebugPrint() const;
 
 	};
 

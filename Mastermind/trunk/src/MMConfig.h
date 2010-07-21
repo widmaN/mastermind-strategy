@@ -48,7 +48,7 @@ union codeword_t {
 
 typedef union codeword_t codeword_t;
 
-#define MM_FEEDBACK_BITS 6
+#define MM_FEEDBACK_BITS 8
 #define MM_FEEDBACK_COUNT (1 << MM_FEEDBACK_BITS)
 #define MM_FEEDBACK_ASHIFT (MM_FEEDBACK_BITS / 2)
 #define MM_FEEDBACK_BMASK ((1<<MM_FEEDBACK_ASHIFT)-1)

@@ -3,6 +3,7 @@
 #include <emmintrin.h>
 #include <stdio.h>
 #include <intrin.h>
+#include <smmintrin.h>
 
 #include "MMConfig.h"
 #include "Frequency.h"
@@ -340,7 +341,7 @@ static void count_freq_v11(
 	freq[63] = 0;
 }
 
-unsigned int ComputeSumOfSquares_v1(const unsigned int freq[MM_FEEDBACK_COUNT])
+static unsigned int ComputeSumOfSquares_v1(const unsigned int freq[MM_FEEDBACK_COUNT])
 {
 	unsigned int ret = 0;
 	for (int i = 0; i < MM_FEEDBACK_COUNT; i++) {
@@ -349,7 +350,7 @@ unsigned int ComputeSumOfSquares_v1(const unsigned int freq[MM_FEEDBACK_COUNT])
 	return ret;
 }
 
-unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT])
+static unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT])
 {
 	unsigned int ret = 0;
 	for (int i = 0; i < MM_FEEDBACK_COUNT; i += 2) {
@@ -362,6 +363,67 @@ unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT])
 	}
 	return ret;
 }
+
+// Require SSE4
+static unsigned int ComputeSumOfSquares_v3(const unsigned int _freq[MM_FEEDBACK_COUNT])
+{
+	const unsigned int *freq = _freq;
+	__m128i ss1 = _mm_setzero_si128();
+	__m128i ss2 = _mm_setzero_si128();
+	for (int n = MM_FEEDBACK_COUNT; n > 0; n -= 8) {
+		__m128i fb1 = _mm_loadu_si128((const __m128i *)freq);
+		__m128i fb2 = _mm_loadu_si128((const __m128i *)(freq+4));
+		fb1 = _mm_mullo_epi32(fb1, fb1);
+		fb2 = _mm_mullo_epi32(fb2, fb2);
+		ss1 = _mm_add_epi32(ss1, fb1);
+		ss2 = _mm_add_epi32(ss2, fb2);
+		freq += 8;
+	}
+	__m128i ss = _mm_add_epi32(ss1, ss2);
+	ss = _mm_hadd_epi32(ss, ss);
+	ss = _mm_hadd_epi32(ss, ss);
+	return _mm_cvtsi128_si32(ss);
+}
+
+#if 0
+// This routine uses four paralle. However, the performance is actually slower
+// than the two-parallel implementation. So, we don't use it.
+// Require SSE4
+unsigned int ComputeSumOfSquares_v4(const unsigned int _freq[MM_FEEDBACK_COUNT])
+{
+	const unsigned int *freq = _freq;
+	unsigned int ret = 0;
+	__m128i ss1 = _mm_setzero_si128();
+	__m128i ss2 = _mm_setzero_si128();
+	__m128i ss3 = _mm_setzero_si128();
+	__m128i ss4 = _mm_setzero_si128();
+	for (int n = MM_FEEDBACK_COUNT; n > 0; n -= 16) {
+		__m128i fb1 = _mm_loadu_si128((const __m128i *)freq);
+		__m128i fb2 = _mm_loadu_si128((const __m128i *)(freq+4));
+		__m128i fb3 = _mm_loadu_si128((const __m128i *)(freq+8));
+		__m128i fb4 = _mm_loadu_si128((const __m128i *)(freq+12));
+
+		fb1 = _mm_mullo_epi32(fb1, fb1);
+		fb2 = _mm_mullo_epi32(fb2, fb2);
+		fb3 = _mm_mullo_epi32(fb3, fb3);
+		fb4 = _mm_mullo_epi32(fb4, fb4);
+
+		ss1 = _mm_add_epi32(ss1, fb1);
+		ss2 = _mm_add_epi32(ss2, fb2);
+		ss3 = _mm_add_epi32(ss3, fb3);
+		ss4 = _mm_add_epi32(ss4, fb4);
+
+		freq += 16;
+	}
+	ss1 = _mm_add_epi32(ss1, ss2);
+	ss3 = _mm_add_epi32(ss3, ss4);
+	__m128i ss = _mm_add_epi32(ss1, ss3);
+	ss = _mm_hadd_epi32(ss, ss);
+	ss = _mm_hadd_epi32(ss, ss);
+	return _mm_cvtsi128_si32(ss);
+	// return ret;
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 // Calling statistic routines
@@ -406,3 +468,12 @@ static FrequencyCountingRoutineSelector::RoutineEntry CountFrequencies_Entries[]
 FrequencyCountingRoutineSelector *CountFrequenciesImpl = 
 	new FrequencyCountingRoutineSelector(CountFrequencies_Entries, "c");
 
+static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[] = {
+	{ "c", "Simple implementation", ComputeSumOfSquares_v1 },
+	{ "c_p2", "Simple implementation with 2-parallel", ComputeSumOfSquares_v2 },
+	{ "sse4", "SIMD implementation (requires SSE4 instruction set)", ComputeSumOfSquares_v3 },
+	{ NULL, NULL, NULL },
+};
+
+FrequencySumSquaresRoutineSelector *GetSumOfSquaresImpl =
+	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries, "sse4");

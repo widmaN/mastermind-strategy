@@ -536,22 +536,23 @@ int TestNewScan(CodewordRules rules, long times)
 }
 #endif
 
-unsigned int ComputeSumOfSquares_v1(const unsigned int freq[MM_FEEDBACK_COUNT]);
-unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT]);
-
-int TestSumOfSquares(CodewordRules rules, long times)
+int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *routine2, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
 	FeedbackList fbl(list[0], list);
 	FeedbackFrequencyTable freq;
 	fbl.CountFrequencies(&freq);
 
-	unsigned int ss;
+	FREQUENCY_SUMSQUARES_ROUTINE *func1 = GetSumOfSquaresImpl->GetRoutine(routine1);
+	FREQUENCY_SUMSQUARES_ROUTINE *func2 = GetSumOfSquaresImpl->GetRoutine(routine2);
+	unsigned int ss1, ss2;
 
 	// Find sum of squres
 	if (times == 0) {
-		ss = ComputeSumOfSquares_v1(freq.GetData());
-		printf("SS = %x\n", ss);
+		ss1 = func1(freq.GetData());
+		ss2 = func2(freq.GetData());
+		printf("SS1 = %x\n", ss1);
+		printf("SS2 = %x\n", ss2);
 		system("PAUSE");
 		return 0;
 	}
@@ -563,13 +564,13 @@ int TestSumOfSquares(CodewordRules rules, long times)
 	for (int pass = 0; pass < 10; pass++) {
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			ss = ComputeSumOfSquares_v1(freq.GetData());
+			ss1 = func1(freq.GetData());
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int j = 0; j < times / 10; j++) {
-			ss = ComputeSumOfSquares_v2(freq.GetData());
+			ss2 = func2(freq.GetData());
 		}
 		t2 += timer.Stop();
 	}
