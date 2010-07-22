@@ -265,6 +265,11 @@ CodewordList CodewordList::FilterByEquivalence(
 	unsigned char eqclass[16] = {
 		0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 };
 
+	if (unguessed_mask & impossible_mask) {
+		if (unguessed_mask & ~impossible_mask) {
+			int k = 0;
+		}
+	}
 	fill_eqclass(eqclass, unguessed_mask);
 	fill_eqclass(eqclass, impossible_mask);
 

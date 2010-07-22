@@ -361,8 +361,6 @@ int TestOutputStrategyTree(CodewordRules rules)
 // -r, --rep           allow repetition
 // -nr, --norep        don't allow repetition
 
-// TODO: Find out why it slows down so much by changing feedback bits from
-//       6 to 8: because of GetSumOfSquares()
 // TODO: Use feedback_map to put feedbacks together, if this can improve
 //       the performance of count_freq_v6 and GetSumOfSquares
 // TODO: Try use the CodewordList::Partition() method to speed up strategy

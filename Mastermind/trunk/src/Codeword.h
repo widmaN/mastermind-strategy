@@ -44,32 +44,29 @@ namespace Mastermind
 		}
 	};
 
-	/// Value type representing a codeword.
+	/// Represents a codeword.
 	class Codeword
 	{
 	private:
 
-		/// The internal representation of the codeword.
+		/// The internal representation of the codeword value.
 		codeword_t m_value;
-
-	private:
-/*
-		void FromDWORD(unsigned long value)
-		{
-			m_value = ConvertCodeword<unsigned long, codeword_t>(value);
-		}
-
-		unsigned long ToDWORD() const
-		{
-			return ConvertCodeword<codeword_t, unsigned long>(m_value);
-		}
-		*/
 
 	public:
 
 		/// Creates an empty codeword. 
-		/// An empty codeword has zero length. It can also be returned by
+		///
+		/// @remark
+		/// Use this constructor to create an empty codeword. An empy 
+		/// codeword contains no pegs. It can be used as a special value 
+		/// for certain purposes (for example, to represent an error). 
+		/// 
+		/// An empty codeword can also be returned by 
 		/// <code>Codeword::Empty()</code>.
+		/// You can test whether a codeword is empty by 
+		/// <code>Codeword::IsEmpty()</code>.
+		///
+		/// @see <code>Empty()</code>, <code>IsEmpty()</code>
 		Codeword()
 		{
 			memset(m_value.counter, 0, sizeof(m_value.counter));
@@ -94,13 +91,14 @@ namespace Mastermind
 		}
 
 		/// Tests whether the codeword is empty.
-		/// An empty codeword can be retrieved by <code>Codeword::Empty()</code>.
+		/// An empty codeword can be returned by <code>Codeword::Empty()</code>.
+		/// @see <code>Codeword::Empty()</code>
 		bool IsEmpty() const 
 		{
 			return (m_value.digit[0] == 0xFF);
 		}
 
-		/// Tests whether the codeword contains any digit more than once.
+		/// Tests whether the codeword contains any color more than once.
 		bool HasRepetition() const
 		{
 			for (int i = 0; i < MM_MAX_COLORS; i++) {
@@ -110,7 +108,7 @@ namespace Mastermind
 			return false;
 		}
 
-		/// Converts the codeword to string.
+		/// Converts the codeword to a string.
 		std::string ToString() const;
 
 		/// Compares this codeword to another codeword. 
@@ -118,9 +116,7 @@ namespace Mastermind
 		Feedback CompareTo(Codeword& guess) const;
 
 		/// Compares this codeword to a codeword list. 
-		/// Returns a list of feedbacks.
-		//FeedbackList* CompareTo(const CodewordList& list) const;
-
+		/// @return A list of feedbacks.
 		void CompareTo(const CodewordList& list, FeedbackList& fbl) const;
 
 		/// Returns a 16-bit mask of digits present in the codeword.
@@ -148,7 +144,7 @@ namespace Mastermind
 			/// The rules to apply
 			CodewordRules rules);
 
-		/// Tests whether two codewords are unequal.
+		/// Tests whether two codewords are equal.
 		static friend bool operator == (Codeword& a, Codeword& b)
 		{
 			return memcmp(&a.m_value, &b.m_value, 16) == 0;
