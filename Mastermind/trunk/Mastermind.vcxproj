@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="doc\Doxyfile" />
+    <None Include="doc\MyLayout.xml" />
     <None Include="doc\newstyle.css" />
     <None Include="Results.txt" />
   </ItemGroup>

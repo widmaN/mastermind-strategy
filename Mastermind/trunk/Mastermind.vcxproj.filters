@@ -115,5 +115,8 @@
     <None Include="doc\newstyle.css">
       <Filter>Data Files</Filter>
     </None>
+    <None Include="doc\MyLayout.xml">
+      <Filter>Data Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
