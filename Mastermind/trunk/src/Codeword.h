@@ -1,6 +1,7 @@
 #pragma once
 
-//#include <cassert>
+#include <string>
+#include <assert.h>
 //#include <memory.h>
 
 #include "MMConfig.h"

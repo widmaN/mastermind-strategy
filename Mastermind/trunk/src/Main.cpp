@@ -11,26 +11,25 @@
 ///
 /// %Mastermind is a game played by two players, the <i>code maker</i> and
 /// the <i>code breaker</i>. At the start of the game, the code maker thinks 
-/// of a <i>secret</i> <i>codeword</i>, which consists of <code>m</code> 
-/// digits where each digit ranges from <code>0</code> to <code>(n-1)</code>. 
-/// Then the code breaker makes <i>guesses</i>.
+/// of a <i>secret</i> <i>codeword</i> with <code>p</code> pegs and 
+/// <code>c</code> colors. Then the code breaker makes <i>guesses</i>.
 /// For each guess, the code maker responds with a 
 /// <i>feedback</i> in the form of <code>xAyB</code>, where <code>x</code>
-/// is the number of correct digits in the correct places, and <code>y</code>
-/// is the number of correct digits in the wrong places. The game continues
+/// is the number of correct colors in the correct pegs, and <code>y</code>
+/// is the number of correct colors in the wrong pegs. The game continues
 /// until the code breaker hits the secret.
 /// 
 /// There are two variations of the %Mastermind game. The traditional 
-/// game is played on a board with four <i>pegs</i> and six <i>color balls</i>.
+/// game is played on a board with four pegs and six color.
 /// A codeword can contain the same color more than once. A variation of
 /// the game is called GuessNumber, also known as Bulls-n-Cows. In this variation,
-/// the codeword is a serial number which contains no duplicative digits.
+/// the codeword is not allowed to contain repetitive colors.
 ///
 /// This program plays the role of the code breaker. The goal is to find out
 /// the secret within as few guesses as possible. The program supports both
 /// the %Mastermind rule and the GuessNumber rule, subject to the limits:
-///    - Maximum number of digits/colors (defined in <code>MM_MAX_COLORS</code>): 10
-///    - Maximum number of places/pegs (defined in <code>MM_MAX_PEGS</code>): 6
+///    - Maximum number of colors (defined in <code>MM_MAX_COLORS</code>): 10
+///    - Maximum number of pegs (defined in <code>MM_MAX_PEGS</code>): 6
 ///
 /// \section strat Strageties of the Code Breaker
 /// 
@@ -54,7 +53,7 @@
 /// The supported heuristic criteria are defined in 
 /// <code>Mastermind::HeuristicCriteria</code>.
 ///
-/// <i>Exhaustive search strategy</i>. Since the number of possible secrets
+/// <i>Optimal strategy</i>. Since the number of possible secrets
 /// and sequences of guesses are finite, the code breaker can employ a 
 /// depth-first search to find out the <i>optimal</i> guessing strategy.
 /// The optimal strategy minimizes the expected number of guesses, optionally
@@ -85,8 +84,7 @@
 /// <i>Codeword comparison</i>. This is the most intensive operation
 /// in the program, accounting for 40% of all CPU time. The program uses
 /// SSE2 instructions (implemented via compiler intrinsics) to compare
-/// 4 to 8 codewords in parallel. This is twice as fast as a fine-tuned 
-/// ASM implementation without SSE2. See <code>Compare.cpp</code>.
+/// each pair of codewords in four instructions.
 ///
 /// <i>Feedback frequency counting</i>. The heuristic code breaker relies
 /// heavily on these routines to count statistics on partitions. This 
@@ -160,7 +158,7 @@ static int RegressionTestUnit()
 		printf("FAILED: Codeword::CompareTo() returns wrong length of feedback\n");
 		return -1;
 	}
-	if (!(fbl.GetAt(3) == Feedback(3, 0))) {
+	if (!(fbl[3] == Feedback(3, 0))) {
 		printf("FAILED: Incorrect comparison results\n");
 		return -1;
 	}

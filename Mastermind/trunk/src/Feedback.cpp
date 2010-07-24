@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <assert.h>
 
+#include "MMConfig.h"
 #include "Feedback.h"
 #include "Codeword.h"
 #include "Frequency.h"
@@ -7,8 +9,95 @@
 using namespace Mastermind;
 
 ///////////////////////////////////////////////////////////////////////////
-// FeedbackList implementations
+// Feedback class implementations
 //
+
+Feedback::Feedback(int nA, int nB)
+{
+	SetValue(nA, nB);
+}
+
+void Feedback::SetValue(int nA, int nB)
+{
+	assert(nA >= 0 && nA <= MM_MAX_PEGS);
+	assert(nB >= 0 && nB <= MM_MAX_PEGS);
+	assert(nA+nB >= 0 && nA+nB <= MM_MAX_PEGS);
+#if MM_FEEDBACK_COMPACT
+	int nAB = nA + nB;
+	m_value = (nAB+1)*nAB/2+nA;
+#else
+	m_value = (nA << MM_FEEDBACK_ASHIFT) | nB;
+#endif
+}
+
+int Feedback::GetExact() const
+{
+#if MM_FEEDBACK_COMPACT
+	int k = 0;
+	for (int nAB = 0; nAB <= MM_MAX_PEGS; nAB++) {
+		if (m_value >= k && m_value <= (k+nAB)) {
+			return (m_value - k);
+		}
+		k += (nAB + 1);
+	}
+	assert(0);
+	return 0;
+#else
+	return (int)(m_value >> MM_FEEDBACK_ASHIFT);
+#endif
+}
+
+int Feedback::GetCommon() const
+{
+#if MM_FEEDBACK_COMPACT
+	int k = 0;
+	for (int nAB = 0; nAB <= MM_MAX_PEGS; nAB++) {
+		if (m_value >= k && m_value <= (k+nAB)) {
+			return (nAB - (m_value - k));
+		}
+		k += (nAB + 1);
+	}
+	assert(0);
+	return 0;
+#else
+	return (int)(m_value & MM_FEEDBACK_BMASK);
+#endif
+}
+
+std::string Feedback::ToString() const
+{
+	char s[5];
+	s[0] = '0' + GetExact();
+	s[1] = 'A';
+	s[2] = '0' + GetCommon();
+	s[3] = 'B';
+	s[4] = '\0';
+	return s;
+}
+
+Feedback Feedback::Parse(const char *s)
+{
+	assert(s != NULL);
+	if ((s[0] >= '0' && s[0] <= '9') &&
+		(s[1] == 'A' || s[1] == 'a') &&
+		(s[2] >= '0' && s[2] <= '9') &&
+		(s[3] == 'B' || s[3] == 'b') &&
+		(s[4] == '\0')) {
+		return Feedback(s[0] - '0', s[2] - '0');
+	} 
+	return Feedback::Empty();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// FeedbackList class implementations
+//
+
+FeedbackList::FeedbackList(unsigned char *values, int count, int pegs)
+{
+	m_values = values;
+	m_count = count;
+	m_maxfb = Feedback(pegs, 0).GetValue();
+}
 
 FeedbackList::FeedbackList(int count, int pegs)
 {
@@ -34,14 +123,27 @@ FeedbackList::~FeedbackList()
 	}
 }
 
+Feedback FeedbackList::operator [] (int index) const
+{
+	assert(index >= 0 && index < m_count);
+	return Feedback(m_values[index]);
+}
+
 ///////////////////////////////////////////////////////////////////////////
-// FeedbackFrequencyTable implementations
+// FeedbackFrequencyTable class implementations
 //
 
 FeedbackFrequencyTable::FeedbackFrequencyTable(const FeedbackList &fblist)
 {
 	m_maxfb = fblist.GetMaxFeedbackValue();
 	CountFrequenciesImpl->Run(fblist.GetData(), fblist.GetCount(), m_freq, m_maxfb);
+}
+
+unsigned int FeedbackFrequencyTable::operator [] (Feedback fb) const 
+{
+	unsigned char k = fb.GetValue();
+	assert(k >= 0 && k <= m_maxfb);
+	return m_freq[k]; 
 }
 
 unsigned int FeedbackFrequencyTable::GetSumOfSquares() const
