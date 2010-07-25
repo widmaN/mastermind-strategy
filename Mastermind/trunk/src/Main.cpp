@@ -340,7 +340,7 @@ int TestOutputStrategyTree(CodewordRules rules)
 	sprintf_s(filename, "./strats/mm-%dp%dc-%s-%s.xml", rules.length, rules.ndigits, 
 		(rules.allow_repetition? "r":"nr"), b->GetName());
 	FILE *fp = fopen(filename, "wt");
-	tree->WriteToFile(fp, StrategyTree::XmlFormat);
+	tree->WriteToFile(fp, StrategyTree::XmlFormat, rules);
 	fclose(fp);
 	delete tree;
 
@@ -379,7 +379,7 @@ int main(int argc, char* argv[])
 	string s;
 	
 	CodewordRules rules;
-	if (1) {
+	if (0) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
@@ -442,7 +442,7 @@ int main(int argc, char* argv[])
 
 	//return RegressionTest();
 
-	//return TestOutputStrategyTree(rules);
+	return TestOutputStrategyTree(rules);
 
 #ifdef NDEBUG
 #define LOOP_FLAG 1

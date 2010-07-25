@@ -207,6 +207,12 @@ namespace Mastermind
 			const Codeword& first_guess,
 			int *progress);
 
+		void MakeGuess(
+			CodewordList possibilities,
+			unsigned short unguessed_mask,
+			unsigned short impossible_mask,
+			StrategyTreeState *state);
+
 	public:
 
 		/// Creates a heuristic code breaker.

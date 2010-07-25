@@ -15,15 +15,24 @@
 //
 namespace Mastermind
 {
+	class StrategyTreeState
+	{
+	public:
+		Codeword Guess;
+		int NPossibilities;
+		int NCandidates;
+	};
+
 	/// Represents a guessing strategy for the code breaker.
 	///
 	/// The strategy is internally represented by a tree. Each node in the 
-	/// tree represents a <emph>state</emph> of the game. Some attributes 
+	/// tree represents a <i>state</i> of the game. Some attributes 
 	/// of a state include:
 	/// - number of rounds played so far
 	/// - number of remaining possibilities left
 	/// - number of distinct guesses that the code breaker may make
 	/// - next guess to make by the code breaker
+	///
 	/// These attributes are stored in StrategyTreeNode.
 	///
 	/// Each edge in the tree represents a feedback that corresponds to 
@@ -31,11 +40,15 @@ namespace Mastermind
 	class StrategyTreeNode
 	{
 	private:
-		Codeword m_guess;
+		StrategyTreeState m_state;
+		// Codeword m_guess;
 		StrategyTreeNode* m_children[256];
 
 	private:
 		int FillDepthInfo(int depth, int depth_freq[], int max_depth) const;
+
+	public:
+		StrategyTreeState State;
 
 	public:
 		static StrategyTreeNode* Done() { return (StrategyTreeNode*)(-1); }
@@ -55,18 +68,19 @@ namespace Mastermind
 		void WriteToFile(FILE *fp, FileFormat format, int indent) const;
 
 	public:
-		StrategyTreeNode(const Codeword &guess);
+		//StrategyTreeNode(const Codeword &guess);
+		StrategyTreeNode();
 		~StrategyTreeNode();
 
-		Codeword GetGuess() const { return m_guess; }
-		void SetGuess(const Codeword &guess) { m_guess = guess; }
+		//Codeword GetGuess() const { return m_guess; }
+		//void SetGuess(const Codeword &guess) { m_guess = guess; }
 
 		void AddChild(Feedback fb, StrategyTreeNode *child);
 
 		int GetDepthInfo(int depth_freq[], int max_depth) const;
 
 		/// Outputs the strategy tree to a file.
-		void WriteToFile(FILE *fp, FileFormat format) const;
+		void WriteToFile(FILE *fp, FileFormat format, CodewordRules rules) const;
 	};
 
 	class StrategyTree : public StrategyTreeNode

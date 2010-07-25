@@ -97,7 +97,10 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 	FeedbackList fbl(guess, possibilities);
 	FeedbackFrequencyTable freq(fbl);
 
-	StrategyTreeNode *node = new StrategyTreeNode(guess);
+	StrategyTreeNode *node = new StrategyTreeNode();
+	node->State.Guess = guess;
+	node->State.NPossibilities = possibilities.GetCount();
+	node->State.NCandidates = 1;
 	for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
 		Feedback fb(fbv);
 		if (freq[fb] > 0) {
@@ -192,13 +195,22 @@ StrategyTreeNode* HeuristicCodeBreaker::FillStrategy(
 	const Codeword& first_guess,
 	int *progress)
 {
-	Codeword guess = first_guess.IsEmpty()?
-		MakeGuess(possibilities, unguessed_mask, impossible_mask) : first_guess;
+	StrategyTreeState state;
+	if (first_guess.IsEmpty()) {
+		MakeGuess(possibilities, unguessed_mask, impossible_mask, &state);
+	} else {
+		state.NPossibilities = possibilities.GetCount();
+		state.NCandidates = -1;
+		state.Guess = first_guess;
+	}
+
+	Codeword guess = state.Guess;
 	FeedbackList fbl(guess, possibilities);
 	FeedbackFrequencyTable freq(fbl);
 
 	Feedback perfect = Feedback(m_rules.length, 0);
-	StrategyTreeNode *node = new StrategyTreeNode(guess);
+	StrategyTreeNode *node = new StrategyTreeNode();
+	node->State = state;
 	for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
 		Feedback fb(fbv);
 		if (freq[fb] > 0) {
@@ -313,15 +325,19 @@ Codeword HeuristicCodeBreaker::MakeGuess()
 	return candidates[choose_i];
 }
 
-Codeword HeuristicCodeBreaker::MakeGuess(
+void HeuristicCodeBreaker::MakeGuess(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
-	unsigned short impossible_mask)
+	unsigned short impossible_mask,
+	StrategyTreeState *state)
 {
 	assert(possibilities.GetCount() > 0);
+	state->NPossibilities = possibilities.GetCount();
 
 	if (possibilities.GetCount() <= 2) {
-		return possibilities[0];
+		state->NCandidates = 1;
+		state->Guess = possibilities[0];
+		return;
 	}
 
 	// Calculate a score for each guess
@@ -377,7 +393,20 @@ Codeword HeuristicCodeBreaker::MakeGuess(
 			}
 		}
 	}
-	return candidates[choose_i];
+
+	state->NCandidates = candidates.GetCount();
+	state->Guess = candidates[choose_i];
+	return;
+}
+
+Codeword HeuristicCodeBreaker::MakeGuess(
+	CodewordList possibilities,
+	unsigned short unguessed_mask,
+	unsigned short impossible_mask)
+{
+	StrategyTreeState state;
+	MakeGuess(possibilities, unguessed_mask, impossible_mask, &state);
+	return state.Guess;
 }
 
 
@@ -415,7 +444,10 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	FeedbackFrequencyTable freq(fbl);
 
 	Feedback perfect = Feedback(m_rules.length, 0);
-	StrategyTreeNode *node = new StrategyTreeNode(guess);
+	StrategyTreeNode *node = new StrategyTreeNode();
+	node->State.Guess = guess;
+	node->State.NPossibilities = possibilities.GetCount();
+	node->State.NCandidates = -1;
 	for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
 		Feedback fb(fbv);
 		if (freq[fb] > 0) {

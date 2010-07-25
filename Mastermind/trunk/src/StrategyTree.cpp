@@ -4,9 +4,9 @@
 
 using namespace Mastermind;
 
-StrategyTreeNode::StrategyTreeNode(const Codeword &guess)
+StrategyTreeNode::StrategyTreeNode()
 {
-	m_guess = guess;
+	// m_guess = guess;
 	memset(m_children, 0, sizeof(m_children));
 }
 
@@ -19,7 +19,7 @@ StrategyTreeNode::~StrategyTreeNode()
 			m_children[i] = NULL;
 		}
 	}
-	m_guess = Codeword::Empty();
+	// m_guess = Codeword::Empty();
 }
 
 void StrategyTreeNode::AddChild(Feedback fb, StrategyTreeNode *child)
@@ -68,14 +68,26 @@ void StrategyTreeNode::WriteToFile(
 		const StrategyTreeNode *child = m_children[i];
 		if (child != NULL) {
 			if (format == XmlFormat) {
-				fprintf(fp, "%*s<case guess=\"%s\" feedback=\"%s\">\n",
+				//fprintf(fp, "%*s<case guess=\"%s\" feedback=\"%s\">\n",
+				//		indent, "",
+				//		State.Guess.ToString().c_str(),
+				//		Feedback(i).ToString().c_str());
+				if (child == Done()) {
+					fprintf(fp, "%*s<case feedback=\"%s\">\n",
 						indent, "",
-						m_guess.ToString().c_str(),
 						Feedback(i).ToString().c_str());
+				} else {
+					fprintf(fp, "%*s<case feedback=\"%s\" npos=\"%d\" ncand=\"%d\" guess=\"%s\">\n",
+						indent, "",
+						Feedback(i).ToString().c_str(),
+						child->State.NPossibilities,
+						child->State.NCandidates,
+						child->State.Guess.ToString().c_str());
+				}
 			} else {
 				fprintf(fp, "%*s%s:%s\n", 
 						indent, "",
-						m_guess.ToString().c_str(),
+						State.Guess.ToString().c_str(),
 						Feedback(i).ToString().c_str());
 			}
 			if (child != Done()) {
@@ -90,13 +102,31 @@ void StrategyTreeNode::WriteToFile(
 
 void StrategyTreeNode::WriteToFile(
 	FILE *fp, 
-	FileFormat format) const
+	FileFormat format,
+	CodewordRules rules) const
 {
 	if (format == XmlFormat) {
-		fprintf(fp, "<game>\n");
+		fprintf(fp, "<mmstrat npegs=\"%d\" ncolors=\"%d\" allowrepetition=\"%s\">\n",
+			rules.length, rules.ndigits, (rules.allow_repetition? "true":"false"));
+		
+		const int max_depth = 100;
+		int freq[max_depth+1];
+		int total = GetDepthInfo(freq, max_depth);
+
+		fprintf(fp, "<summary totalsteps=\"%d\">\n", total);
+		for (int i = 0; i <= max_depth; i++) {
+			if (freq[i] > 0) {
+				fprintf(fp, "  <where steps=\"%d\" count=\"%d\"/>\n",
+					i, freq[i]);
+			}
+		}
+		fprintf(fp, "</summary>\n");
+
+		fprintf(fp, "<details>\n");
 	}
 	WriteToFile(fp, format, 0);
 	if (format == XmlFormat) {
-		fprintf(fp, "</game>\n");
+		fprintf(fp, "</details>\n");
+		fprintf(fp, "</mmstrat>\n");
 	}
 }
