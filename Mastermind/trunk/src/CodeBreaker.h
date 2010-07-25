@@ -85,10 +85,7 @@ namespace Mastermind
 		virtual Codeword MakeGuess() = 0;
 
 		/// Not implemented.
-		virtual void BuildStrategyTree(StrategyTree *tree);
-
-		/// Not implemented.
-		virtual void BuildStrategyTree(StrategyTree *tree, const Codeword& first_guess) = 0;
+		virtual StrategyTree* BuildStrategyTree(const Codeword& first_guess) = 0;
 
 		/// Returns a name identifying the code breaker.
 		/// This function must be overridden by an inherited class. It
@@ -109,7 +106,7 @@ namespace Mastermind
 	{
 	private:
 		Codeword MakeGuess(CodewordList &possibilities);
-		void FillStrategy(StrategyTree *tree, CodewordList possibilities, const Codeword &force_guess);
+		StrategyTreeNode* FillStrategy(CodewordList possibilities, const Codeword &force_guess);
 
 	public:
 		/// Creates a simple code breaker.
@@ -130,7 +127,7 @@ namespace Mastermind
 		virtual std::string GetDescription() const;
 
 		/// Not implemented.
-		virtual void BuildStrategyTree(StrategyTree *tree, const Codeword& first_guess);
+		virtual StrategyTree* BuildStrategyTree(const Codeword& first_guess);
 	};
 
 	typedef void ProgressReport(double percentage, void *tag);
@@ -203,8 +200,7 @@ namespace Mastermind
 		/// If set to false, a guess is picked from all codewords.
 		bool m_posonly;
 
-		void FillStrategy(
-			StrategyTree *tree, 
+		StrategyTreeNode* FillStrategy(
 			CodewordList possibilities,
 			unsigned short unguessed_mask,
 			unsigned short impossible_mask,
@@ -234,8 +230,7 @@ namespace Mastermind
 
 		virtual const char* GetName() const;
 
-		/// Not implemented.
-		virtual void BuildStrategyTree(StrategyTree *tree, const Codeword& first_guess);
+		virtual StrategyTree* BuildStrategyTree(const Codeword& first_guess);
 	};
 
 	/// Code breaker that finds the optimal guess by Depth-First Search.
@@ -249,8 +244,7 @@ namespace Mastermind
 			int *depth,
 			Codeword *choice);
 
-		void FillStrategy(
-			StrategyTree *tree, 
+		StrategyTreeNode* FillStrategy(
 			CodewordList possibilities,
 			unsigned short unguessed_mask,
 			unsigned short impossible_mask,
@@ -279,7 +273,7 @@ namespace Mastermind
 		virtual std::string GetDescription() const;
 
 		/// Not implemented.
-		virtual void BuildStrategyTree(StrategyTree *tree, const Codeword& first_guess);
+		virtual StrategyTree* BuildStrategyTree(const Codeword& first_guess);
 	};
 
 }

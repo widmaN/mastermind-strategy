@@ -297,15 +297,14 @@ static void TestGuessingByTree(
 		CodeBreaker *breaker = breakers[ib];
 
 		// Build a strategy tree of this code breaker
-		StrategyTree tree;
 		timer.Start();
-		breaker->BuildStrategyTree(&tree, first_guess);
+		StrategyTree *tree = breaker->BuildStrategyTree(first_guess);
 		double t = timer.Stop();
 
 		// Count the steps used to get the answers
 		const int max_rounds = 10;
 		int freq[max_rounds+1];
-		int sum_rounds = tree.GetDepthInfo(freq, max_rounds);
+		int sum_rounds = tree->GetDepthInfo(freq, max_rounds);
 		int count = all.GetCount();
 
 //			if (i*100/count > pct) {
@@ -325,6 +324,7 @@ static void TestGuessingByTree(
 		}
 		printf("%6.1f\n", t);
 
+		delete tree;
 	}
 
 }
@@ -333,15 +333,18 @@ int TestOutputStrategyTree(CodewordRules rules)
 {
 	//CodeBreaker *b = new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase);
 	CodeBreaker *b = new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage);
-	StrategyTree tree;
-	b->BuildStrategyTree(&tree);
+	Codeword first_guess;
+	StrategyTree *tree = b->BuildStrategyTree(first_guess);
 	//const char *filename = "E:/good-strat.txt";
 	char filename[100];
-	sprintf_s(filename, "./strat/mm-%dp%dc-%s-%s.txt", rules.length, rules.ndigits, 
+	sprintf_s(filename, "./strats/mm-%dp%dc-%s-%s.xml", rules.length, rules.ndigits, 
 		(rules.allow_repetition? "r":"nr"), b->GetName());
 	FILE *fp = fopen(filename, "wt");
-	tree.WriteToFile(fp);
+	tree->WriteToFile(fp, StrategyTree::XmlFormat);
 	fclose(fp);
+	delete tree;
+
+	system("PAUSE");
 	return 0;
 }
 
@@ -367,6 +370,12 @@ int TestOutputStrategyTree(CodewordRules rules)
 //       to prepare for multithreading.
 int main(int argc, char* argv[])
 {
+	if (0) {
+		Feedback fb;
+		//fb.is
+		//fb.ise
+	}
+
 	string s;
 	
 	CodewordRules rules;
@@ -375,8 +384,8 @@ int main(int argc, char* argv[])
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
 	} else {
-		rules.length = 5;
-		rules.ndigits = 8;
+		rules.length = 4;
+		rules.ndigits = 6;
 		rules.allow_repetition = true;
 	}
 

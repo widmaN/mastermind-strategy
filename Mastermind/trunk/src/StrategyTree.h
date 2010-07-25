@@ -15,37 +15,94 @@
 //
 namespace Mastermind
 {
-	class StrategyTree
+	/// Represents a guessing strategy for the code breaker.
+	///
+	/// The strategy is internally represented by a tree. Each node in the 
+	/// tree represents a <emph>state</emph> of the game. Some attributes 
+	/// of a state include:
+	/// - number of rounds played so far
+	/// - number of remaining possibilities left
+	/// - number of distinct guesses that the code breaker may make
+	/// - next guess to make by the code breaker
+	/// These attributes are stored in StrategyTreeNode.
+	///
+	/// Each edge in the tree represents a feedback that corresponds to 
+	/// a guess made by the code breaker.
+	class StrategyTreeNode
 	{
 	private:
-		struct node_t {
-			Codeword guess;
-			Feedback feedback;
-			node_t *parent;
-			node_t *prev_sibling;
-			node_t *next_sibling;
-			node_t *first_child;
-		};
-		node_t *m_root;
-		node_t *m_current;
+		Codeword m_guess;
+		StrategyTreeNode* m_children[256];
 
 	private:
-		void DeleteNode(node_t *node);
-		void WriteNodeToFile(FILE *fp, const node_t *node, int indent) const;
-		int FillDepthInfo(const node_t *node, int depth, int freq[], int max_depth) const;
+		int FillDepthInfo(int depth, int depth_freq[], int max_depth) const;
 
 	public:
-		StrategyTree();
-		~StrategyTree();
+		static StrategyTreeNode* Done() { return (StrategyTreeNode*)(-1); }
+
+		/// Defines the file format of the strategy output.
+		enum FileFormat
+		{
+			/// Default format
+			DefaultFormat = 0,
+			/// Plain text format
+			PlainFormat = 0,
+			/// XML format
+			XmlFormat = 1,
+		};
+		
+	protected:
+		void WriteToFile(FILE *fp, FileFormat format, int indent) const;
 
 	public:
-		void Clear();
-		void Push(Codeword &guess, Feedback feedback);
-		void Pop();
-		// void Remove(Feedback fb, Codeword &guess);
+		StrategyTreeNode(const Codeword &guess);
+		~StrategyTreeNode();
 
-		void WriteToFile(FILE *fp) const;
+		Codeword GetGuess() const { return m_guess; }
+		void SetGuess(const Codeword &guess) { m_guess = guess; }
 
-		int GetDepthInfo(int freq[], int max_depth) const;
+		void AddChild(Feedback fb, StrategyTreeNode *child);
+
+		int GetDepthInfo(int depth_freq[], int max_depth) const;
+
+		/// Outputs the strategy tree to a file.
+		void WriteToFile(FILE *fp, FileFormat format) const;
 	};
+
+	class StrategyTree : public StrategyTreeNode
+	{
+	public:
+		
+
+	private:
+		//StrategyTreeNode *m_root;
+
+		
+	public:
+
+		// Creates an empty strategy tree.
+		/*StrategyTree(StrategyTreeNode *root)
+		{
+			m_root = root;
+		}
+
+		// Destructor.
+		~StrategyTree()
+		{
+			if (m_root != NULL) {
+				delete m_root;
+				m_root = NULL;
+			}
+		}*/
+
+	public:
+
+		//StrategyTreeNode *GetRoot() { return m_root; }
+
+		/// Outputs the strategy tree to a file.
+		//void WriteToFile(FILE *fp, FileFormat format) const;
+
+		//int GetDepthInfo(int freq[], int max_depth) const;
+	};
+
 }

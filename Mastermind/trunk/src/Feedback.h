@@ -50,10 +50,10 @@ namespace Mastermind
 		/// Creates an empty feedback.
 		Feedback() : m_value(0xff) { }
 
-		/// Creates the feedback from its internal representation.
+		/// Creates a feedback from its internal representation.
 		Feedback(unsigned char value) : m_value(value) { }
 
-		/// Creates the feedback with the given <code>nA</code> and <code>nB</code>.
+		/// Creates a feedback with the given <code>nA</code> and <code>nB</code>.
 		Feedback(int nA, int nB);
 
 		/// Sets the value of the feedback.
@@ -79,6 +79,20 @@ namespace Mastermind
 		/// The format is "1A2B".
 		std::string ToString() const;
 
+		/// Tests whether this feedback is equal to another.
+		///
+		/// If both feedbacks are non-empty, then they are equal if they 
+		/// have the same number of nA and nB. If one of the feedbacks
+		/// is empty, then they are equal only if they are both empty.
+		bool operator == (const Feedback b) const { return (m_value == b.m_value); }
+
+		/// Tests whether this feedback is not equal to another.
+		///
+		/// If both feedbacks are non-empty, then they are equal if they 
+		/// have the same number of nA and nB. If one of the feedbacks
+		/// is empty, then they are equal only if they are both empty.
+		bool operator != (const Feedback b) const { return (m_value != b.m_value); }
+
 	public:
 
 		/// Returns an empty feedback value. 
@@ -93,17 +107,6 @@ namespace Mastermind
 		/// is returned.
 		static Feedback Parse(const char *s);
 
-		/// Tests whether two feedbacks are equal.
-		static friend bool operator == (Feedback a, Feedback b) 
-		{ 
-			return (a.m_value == b.m_value); 
-		}
-
-		/// Tests whether two feedbacks are unequal.
-		static friend bool operator != (Feedback a, Feedback b) 
-		{ 
-			return (a.m_value != b.m_value); 
-		}
 	};
 
 	/// Represents an array of feedbacks.
