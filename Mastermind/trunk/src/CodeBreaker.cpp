@@ -334,17 +334,38 @@ void HeuristicCodeBreaker::MakeGuess(
 	assert(possibilities.GetCount() > 0);
 	state->NPossibilities = possibilities.GetCount();
 
+	// Optimize if there are only two possibilities left
 	if (possibilities.GetCount() <= 2) {
 		state->NCandidates = 1;
 		state->Guess = possibilities[0];
 		return;
 	}
 
+	// Optimize if there are less than p(p+3)/2 possibilities left
+	int npos = possibilities.GetCount(); // number of remaining possibilities
+	int npegs = m_rules.length; // number of pegs
+	int pretest = 0;
+	if (possibilities.GetCount() <= npegs*(npegs+3)/2) {
+		pretest = npos;
+		FeedbackList fbl(npos, npegs);
+		for (int i = 0; i < possibilities.GetCount(); i++) {
+			Codeword guess = possibilities[i];
+			guess.CompareTo(possibilities, fbl);
+			FeedbackFrequencyTable freq(fbl);
+			if (freq.GetMaximum() == 1) {
+				state->NCandidates = i + 1;
+				state->Guess = guess;
+				return;
+			}
+		}
+		pretest = npos;
+	}
+
 	// Calculate a score for each guess
 	CodewordList candidates = m_posonly? possibilities : m_all;
 	candidates = candidates.FilterByEquivalence(unguessed_mask, impossible_mask);
 
-	float choose_dscore = 1.0e10;
+	double choose_dscore = 1.0e10;
 	int choose_score = 0x7fffffff;
 	int choose_i = -1;
 	int choose_ispos = false;
@@ -357,7 +378,7 @@ void HeuristicCodeBreaker::MakeGuess(
 
 		// Evaluate each potential guess, and find the minimum
 		int score = 0;
-		float dscore = 0.0;
+		double dscore = 0.0;
 		bool use_double = false;
 		switch (m_criteria) {
 		default:

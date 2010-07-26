@@ -187,7 +187,7 @@ namespace Mastermind
 		unsigned int GetSumOfSquares() const;
 
 		/// Computes the entropy of the feedback frequencies.
-		float GetModifiedEntropy() const;
+		double GetModifiedEntropy() const;
 
 		/// Displays the feedback frequencies in the console.
 		void DebugPrint() const;

@@ -156,12 +156,12 @@ unsigned int FeedbackFrequencyTable::GetSumOfSquares() const
 	return GetSumOfSquaresImpl->Run(m_freq, m_maxfb);
 }
 
-float FeedbackFrequencyTable::GetModifiedEntropy() const 
+double FeedbackFrequencyTable::GetModifiedEntropy() const 
 {
-	float ret = 0.0;
+	double ret = 0.0;
 	for (int i = 0; i <= (int)m_maxfb; i++) {
 		if (m_freq[i] > 0) {
-			ret += log((float)m_freq[i]) * (float)m_freq[i];
+			ret += log((double)m_freq[i]) * (double)m_freq[i];
 		}
 	}
 	return ret;

@@ -383,9 +383,13 @@ int main(int argc, char* argv[])
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
-	} else {
+	} else if (0) {
 		rules.length = 4;
 		rules.ndigits = 6;
+		rules.allow_repetition = true;
+	} else {
+		rules.length = 5;
+		rules.ndigits = 8;
 		rules.allow_repetition = true;
 	}
 
@@ -442,7 +446,7 @@ int main(int argc, char* argv[])
 
 	//return RegressionTest();
 
-	return TestOutputStrategyTree(rules);
+	//return TestOutputStrategyTree(rules);
 
 #ifdef NDEBUG
 #define LOOP_FLAG 1
@@ -465,9 +469,9 @@ int main(int argc, char* argv[])
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
 		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
 		// new OptimalCodeBreaker(rules),
 	};

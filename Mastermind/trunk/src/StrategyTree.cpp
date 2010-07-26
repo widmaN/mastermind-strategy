@@ -68,10 +68,6 @@ void StrategyTreeNode::WriteToFile(
 		const StrategyTreeNode *child = m_children[i];
 		if (child != NULL) {
 			if (format == XmlFormat) {
-				//fprintf(fp, "%*s<case guess=\"%s\" feedback=\"%s\">\n",
-				//		indent, "",
-				//		State.Guess.ToString().c_str(),
-				//		Feedback(i).ToString().c_str());
 				if (child == Done()) {
 					fprintf(fp, "%*s<case feedback=\"%s\">\n",
 						indent, "",
