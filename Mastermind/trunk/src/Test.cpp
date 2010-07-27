@@ -430,28 +430,31 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 
 	//count = 7;
 	//count--;
+
+	// Verify computation results
+	func1(secret, data, count, results1);
+	func2(secret, data, count, results2);
+	for (unsigned int i = 0; i < count; i++) {
+		if (results1[i] != results2[i]) {
+			printf("**** ERROR: Inconsistent [%d]: Compare(%s, %s) = %s v %s\n", i,
+				Codeword(secret).ToString().c_str(),
+				Codeword(data[i]).ToString().c_str(),
+				Feedback(results1[i]).ToString().c_str(),
+				Feedback(results2[i]).ToString().c_str());
+		}
+	}
+
 	int k = 0;
 	if (times == 0) {
-		func1(secret, data, count, results1);
 		if (1) {
 			FeedbackList fbl(results1, count, rules.length);
 			FeedbackFrequencyTable freq(fbl);
 			freq.DebugPrint();
 		}
-		func2(secret, data, count, results2);
 		if (1) {
 			FeedbackList fbl(results2, count, rules.length);
 			FeedbackFrequencyTable freq(fbl);
 			freq.DebugPrint();
-		}
-		for (unsigned int i = 0; i < count; i++) {
-			if (results1[i] != results2[i]) {
-				printf("**** ERROR: Inconsistent [%d]: Compare(%s, %s) = %s v %s\n", i,
-					Codeword(secret).ToString().c_str(),
-					Codeword(data[i]).ToString().c_str(),
-					Feedback(results1[i]).ToString().c_str(),
-					Feedback(results2[i]).ToString().c_str());
-			}
 		}
 		if (0) {
 			for (unsigned int i = 0; i < count*0+25; i++) {

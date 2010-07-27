@@ -368,6 +368,8 @@ int TestOutputStrategyTree(CodewordRules rules)
 //       tree calculation for Logik setup (5 pegs, 8 colors, with rep)
 // TODO: Improve strategy tree to save memory (pointer) and be thread-safe
 //       to prepare for multithreading.
+// TODO: Refactor MakeGuess() code to make each call longer and fewer calls
+//       to take advantage of OpenMP.
 int main(int argc, char* argv[])
 {
 	if (0) {
@@ -454,7 +456,8 @@ int main(int argc, char* argv[])
 #define LOOP_FLAG 0
 #endif
 	//1829320017
-	//return TestCompare(rules, "r_p1a", "r_p8", 60000*LOOP_FLAG);
+	return TestCompare(rules, "r_p8", "r_p1a_omp", 10000*LOOP_FLAG);
+
 	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
@@ -495,7 +498,7 @@ int main(int argc, char* argv[])
 	//PrintCompareStatistics();
 
 	void PrintMakeGuessStatistics();
-	PrintMakeGuessStatistics();
+	//PrintMakeGuessStatistics();
 
 	system("PAUSE");
 	return 0;
