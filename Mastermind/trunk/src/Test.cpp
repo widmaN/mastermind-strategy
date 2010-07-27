@@ -428,7 +428,7 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 	COMPARISON_ROUTINE *func1 = CompareRepImpl->GetRoutine(routine1);
 	COMPARISON_ROUTINE *func2 = CompareRepImpl->GetRoutine(routine2);
 
-	count = 7;
+	//count = 7;
 	//count--;
 	int k = 0;
 	if (times == 0) {

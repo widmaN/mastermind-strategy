@@ -49,3 +49,6 @@ typedef union codeword_t codeword_t;
 extern const unsigned char feedback_count[MM_MAX_PEGS+1];
 extern const unsigned char feedback_map[256];
 extern const unsigned char feedback_revmap[256];
+
+// Whether to compile call counter
+#define ENABLE_CALL_COUNTER 1

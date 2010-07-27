@@ -10,19 +10,48 @@
 #include "Frequency.h"
 #include "CallCounter.h"
 
-#ifndef NDEBUG
-static bool _update_stat = true;
-static Utilities::CallCounter _call_counter("CountFrequencies");
+///////////////////////////////////////////////////////////////////////////
+// Calling counter statistics
+//
+
+#if ENABLE_CALL_COUNTER
+static Utilities::CallCounter _call_counter("CountFrequencies", true);
 #endif
 
 static inline void UpdateCallCounter(unsigned int comp)
 {
-#ifndef NDEBUG
-	if (_update_stat) {
-		_call_counter.AddCall(comp);
-	}
+#if ENABLE_CALL_COUNTER
+	_call_counter.AddCall(comp);
 #endif
 }
+
+void PrintFrequencyStatistics()
+{
+#if ENABLE_CALL_COUNTER
+	_call_counter.DebugPrint();
+#endif
+}
+
+// The count_freq() calling statistics for 4 pegs, 10 colors, no rep
+//List length >=  4096 : 9
+//List length >=  1024 : 1682
+//List length >=   512 : 841
+//List length >=   256 : 22893
+//List length >=   128 : 24938
+//List length >=    64 : 135980
+//List length >=    32 : 222630
+//List length >=    16 : 652336
+//List length >=     8 : 1111720
+//List length >=     4 : 1678683
+//List length >=     2 : 825598
+//List length >=     1 : 17404
+//count_freq() called times: 4694714
+//Number of codes compared:  73869707
+//Average comparison per call: 15.73
+
+///////////////////////////////////////////////////////////////////////////
+// Frequency counting routines
+//
 
 // Simplistic implementation in C. In practice, if the feedback list is small,
 // this routine actually performs better than more complicated Out-of-order Execution
@@ -442,34 +471,6 @@ unsigned int ComputeSumOfSquares_v4(const unsigned int _freq[MM_FEEDBACK_COUNT])
 	// return ret;
 }
 #endif
-
-///////////////////////////////////////////////////////////////////////////
-// Calling statistic routines
-//
-
-// The count_freq() calling statistics for 4 pegs, 10 colors, no rep
-//List length >=  4096 : 9
-//List length >=  1024 : 1682
-//List length >=   512 : 841
-//List length >=   256 : 22893
-//List length >=   128 : 24938
-//List length >=    64 : 135980
-//List length >=    32 : 222630
-//List length >=    16 : 652336
-//List length >=     8 : 1111720
-//List length >=     4 : 1678683
-//List length >=     2 : 825598
-//List length >=     1 : 17404
-//count_freq() called times: 4694714
-//Number of codes compared:  73869707
-//Average comparison per call: 15.73
-
-void PrintFrequencyStatistics()
-{
-#ifndef NDEBUG
-	_call_counter.DebugPrint();
-#endif
-}
 
 ///////////////////////////////////////////////////////////////////////////
 // Interface routine

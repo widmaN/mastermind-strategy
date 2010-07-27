@@ -3,6 +3,7 @@
 
 #include "Codeword.h"
 #include "CodeBreaker.h"
+#include "CallCounter.h"
 
 using namespace Mastermind;
 
@@ -325,6 +326,17 @@ Codeword HeuristicCodeBreaker::MakeGuess()
 	return candidates[choose_i];
 }
 
+#if ENABLE_CALL_COUNTER
+static Utilities::CallCounter _call_counter("HeuristicCodeBreaker::MakeGuess", true);
+#endif
+
+void PrintMakeGuessStatistics()
+{
+#if ENABLE_CALL_COUNTER
+	_call_counter.DebugPrint();
+#endif
+}
+
 void HeuristicCodeBreaker::MakeGuess(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
@@ -355,6 +367,9 @@ void HeuristicCodeBreaker::MakeGuess(
 			if (freq.GetMaximum() == 1) {
 				state->NCandidates = i + 1;
 				state->Guess = guess;
+#if ENABLE_CALL_COUNTER
+				_call_counter.AddCall(state->NCandidates*state->NPossibilities);
+#endif
 				return;
 			}
 		}
@@ -417,6 +432,9 @@ void HeuristicCodeBreaker::MakeGuess(
 
 	state->NCandidates = candidates.GetCount();
 	state->Guess = candidates[choose_i];
+#if ENABLE_CALL_COUNTER
+	_call_counter.AddCall(state->NCandidates*state->NPossibilities);
+#endif
 	return;
 }
 

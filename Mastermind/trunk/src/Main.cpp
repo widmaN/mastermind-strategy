@@ -453,7 +453,8 @@ int main(int argc, char* argv[])
 #else
 #define LOOP_FLAG 0
 #endif
-	//return TestCompare(rules, "r_p1a", "r_p8b", 10000*LOOP_FLAG);
+	//1829320017
+	//return TestCompare(rules, "r_p1a", "r_p8", 60000*LOOP_FLAG);
 	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
@@ -470,9 +471,9 @@ int main(int argc, char* argv[])
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
 		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
+		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
 		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
+		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
 		// new OptimalCodeBreaker(rules),
 	};
 
@@ -492,6 +493,9 @@ int main(int argc, char* argv[])
 
 	void PrintCompareStatistics();
 	//PrintCompareStatistics();
+
+	void PrintMakeGuessStatistics();
+	PrintMakeGuessStatistics();
 
 	system("PAUSE");
 	return 0;

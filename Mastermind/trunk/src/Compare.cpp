@@ -11,17 +11,21 @@
 #include "Compare.h"
 #include "CallCounter.h"
 
-#ifndef NDEBUG
-static bool _update_stat = true;
-static Utilities::CallCounter _call_counter("CompareCodewords");
+#if ENABLE_CALL_COUNTER
+static Utilities::CallCounter _call_counter("CompareCodewords", true);
 #endif
 
 static inline void UpdateCallCounter(unsigned int comp)
 {
-#ifndef NDEBUG
-	if (_update_stat) {
-		_call_counter.AddCall(comp);
-	}
+#if ENABLE_CALL_COUNTER
+	_call_counter.AddCall(comp);
+#endif
+}
+
+void PrintCompareStatistics()
+{
+#if ENABLE_CALL_COUNTER
+	_call_counter.DebugPrint();
 #endif
 }
 
@@ -341,13 +345,6 @@ static void compare_long_codeword_nr2(
 ///////////////////////////////////////////////////////////////////////////
 // Interface routines
 //
-
-void PrintCompareStatistics()
-{
-#ifndef NDEBUG
-	_call_counter.DebugPrint();
-#endif
-}
 
 static ComparisonRoutineSelector::RoutineEntry CompareRep_Entries[] = {
 	{ "r_p1", "Allow repetition - simple implementation", compare_codeword_rep_p1 },

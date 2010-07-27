@@ -7,16 +7,21 @@
 
 using namespace Utilities;
 
-CallCounter::CallCounter()
+CallCounter::CallCounter(const char *name, bool enabled)
 {
-	strcpy_s(m_name, "routine");
+	strcpy_s(m_name, name);
+	m_enabled = enabled;
 	Reset();
 }
 
-CallCounter::CallCounter(const char *name)
+void CallCounter::Enable(bool enabled)
 {
-	strcpy_s(m_name, name);
-	Reset();
+	m_enabled = enabled;
+}
+
+bool CallCounter::IsEnabled() const 
+{ 
+	return m_enabled; 
 }
 
 void CallCounter::Reset()
@@ -47,11 +52,13 @@ void CallCounter::DebugPrint() const
 
 void CallCounter::AddCall(unsigned int comp)
 {
-	unsigned long pos;
-	if (_BitScanReverse(&pos, comp)) {
-		m_callstat[pos]++;
-		m_compstat[pos] += comp;
-		m_calls++;
-		m_comps += comp;
+	if (m_enabled) {
+		unsigned long pos;
+		if (_BitScanReverse(&pos, comp)) {
+			m_callstat[pos]++;
+			m_compstat[pos] += comp;
+			m_calls++;
+			m_comps += comp;
+		}
 	}
 }
