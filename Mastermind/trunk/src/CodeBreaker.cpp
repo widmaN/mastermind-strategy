@@ -227,73 +227,6 @@ StrategyTree* HeuristicCodeBreaker<Heuristic>::BuildStrategyTree(const Codeword&
 	*/
 }
 
-/*
-template <class Heuristic>
-Codeword HeuristicCodeBreaker::MakeGuess()
-{
-	if (m_possibilities.GetCount() <= 2) {
-		return m_possibilities[0];
-	}
-
-	// Calculate the worst-case number of possibilities for each guess
-	CodewordList candidates = m_posonly? m_possibilities : m_all;
-	candidates = candidates.FilterByEquivalence(m_unguessed, m_impossible);
-	//if (m_all.GetCount() == m_possibilities.GetCount()) {
-	//	return m_possibilities[0];
-	//}
-
-	double choose_dscore = 1.0e10;
-	int choose_score = 0x7fffffff;
-	int choose_i = -1;
-	int choose_ispos = false;
-	Feedback target = Feedback(m_rules.length, 0);
-	FeedbackList fbl(m_possibilities.GetCount(), m_rules.length);
-	for (int i = 0; i < candidates.GetCount(); i++) {
-		Codeword guess = candidates[i];
-		guess.CompareTo(m_possibilities, fbl);
-		FeedbackFrequencyTable freq(fbl);
-
-		// Evaluate each potential guess, and find the minimum
-		int score = 0;
-		double dscore = 0.0;
-		bool use_double = false;
-		switch (m_criteria) {
-		default:
-		case DefaultCriteria:
-		case MinimizeAverage:
-			score = freq.GetSumOfSquares();
-			break;
-		case MinimizeWorstCase:
-			score = freq.GetMaximum();
-			break;
-		case MaximizeEntropy:
-			dscore = freq.GetModifiedEntropy();
-			use_double = true;
-			break;
-		case MaximizeParts:
-			score = -freq.GetPartitionCount();
-			break;
-		}
-
-		if (use_double) {
-			if ((dscore < choose_dscore) || 
-				(score == choose_dscore && !choose_ispos && freq[target] > 0)) {
-				choose_dscore = dscore;
-				choose_i = i;
-				choose_ispos = (freq[target] > 0);
-			}
-		} else {
-			if ((score < choose_score) || 
-				(score == choose_score && !choose_ispos && freq[target] > 0)) {
-				choose_score = score;
-				choose_i = i;
-				choose_ispos = (freq[target] > 0);
-			}
-		}
-	}
-	return candidates[choose_i];
-}
-
 #if ENABLE_CALL_COUNTER
 static Utilities::CallCounter _call_counter("HeuristicCodeBreaker::MakeGuess", true);
 #endif
@@ -304,7 +237,6 @@ void PrintMakeGuessStatistics()
 	_call_counter.DebugPrint();
 #endif
 }
-*/
 
 template <class Heuristic>
 void HeuristicCodeBreaker<Heuristic>::MakeGuess(
