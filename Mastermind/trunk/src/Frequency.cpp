@@ -393,21 +393,23 @@ static unsigned int ComputeSumOfSquares_v1(
 	return ret;
 }
 
-#if 0
-static unsigned int ComputeSumOfSquares_v2(const unsigned int freq[MM_FEEDBACK_COUNT])
+static unsigned int ComputeSumOfSquares_v2(
+	const unsigned int freq[],
+	unsigned char max_fb)
 {
 	unsigned int ret = 0;
-	for (int i = 0; i < MM_FEEDBACK_COUNT; i += 2) {
-		unsigned int v1 = freq[i];
-		unsigned int v2 = freq[i+1];
-		v1 *= v1;
-		v2 *= v2;
-		ret += v1;
-		ret += v2;
+	unsigned int count = (unsigned int)max_fb + 1;
+	for (; count >= 4; count -= 4) {
+		ret += (freq[0]*freq[0] + freq[1]*freq[1])
+			+ (freq[2]*freq[2] + freq[3]*freq[3]);
+		freq += 4;
+	}
+	for (; count > 0; count--) {
+		ret += freq[0]*freq[0];
+		freq++;
 	}
 	return ret;
 }
-#endif
 
 #if 0
 // Require SSE4
@@ -489,7 +491,7 @@ FrequencyCountingRoutineSelector *CountFrequenciesImpl =
 
 static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[] = {
 	{ "c", "Simple implementation", ComputeSumOfSquares_v1 },
-	//{ "c_p2", "Simple implementation with 2-parallel", ComputeSumOfSquares_v2 },
+	{ "c_p4", "Simple implementation with 2-parallel", ComputeSumOfSquares_v2 },
 	//{ "sse4", "SIMD implementation (requires SSE4 instruction set)", ComputeSumOfSquares_v3 },
 	{ NULL, NULL, NULL },
 };
@@ -497,4 +499,4 @@ static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[
 FrequencySumSquaresRoutineSelector *GetSumOfSquaresImpl =
 	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries, 
 	//(Utilities::CpuInfo::Features.WithSSE41)? "sse4" : "c");
-	"c");
+	"c_p4");

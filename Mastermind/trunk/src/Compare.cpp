@@ -122,8 +122,8 @@ static void compare_codeword_rep_p1a(
 	}
 }
 
-// OpenMP version of p1a.
-static void compare_codeword_rep_p1a_omp(
+// OpenMP version 1
+static void compare_codeword_rep_p1a_omp1(
 	__m128i secret,
 	const __m128i *guesses,
 	unsigned int count,
@@ -162,6 +162,102 @@ static void compare_codeword_rep_p1a_omp(
 		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nB - nA));
 #endif
 		results[i] = nAnB;
+	}
+}
+
+/*
+static void compare_codeword_block_rep(
+	const __m128i *secrets,
+	const __m128i *guesses,
+	int isecret,
+	int iguess,
+	int count,
+	unsigned char *results)
+{
+	assert(count >= 0);
+	assert(count % 8 == 0);
+
+	
+	// Change 0xff in secret to 0x0f
+	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
+
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i zero = _mm_setzero_si128();
+
+	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
+	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
+	__m128i secret_low10 = _mm_and_si128(mask_low10, secret);
+
+	// #pragma omp parallel for
+	for (int i = 0; i < (int)count; i++) {
+		__m128i guess = guesses[i];
+
+		// count nA
+		__m128i tA = _mm_cmpeq_epi8(secret, guess);
+		tA = _mm_and_si128(tA, mask_high6);
+		tA = _mm_sad_epu8(tA, zero);
+		
+		// count nB
+		__m128i tB = _mm_min_epu8(secret_low10, guess);
+		tB = _mm_sad_epu8(tB, zero);
+
+		int nA = _mm_extract_epi16(tA, 4);
+		int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
+#if MM_FEEDBACK_COMPACT
+		unsigned char nAnB = (nB*nB+nB)/2+nA;
+#else
+		unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nB - nA));
+#endif
+		results[i] = nAnB;
+	}
+}
+*/
+
+// OpenMP version 2
+static void cross_compare_codewords_rep_omp1(
+	const __m128i *secrets,
+	unsigned int nsecrets,
+	const __m128i *guesses,
+	unsigned int nguesses,
+	unsigned char *results)
+{
+	// UpdateCallCounter(count);
+
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
+	__m128i zero = _mm_setzero_si128();
+
+	for (int j = 0; j < (int)nguesses; j++) {
+		__m128i guess = guesses[j];
+
+		// Change 0xff in guess to 0x0f
+		guess = _mm_and_si128(guess, _mm_set1_epi8(0x0f));
+
+		// Keep low 10-bytes of guess, while setting high 6 bytes to zero
+		__m128i guess_low10 = _mm_and_si128(mask_low10, guess);
+
+		// #pragma omp parallel for
+		for (int i = 0; i < (int)nsecrets; i++) {
+			__m128i secret = secrets[i];
+
+			// count nA
+			__m128i tA = _mm_cmpeq_epi8(secret, guess);
+			tA = _mm_and_si128(tA, mask_high6);
+			tA = _mm_sad_epu8(tA, zero);
+		
+			// count nB
+			__m128i tB = _mm_min_epu8(guess_low10, secret);
+			tB = _mm_sad_epu8(tB, zero);
+
+			int nA = _mm_extract_epi16(tA, 4);
+			int nB = _mm_extract_epi16(tB, 4) + _mm_cvtsi128_si32(tB);
+#if MM_FEEDBACK_COMPACT
+			unsigned char nAnB = (nB*nB+nB)/2+nA;
+#else
+			unsigned char nAnB = (unsigned char)((nA << MM_FEEDBACK_ASHIFT) | (nB - nA));
+#endif
+			results[j*nguesses+i] = nAnB;
+		}
 	}
 }
 
@@ -393,7 +489,8 @@ static void compare_long_codeword_nr2(
 static ComparisonRoutineSelector::RoutineEntry CompareRep_Entries[] = {
 	{ "r_p1", "Allow repetition - simple implementation", compare_codeword_rep_p1 },
 	{ "r_p1a", "Allow repetition - improved implementation", compare_codeword_rep_p1a },
-	{ "r_p1a_omp", "Allow repetition - OpenMP implementation", compare_codeword_rep_p1a_omp },
+	{ "r_p1a_omp1", "Allow repetition - OpenMP implementation 1", compare_codeword_rep_p1a_omp1 },
+	//{ "r_p1a_omp2", "Allow repetition - OpenMP implementation 2", compare_codeword_rep_p1a_omp2 },
 	{ "r_p8", "Allow repetition - 8-parallel", compare_codeword_rep_p8 },
 	{ NULL, NULL, NULL },
 };
@@ -411,3 +508,12 @@ ComparisonRoutineSelector *CompareRepImpl =
 
 ComparisonRoutineSelector *CompareNoRepImpl = 
 	new ComparisonRoutineSelector(CompareNoRep_Entries, "nr_p4");
+
+
+static CrossComparisonRoutineSelector::RoutineEntry CrossCompareRep_Entries[] = {
+	{ "cr_omp1", "Allow repetition - OMP 1", cross_compare_codewords_rep_omp1 },
+	{ NULL, NULL, NULL },
+};
+
+CrossComparisonRoutineSelector *CrossCompareRepImpl = 
+	new CrossComparisonRoutineSelector(CrossCompareRep_Entries, "cr_omp1");

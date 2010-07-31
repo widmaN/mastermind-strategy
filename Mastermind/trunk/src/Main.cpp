@@ -456,12 +456,14 @@ int main(int argc, char* argv[])
 #define LOOP_FLAG 0
 #endif
 	//1829320017
-	return TestCompare(rules, "r_p8", "r_p1a_omp", 10000*LOOP_FLAG);
+	//return TestCompare(rules, "r_p1a", "r_p1a_omp1", 10000*LOOP_FLAG);
+	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
 
 	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
-	//return TestSumOfSquares(rules, "c", "sse4", 15000000*LOOP_FLAG);
+	//return TestSumOfSquares(rules, "c", "c_p2", 15000000*LOOP_FLAG);
+	//return TestSumOfSquares(rules, "c", "c_p2", 300000*LOOP_FLAG);
 	//return TestNewScan(rules, 100000*1);
 	//return BuildLookupTableForLongComparison();
 	//return TestEnumerationDirect(200000*1);

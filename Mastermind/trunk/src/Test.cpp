@@ -464,8 +464,8 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 					Feedback(results1[i]).ToString().c_str());
 			}
 		}
-		delete [] results1;
-		delete [] results2;
+		//delete [] results1; // already deleted in fbl destructor
+		//delete [] results2;
 		system("PAUSE");
 		return 0;
 	}
@@ -488,9 +488,9 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 		t2 += timer.Stop();
 	}
 
-	printf("Algorithm 1:  %6.3f\n", t1);
-	printf("Algorithm 2:  %6.3f\n", t2);
-	printf("Improvement: %5.1f%%\n", (t1/t2-1)*100);
+	printf("Algorithm 1: %6.3f\n", t1);
+	printf("Algorithm 2: %6.3f\n", t2);
+	printf("Speed Ratio: %5.2fX\n", (t1/t2));
 
 	delete [] results1;
 	delete [] results2;
@@ -562,10 +562,17 @@ int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *rout
 	FREQUENCY_SUMSQUARES_ROUTINE *func2 = GetSumOfSquaresImpl->GetRoutine(routine2);
 	unsigned int ss1, ss2;
 
-	// Find sum of squres
+	// Verify results
+	ss1 = func1(freq.GetData(), maxfb);
+	ss2 = func2(freq.GetData(), maxfb);	
+	if (ss1 != ss2) {
+		printf("**** ERROR: Result mismatch: %u v %u\n", ss1, ss2);
+		system("PAUSE");
+		return 0;
+	}
+		
+	// Print result if in debug mode
 	if (times == 0) {
-		ss1 = func1(freq.GetData(), maxfb);
-		ss2 = func2(freq.GetData(), maxfb);
 		printf("SS1 = %x\n", ss1);
 		printf("SS2 = %x\n", ss2);
 		system("PAUSE");
@@ -576,24 +583,25 @@ int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *rout
 	double t1, t2;
 	t1 = t2 = 0;
 
+	maxfb=127;
 	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
+		//timer.Start();
 		for (int j = 0; j < times / 10; j++) {
 			ss1 = func1(freq.GetData(), maxfb);
 		}
-		t1 += timer.Stop();
+		//t1 += timer.Stop();
 
-		timer.Start();
+		//timer.Start();
 		for (int j = 0; j < times / 10; j++) {
 			ss2 = func2(freq.GetData(), maxfb);
 		}
-		t2 += timer.Stop();
+		//t2 += timer.Stop();
 	}
 
-	printf("Algorithm 1:  %6.3f\n", t1);
-	printf("Algorithm 2:  %6.3f\n", t2);
-	printf("Improvement: %5.1f%%\n", (t1/t2-1)*100);
+	printf("Algorithm 1: %6.3f\n", t1);
+	printf("Algorithm 2: %6.3f\n", t2);
+	printf("Speed Ratio: %5.2fX\n", t1/t2);
 
-	system("PAUSE");
+	// system("PAUSE");
 	return 0;
 }

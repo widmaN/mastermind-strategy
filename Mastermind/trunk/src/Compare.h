@@ -27,3 +27,24 @@ extern ComparisonRoutineSelector *CompareRepImpl;
 /// Routine table for codeword comparison (without repetition).
 extern ComparisonRoutineSelector *CompareNoRepImpl;
 
+/// Compares every pair of codewords from an array of secrets and an array
+/// of guesses.
+/// @param[in]	secret		Pointer to an array of secrets
+/// @param[in]	nsecrets	Number of elements in the secret array
+/// @param[in]	guesses		Pointer to an array of guesses
+/// @param[in]	nguesses	Number of elements in the guess array
+/// @param[out]	results		Pointer to an array to store feedbacks.
+///							The results are stored in guess-major order.
+typedef void CROSS_COMPARISON_ROUTINE(
+	const __m128i *secrets,
+	unsigned int nsecrets,
+	const __m128i *guesses,
+	unsigned int nguesses,
+	unsigned char *results);
+
+/// Codeword cross-comparison implementation selector.
+typedef Utilities::RoutineSelector<CROSS_COMPARISON_ROUTINE> CrossComparisonRoutineSelector;
+
+/// Routine table for codeword cross comparison (allowing repetition).
+extern CrossComparisonRoutineSelector *CrossCompareRepImpl;
+
