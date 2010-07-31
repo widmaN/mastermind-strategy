@@ -331,8 +331,7 @@ static void TestGuessingByTree(
 
 int TestOutputStrategyTree(CodewordRules rules)
 {
-	//CodeBreaker *b = new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase);
-	CodeBreaker *b = new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage);
+	CodeBreaker *b = new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules);
 	Codeword first_guess;
 	StrategyTree *tree = b->BuildStrategyTree(first_guess);
 	//const char *filename = "E:/good-strat.txt";
@@ -475,10 +474,10 @@ int main(int argc, char* argv[])
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeWorstCase, posonly),
-		new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MinimizeAverage, posonly),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeEntropy, posonly),
-		//new HeuristicCodeBreaker(rules, HeuristicCodeBreaker::MaximizeParts, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(rules, posonly),
+		new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(rules, posonly),
 		// new OptimalCodeBreaker(rules),
 	};
 

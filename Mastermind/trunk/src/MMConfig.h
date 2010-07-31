@@ -51,4 +51,4 @@ extern const unsigned char feedback_map[256];
 extern const unsigned char feedback_revmap[256];
 
 // Whether to compile call counter
-#define ENABLE_CALL_COUNTER 1
+#define ENABLE_CALL_COUNTER 0

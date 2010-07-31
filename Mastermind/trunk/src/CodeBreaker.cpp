@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <limits>
 
 #include "Codeword.h"
 #include "CodeBreaker.h"
@@ -67,7 +68,7 @@ void CodeBreaker::AddFeedback(Codeword &guess, Feedback fb)
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// SimpleCodeBreaker implementations
+// SimpleCodeBreaker implementation
 //
 
 const char * SimpleCodeBreaker::GetName() const
@@ -137,59 +138,23 @@ StrategyTree* SimpleCodeBreaker::BuildStrategyTree(const Codeword& first_guess)
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// MinimaxCodeBreaker implementations
+// HeuristicCodeBreaker implementation
 //
 
-const char * HeuristicCodeBreaker::GetName() const
+template <class Heuristic>
+const char * HeuristicCodeBreaker<Heuristic>::GetName() const
 {
-	const char *s;
-	switch (m_criteria) {
-	default:
-	case DefaultCriteria:
-	case MinimizeAverage:
-		s = "minavg";
-		break;
-	case MinimizeWorstCase:
-		s = "minmax";
-		break;
-	case MaximizeEntropy:
-		s = "entropy";
-		break;
-	case MaximizeParts:
-		s = "maxparts";
-		break;
-	}
-	return s;
+	return Heuristic::name;
 }
 
-std::string HeuristicCodeBreaker::GetDescription() const
+template <class Heuristic>
+std::string HeuristicCodeBreaker<Heuristic>::GetDescription() const
 {
-	std::string s;
-
-	switch (m_criteria) {
-	default:
-	case DefaultCriteria:
-	case MinimizeAverage:
-		s = "min_avg:minimizes the expected number of possibilities";
-		break;
-	case MinimizeWorstCase:
-		s = "min_max:minimizes the worst-case number of possibilities";
-		break;
-	case MaximizeEntropy:
-		s = "entropy:minimizes the expected number of guesses (entropy method)";
-		break;
-	case MaximizeParts:
-		s = "max_parts:maximizes the number of partitions after a guess";
-		break;
-	}
-
-	if (m_posonly) {
-		s += ", chosen from possibility only";
-	}
-	return s;
+	return Heuristic::name;
 }
 
-StrategyTreeNode* HeuristicCodeBreaker::FillStrategy(
+template <class Heuristic>
+StrategyTreeNode* HeuristicCodeBreaker<Heuristic>::FillStrategy(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
 	unsigned short impossible_mask,
@@ -236,7 +201,8 @@ StrategyTreeNode* HeuristicCodeBreaker::FillStrategy(
 	return node;
 }
 
-StrategyTree* HeuristicCodeBreaker::BuildStrategyTree(const Codeword& first_guess)
+template <class Heuristic>
+StrategyTree* HeuristicCodeBreaker<Heuristic>::BuildStrategyTree(const Codeword& first_guess)
 {
 	CodewordList all = m_all.Copy();
 	unsigned short impossible_mask = 0;
@@ -261,6 +227,8 @@ StrategyTree* HeuristicCodeBreaker::BuildStrategyTree(const Codeword& first_gues
 	*/
 }
 
+/*
+template <class Heuristic>
 Codeword HeuristicCodeBreaker::MakeGuess()
 {
 	if (m_possibilities.GetCount() <= 2) {
@@ -336,8 +304,10 @@ void PrintMakeGuessStatistics()
 	_call_counter.DebugPrint();
 #endif
 }
+*/
 
-void HeuristicCodeBreaker::MakeGuess(
+template <class Heuristic>
+void HeuristicCodeBreaker<Heuristic>::MakeGuess(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
 	unsigned short impossible_mask,
@@ -380,8 +350,7 @@ void HeuristicCodeBreaker::MakeGuess(
 	CodewordList candidates = m_posonly? possibilities : m_all;
 	candidates = candidates.FilterByEquivalence(unguessed_mask, impossible_mask);
 
-	double choose_dscore = 1.0e10;
-	int choose_score = 0x7fffffff;
+	Heuristic::score_t choose_score = std::numeric_limits<Heuristic::score_t>::max();
 	int choose_i = -1;
 	int choose_ispos = false;
 	Feedback target = Feedback(m_rules.length, 0);
@@ -392,41 +361,12 @@ void HeuristicCodeBreaker::MakeGuess(
 		FeedbackFrequencyTable freq(fbl);
 
 		// Evaluate each potential guess, and find the minimum
-		int score = 0;
-		double dscore = 0.0;
-		bool use_double = false;
-		switch (m_criteria) {
-		default:
-		case DefaultCriteria:
-		case MinimizeAverage:
-			score = freq.GetSumOfSquares();
-			break;
-		case MinimizeWorstCase:
-			score = freq.GetMaximum();
-			break;
-		case MaximizeEntropy:
-			dscore = freq.GetModifiedEntropy();
-			use_double = true;
-			break;
-		case MaximizeParts:
-			score = -freq.GetPartitionCount();
-			break;
-		}
-
-		if (use_double) {
-			if ((dscore < choose_dscore) || 
-				(score == choose_dscore && !choose_ispos && freq[target] > 0)) {
-				choose_dscore = dscore;
-				choose_i = i;
-				choose_ispos = (freq[target] > 0);
-			}
-		} else {
-			if ((score < choose_score) || 
-				(score == choose_score && !choose_ispos && freq[target] > 0)) {
-				choose_score = score;
-				choose_i = i;
-				choose_ispos = (freq[target] > 0);
-			}
+		Heuristic::score_t score = Heuristic::compute(freq);
+		if ((score < choose_score) || 
+			(score == choose_score && !choose_ispos && freq[target] > 0)) {
+			choose_score = score;
+			choose_i = i;
+			choose_ispos = (freq[target] > 0);
 		}
 	}
 
@@ -438,7 +378,8 @@ void HeuristicCodeBreaker::MakeGuess(
 	return;
 }
 
-Codeword HeuristicCodeBreaker::MakeGuess(
+template <class Heuristic>
+Codeword HeuristicCodeBreaker<Heuristic>::MakeGuess(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
 	unsigned short impossible_mask)
@@ -448,6 +389,49 @@ Codeword HeuristicCodeBreaker::MakeGuess(
 	return state.Guess;
 }
 
+template <class Heuristic>
+Codeword HeuristicCodeBreaker<Heuristic>::MakeGuess()
+{
+	StrategyTreeState state;
+	MakeGuess(m_possibilities, m_unguessed, m_impossible, &state);
+	return state.Guess;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Heuristic Definitions
+//
+
+// MinMax heuristic
+unsigned int Heuristics::MinimizeWorstCase::compute(const FeedbackFrequencyTable &freq)
+{
+	return freq.GetMaximum();
+}
+const char * Heuristics::MinimizeWorstCase::name = "minmax";
+template HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>;
+
+// MinAvg heuristic
+unsigned int Heuristics::MinimizeAverage::compute(const FeedbackFrequencyTable &freq)
+{
+	return freq.GetSumOfSquares();
+}
+const char * Heuristics::MinimizeAverage::name = "minavg";
+template HeuristicCodeBreaker<Heuristics::MinimizeAverage>;
+
+// Entropy heuristic
+double Heuristics::MaximizeEntropy::compute(const FeedbackFrequencyTable &freq)
+{
+	return freq.GetModifiedEntropy();
+}
+const char * Heuristics::MaximizeEntropy::name = "entropy";
+template HeuristicCodeBreaker<Heuristics::MaximizeEntropy>;
+
+// Max parts heuristic
+int Heuristics::MaximizePartitions::compute(const FeedbackFrequencyTable &freq)
+{
+	return -freq.GetPartitionCount();
+}
+const char * Heuristics::MaximizePartitions::name = "maxparts";
+template HeuristicCodeBreaker<Heuristics::MaximizePartitions>;
 
 ///////////////////////////////////////////////////////////////////////////
 // OptimalCodeBreaker implementation
