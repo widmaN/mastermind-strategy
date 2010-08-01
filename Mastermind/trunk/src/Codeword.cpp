@@ -107,7 +107,7 @@ FeedbackList* Codeword::CompareTo(const CodewordList& list) const
 
 /// Compares this codeword to another codeword. 
 /// \return The feedback of the comparison.
-Feedback Codeword::CompareTo(Codeword& guess) const
+Feedback Codeword::CompareTo(const Codeword& guess) const
 {
 	unsigned char fb;
 	codeword_t guess_value = guess.GetValue();

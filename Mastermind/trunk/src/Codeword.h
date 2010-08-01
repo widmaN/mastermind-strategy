@@ -114,7 +114,7 @@ namespace Mastermind
 
 		/// Compares this codeword to another codeword. 
 		/// Returns the feedback.
-		Feedback CompareTo(Codeword& guess) const;
+		Feedback CompareTo(const Codeword& guess) const;
 
 		/// Compares this codeword to a codeword list. 
 		/// @return A list of feedbacks.

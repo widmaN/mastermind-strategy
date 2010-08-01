@@ -102,6 +102,12 @@ namespace Mastermind
 			return Feedback();
 		}
 
+		/// Returns a feedback value corresponding to a perfect match.
+		static Feedback Perfect(int npegs)
+		{
+			return Feedback(npegs, 0);
+		}
+
 		/// Parses feedback from a string, in the form of "1A2B".
 		/// If the input string is invalid, <code>Feedback::Empty()</code> 
 		/// is returned.

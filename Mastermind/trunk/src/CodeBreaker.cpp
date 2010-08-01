@@ -392,41 +392,116 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	const Codeword& first_guess,
 	int *progress)
 {
-	Codeword guess = first_guess.IsEmpty()?
-		MakeGuess(possibilities, unguessed_mask, impossible_mask) : first_guess;
+	int npegs = m_rules.length; // number of pegs
+	int npos = possibilities.GetCount(); // number of remaining possibilities
+	assert(npos > 0);
 
-	FeedbackList fbl(guess, possibilities);
-	FeedbackFrequencyTable freq(fbl);
+	// Optimize if there is only one possibility
+	if (npos == 1) {
+		StrategyTreeNode *tree = new StrategyTreeNode();
+		tree->State.NPossibilities = npos;
+		tree->State.NCandidates = 1;
+		tree->State.Guess = possibilities[0];
+		tree->AddChild(Feedback::Perfect(npegs), StrategyTreeNode::Done());
+		return tree;
+	}
 
-	Feedback perfect = Feedback(m_rules.length, 0);
-	StrategyTreeNode *node = new StrategyTreeNode();
-	node->State.Guess = guess;
-	node->State.NPossibilities = possibilities.GetCount();
-	node->State.NCandidates = -1;
-	for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
-		Feedback fb(fbv);
-		if (freq[fb] > 0) {
-			if (fb == perfect) {
-				node->AddChild(fb, StrategyTreeNode::Done());
-				(*progress)++;
-				//double pcnt = (double)(*progress) / m_all.GetCount();
-				//printf("\rProgress: %3.0f%%", pcnt*100);
-				//fflush(stdout);
-			} else {
-				Codeword t = Codeword::Empty();
-				CodewordList filtered = possibilities.FilterByFeedback(guess, fb);
-				StrategyTreeNode *child = FillStrategy(filtered,
-					unguessed_mask & ~guess.GetDigitMask(),
-					((1<<m_rules.ndigits)-1) & ~filtered.GetDigitMask(),
-					t,
-					progress);
-				node->AddChild(fb, child);
+	// Optimize if there are only two possibilities left
+	if (npos == 2) {
+		StrategyTreeNode *tree = new StrategyTreeNode();
+		tree->State.NPossibilities = npos;
+		tree->State.NCandidates = 1;
+		tree->State.Guess = possibilities[0];
+		tree->AddChild(Feedback::Perfect(npegs), StrategyTreeNode::Done());
+		tree->AddChild(possibilities[0].CompareTo(possibilities[1]), StrategyTreeNode::Single(possibilities[1]));
+		return tree;
+	}
+
+	// Optimize if there are less than p(p+3)/2 possibilities left
+	int npretest = 0;
+#if 1
+	if (npos <= npegs*(npegs+3)/2) {
+		FeedbackList fbl(npos, npegs);
+		for (int i = 0; i < possibilities.GetCount(); i++) {
+			Codeword guess = possibilities[i];
+			guess.CompareTo(possibilities, fbl);
+			FeedbackFrequencyTable freq(fbl);
+			if (freq.GetMaximum() == 1) {
+				StrategyTreeNode *tree = new StrategyTreeNode();
+				tree->State.NPossibilities = npos;
+				tree->State.NCandidates = i + 1;
+				tree->State.Guess = guess;
+				for (int j = 0; j < npos; j++) {
+					Codeword secret = possibilities[j];
+					Feedback fb = guess.CompareTo(secret);
+					if (fb == Feedback::Perfect(npegs)) {
+						tree->AddChild(fb, StrategyTreeNode::Done());
+					} else {
+						tree->AddChild(fb, StrategyTreeNode::Single(secret));
+					}
+				}
+				return tree;
 			}
 		}
+		npretest = npos;
 	}
-	return node;
+#endif
+
+	// Now we have to iterate through each candidate guess.
+	// Find out "distinct" codewords as candidate for next guess
+	CodewordList candidates = m_all.FilterByEquivalence(unguessed_mask, impossible_mask);
+
+	// Try each possible guess
+	StrategyTreeNode *best_tree = NULL;
+	for (int i = 0; i < candidates.GetCount(); i++) {
+		Codeword guess = candidates[i];
+		FeedbackList fbl(guess, possibilities);
+		FeedbackFrequencyTable freq(fbl);
+		
+		//assert(freq.GetPartitionCount() > 1);
+		if (freq.GetPartitionCount() <= 1) { // an impossible guess
+			continue;
+		}
+		StrategyTreeNode *this_tree = new StrategyTreeNode();
+		this_tree->State.Guess = guess;
+
+		// Find the "best" guess route for each possible feedback
+		for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
+			Feedback fb = Feedback(fbv);
+			if (freq[fb] > 0) {
+				if (fb == Feedback::Perfect(npegs)) {
+					this_tree->AddChild(fb, StrategyTreeNode::Done());
+				} else {
+					CodewordList filtered = possibilities.FilterByFeedback(guess, fb);
+					int new_unguessed_mask = unguessed_mask & ~guess.GetDigitMask();
+					int new_impossible_mask = m_rules.GetFullDigitMask() & ~filtered.GetDigitMask();
+					Codeword dummy = Codeword::Empty();
+					this_tree->AddChild(fb, FillStrategy(filtered, new_unguessed_mask, new_impossible_mask,
+						dummy, progress));
+				}
+			}
+		}
+
+		// Is this guess good?
+		if (best_tree == NULL) {
+			best_tree = this_tree;
+		} else if ((this_tree->GetTotalDepth() < best_tree->GetTotalDepth()) ||
+			(this_tree->GetTotalDepth() == best_tree->GetTotalDepth() && 
+			 this_tree->GetDepth() < best_tree->GetDepth())) {
+			delete best_tree;
+			best_tree = this_tree;
+		} else {
+			delete this_tree;
+		}
+	}
+		
+	best_tree->State.NPossibilities = npos;
+	best_tree->State.NCandidates = npretest + candidates.GetCount();
+	return best_tree;
+
 }
 
+/*
 int OptimalCodeBreaker::SearchLowestSteps(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
@@ -503,7 +578,53 @@ int OptimalCodeBreaker::SearchLowestSteps(
 	(*pdepth) = best_depth;
 	return best_steps;
 }
+*/
 
+/*
+StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
+	CodewordList possibilities,
+	unsigned short unguessed_mask,
+	unsigned short impossible_mask,
+	const Codeword& first_guess,
+	int *progress)
+{
+	Codeword guess = first_guess.IsEmpty()?
+		MakeGuess(possibilities, unguessed_mask, impossible_mask) : first_guess;
+
+	FeedbackList fbl(guess, possibilities);
+	FeedbackFrequencyTable freq(fbl);
+
+	Feedback perfect = Feedback(m_rules.length, 0);
+	StrategyTreeNode *node = new StrategyTreeNode();
+	node->State.Guess = guess;
+	node->State.NPossibilities = possibilities.GetCount();
+	node->State.NCandidates = -1;
+	for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
+		Feedback fb(fbv);
+		if (freq[fb] > 0) {
+			if (fb == perfect) {
+				node->AddChild(fb, StrategyTreeNode::Done());
+				(*progress)++;
+				//double pcnt = (double)(*progress) / m_all.GetCount();
+				//printf("\rProgress: %3.0f%%", pcnt*100);
+				//fflush(stdout);
+			} else {
+				Codeword t = Codeword::Empty();
+				CodewordList filtered = possibilities.FilterByFeedback(guess, fb);
+				StrategyTreeNode *child = FillStrategy(filtered,
+					unguessed_mask & ~guess.GetDigitMask(),
+					((1<<m_rules.ndigits)-1) & ~filtered.GetDigitMask(),
+					t,
+					progress);
+				node->AddChild(fb, child);
+			}
+		}
+	}
+	return node;
+}
+*/
+
+/*
 Codeword OptimalCodeBreaker::MakeGuess(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
@@ -514,6 +635,7 @@ Codeword OptimalCodeBreaker::MakeGuess(
 	SearchLowestSteps(possibilities, unguessed_mask, impossible_mask, &depth, &guess);
 	return guess;
 }
+*/
 
 StrategyTree* OptimalCodeBreaker::BuildStrategyTree(const Codeword& first_guess)
 {

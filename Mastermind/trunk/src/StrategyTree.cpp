@@ -8,6 +8,9 @@ StrategyTreeNode::StrategyTreeNode()
 {
 	// m_guess = guess;
 	memset(m_children, 0, sizeof(m_children));
+	m_depth = 0;
+	m_totaldepth = 0;
+	m_hits = 0;
 }
 
 StrategyTreeNode::~StrategyTreeNode()
@@ -19,16 +22,30 @@ StrategyTreeNode::~StrategyTreeNode()
 			m_children[i] = NULL;
 		}
 	}
+	m_depth = 0;
+	m_totaldepth = 0;
+	m_hits = 0;
 	// m_guess = Codeword::Empty();
 }
 
 void StrategyTreeNode::AddChild(Feedback fb, StrategyTreeNode *child)
 {
 	int i = fb.GetValue();
-	if (m_children[i] != NULL && m_children[i] != Done()) {
-		delete m_children[i];
-	}
+	assert(m_children[i] == NULL);
 	m_children[i] = child;
+
+	if (child == Done()) {
+		if (m_depth < 1)
+			m_depth = 1;
+		m_hits++;
+		m_totaldepth += 1;
+	} else {
+		if (m_depth < (child->m_depth + 1)) {
+			m_depth = child->m_depth + 1;
+		} 
+		m_hits += child->m_hits;
+		m_totaldepth += (child->m_totaldepth + child->m_hits);
+	}
 }
 
 int StrategyTreeNode::FillDepthInfo(int depth, int freq[], int max_depth) const
@@ -125,4 +142,14 @@ void StrategyTreeNode::WriteToFile(
 		fprintf(fp, "</details>\n");
 		fprintf(fp, "</mmstrat>\n");
 	}
+}
+
+StrategyTreeNode* StrategyTreeNode::Single(const Codeword& possibility)
+{
+	StrategyTreeNode *node = new StrategyTreeNode();
+	node->State.NPossibilities = 1;
+	node->State.NCandidates = 1;
+	node->State.Guess = possibility;
+	node->AddChild(possibility.CompareTo(possibility), StrategyTreeNode::Done());
+	return node;
 }

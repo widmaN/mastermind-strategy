@@ -209,53 +209,6 @@ namespace Mastermind
 		virtual StrategyTree* BuildStrategyTree(const Codeword& first_guess);
 	};
 
-#if 0
-	class HeuristicCodeBreaker : public CodeBreaker
-	{
-	public:
-
-	
-
-			/// Minimize the expected number of remaining possibilities
-			/// (Irving, 1978). The score to minimize is
-			/// <code>Sum{ n[i] * (n[i]/N) }</code>, or equivalently 
-			/// <code>Sum{ n[i]^2 }</code>, i.e. the sum of squares of
-			/// the number of elements in each partition.
-			MinimizeAverage = 2,
-
-			/// Maximize entropy, which is roughly equivalently to minimizing
-			/// the expected number of further guesses needed (Neuwirth, 1982).
-			/// The score to maximize is 
-			/// <code>-Sum{ (n[i]/N) * log(n[i]/N) }</code>,
-			/// which is equivalent to minimizing 
-			/// <code>Sum{ (n[i]/N) * log(n[i]) }</code>. If we interpret
-			/// <code>log(n[i])</code> as an estimate of the number of 
-			/// further guesses needed for a partition of size <code>n[i]</code>, 
-			/// then we can interpret the the objective function as an 
-			/// estimate of the expected number of further guesses needed. 
-			/// By the way, note that the base of the logrithm doesn't matter 
-			/// in computing the score.
-			MaximizeEntropy = 3,
-
-			/// Maximize the number of partitions (Kooi, 2005).
-			/// The score to maximize is <code>p</code>.
-			MaximizeParts = 4,
-
-			/// Use the default criteria; in this implementation, the default 
-			/// criteria is chosen as <code>MinimizeAverage</code>.
-			DefaultCriteria = 0,
-		};
-
-
-		/// Returns a description of the heuristic code breaker.
-		virtual std::string GetDescription() const;
-
-		virtual const char* GetName() const;
-
-		virtual StrategyTree* BuildStrategyTree(const Codeword& first_guess);
-	};
-#endif
-
 	/// Code breaker that finds the optimal guess by Depth-First Search.
 	class OptimalCodeBreaker : public CodeBreaker
 	{

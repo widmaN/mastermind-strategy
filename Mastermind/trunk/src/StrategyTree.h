@@ -43,6 +43,9 @@ namespace Mastermind
 		StrategyTreeState m_state;
 		// Codeword m_guess;
 		StrategyTreeNode* m_children[256];
+		int m_depth;
+		int m_totaldepth;
+		int m_hits;
 
 	private:
 		int FillDepthInfo(int depth, int depth_freq[], int max_depth) const;
@@ -52,6 +55,7 @@ namespace Mastermind
 
 	public:
 		static StrategyTreeNode* Done() { return (StrategyTreeNode*)(-1); }
+		static StrategyTreeNode* Single(const Codeword& possibility);
 
 		/// Defines the file format of the strategy output.
 		enum FileFormat
@@ -78,6 +82,9 @@ namespace Mastermind
 		void AddChild(Feedback fb, StrategyTreeNode *child);
 
 		int GetDepthInfo(int depth_freq[], int max_depth) const;
+
+		int GetDepth() const { return m_depth; }
+		int GetTotalDepth() const { return m_totaldepth; }
 
 		/// Outputs the strategy tree to a file.
 		void WriteToFile(FILE *fp, FileFormat format, CodewordRules rules) const;
