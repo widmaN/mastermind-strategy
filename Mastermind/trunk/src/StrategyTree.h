@@ -4,6 +4,7 @@
 
 #include "MMConfig.h"
 #include "Codeword.h"
+#include "PoolMemoryManager.h"
 
 // StrategyTree data structure
 //
@@ -23,6 +24,9 @@ namespace Mastermind
 		int NCandidates;
 	};
 
+	class StrategyTreeNode;
+	typedef Utilities::PoolMemoryManager<StrategyTreeNode, 16> StrategyTreeMemoryManager;
+
 	/// Represents a guessing strategy for the code breaker.
 	///
 	/// The strategy is internally represented by a tree. Each node in the 
@@ -40,12 +44,22 @@ namespace Mastermind
 	class StrategyTreeNode
 	{
 	private:
-		StrategyTreeState m_state;
-		// Codeword m_guess;
-		StrategyTreeNode* m_children[256];
-		int m_depth;
-		int m_totaldepth;
-		int m_hits;
+		// StrategyTreeMemoryManager *m_mm;
+		// StrategyTreeNode* m_children[256];
+		unsigned short m_depth; // depth of the tree (i.e. number of edges)
+		unsigned short m_hits; // number of successes (i.e. number of leaves)
+		unsigned int m_totaldepth; // total number of steps taken
+
+		unsigned char m_childcount;
+		unsigned char m_childindex[64];
+		StrategyTreeNode *m_children[64];
+
+		//StrategyTreeNode *m_firstchild;
+		//StrategyTreeNode *m_nextsibling;
+
+	protected:
+		StrategyTreeNode() { }
+		~StrategyTreeNode() { }
 
 	private:
 		int FillDepthInfo(int depth, int depth_freq[], int max_depth) const;
@@ -55,7 +69,7 @@ namespace Mastermind
 
 	public:
 		static StrategyTreeNode* Done() { return (StrategyTreeNode*)(-1); }
-		static StrategyTreeNode* Single(const Codeword& possibility);
+		static StrategyTreeNode* Single(StrategyTreeMemoryManager *mm, const Codeword& possibility);
 
 		/// Defines the file format of the strategy output.
 		enum FileFormat
@@ -69,12 +83,19 @@ namespace Mastermind
 		};
 		
 	protected:
+		//StrategyTreeNode();
+		//~StrategyTreeNode();
+
+	protected:
 		void WriteToFile(FILE *fp, FileFormat format, int indent) const;
 
 	public:
+		static StrategyTreeNode* Create(StrategyTreeMemoryManager *mm);
+		static void Destroy(StrategyTreeMemoryManager *mm, StrategyTreeNode *node);
+
 		//StrategyTreeNode(const Codeword &guess);
-		StrategyTreeNode();
-		~StrategyTreeNode();
+		//StrategyTreeNode();
+		//~StrategyTreeNode();
 
 		//Codeword GetGuess() const { return m_guess; }
 		//void SetGuess(const Codeword &guess) { m_guess = guess; }
@@ -93,7 +114,7 @@ namespace Mastermind
 	class StrategyTree : public StrategyTreeNode
 	{
 	public:
-		
+		~StrategyTree() { }
 
 	private:
 		//StrategyTreeNode *m_root;

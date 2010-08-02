@@ -600,7 +600,7 @@ int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *rout
 
 	printf("Algorithm 1: %6.3f\n", t1);
 	printf("Algorithm 2: %6.3f\n", t2);
-	printf("Speed Ratio: %5.2fX\n", t1/t2);
+	// printf("Speed Ratio: %5.2fX\n", t1/t2);
 
 	// system("PAUSE");
 	return 0;

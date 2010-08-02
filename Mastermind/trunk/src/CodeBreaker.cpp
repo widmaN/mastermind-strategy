@@ -93,13 +93,16 @@ Codeword SimpleCodeBreaker::MakeGuess(CodewordList &possibilities)
 	return possibilities[0];
 }
 
+static StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManager();
+
 StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, const Codeword &first_guess)
 {
 	Codeword guess = first_guess.IsEmpty()? MakeGuess(possibilities) : first_guess;
 	FeedbackList fbl(guess, possibilities);
 	FeedbackFrequencyTable freq(fbl);
+	StrategyTreeMemoryManager *mm = default_strat_mm;
 
-	StrategyTreeNode *node = new StrategyTreeNode();
+	StrategyTreeNode *node = StrategyTreeNode::Create(mm);
 	node->State.Guess = guess;
 	node->State.NPossibilities = possibilities.GetCount();
 	node->State.NCandidates = 1;
@@ -170,12 +173,14 @@ StrategyTreeNode* HeuristicCodeBreaker<Heuristic>::FillStrategy(
 		state.Guess = first_guess;
 	}
 
+	StrategyTreeMemoryManager *mm = default_strat_mm;
+
 	Codeword guess = state.Guess;
 	FeedbackList fbl(guess, possibilities);
 	FeedbackFrequencyTable freq(fbl);
 
 	Feedback perfect = Feedback(m_rules.length, 0);
-	StrategyTreeNode *node = new StrategyTreeNode();
+	StrategyTreeNode *node = StrategyTreeNode::Create(mm);
 	node->State = state;
 	for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
 		Feedback fb(fbv);
@@ -385,6 +390,8 @@ Codeword OptimalCodeBreaker::MakeGuess()
 	return m_possibilities[0];
 }
 
+static StrategyTreeMemoryManager *optimal_codebreaker_mm = new StrategyTreeMemoryManager();
+
 StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	CodewordList possibilities,
 	unsigned short unguessed_mask,
@@ -395,10 +402,11 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	int npegs = m_rules.length; // number of pegs
 	int npos = possibilities.GetCount(); // number of remaining possibilities
 	assert(npos > 0);
+	StrategyTreeMemoryManager *mm = optimal_codebreaker_mm;
 
 	// Optimize if there is only one possibility
 	if (npos == 1) {
-		StrategyTreeNode *tree = new StrategyTreeNode();
+		StrategyTreeNode *tree = StrategyTreeNode::Create(mm);
 		tree->State.NPossibilities = npos;
 		tree->State.NCandidates = 1;
 		tree->State.Guess = possibilities[0];
@@ -408,12 +416,16 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 
 	// Optimize if there are only two possibilities left
 	if (npos == 2) {
-		StrategyTreeNode *tree = new StrategyTreeNode();
+		StrategyTreeNode *tree = StrategyTreeNode::Create(mm);
 		tree->State.NPossibilities = npos;
 		tree->State.NCandidates = 1;
 		tree->State.Guess = possibilities[0];
-		tree->AddChild(Feedback::Perfect(npegs), StrategyTreeNode::Done());
-		tree->AddChild(possibilities[0].CompareTo(possibilities[1]), StrategyTreeNode::Single(possibilities[1]));
+		tree->AddChild(
+			Feedback::Perfect(npegs), 
+			StrategyTreeNode::Done());
+		tree->AddChild(
+			possibilities[0].CompareTo(possibilities[1]), 
+			StrategyTreeNode::Single(mm, possibilities[1]));
 		return tree;
 	}
 
@@ -427,7 +439,7 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 			guess.CompareTo(possibilities, fbl);
 			FeedbackFrequencyTable freq(fbl);
 			if (freq.GetMaximum() == 1) {
-				StrategyTreeNode *tree = new StrategyTreeNode();
+				StrategyTreeNode *tree = StrategyTreeNode::Create(mm);
 				tree->State.NPossibilities = npos;
 				tree->State.NCandidates = i + 1;
 				tree->State.Guess = guess;
@@ -437,7 +449,7 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 					if (fb == Feedback::Perfect(npegs)) {
 						tree->AddChild(fb, StrategyTreeNode::Done());
 					} else {
-						tree->AddChild(fb, StrategyTreeNode::Single(secret));
+						tree->AddChild(fb, StrategyTreeNode::Single(mm, secret));
 					}
 				}
 				return tree;
@@ -462,7 +474,7 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 		if (freq.GetPartitionCount() <= 1) { // an impossible guess
 			continue;
 		}
-		StrategyTreeNode *this_tree = new StrategyTreeNode();
+		StrategyTreeNode *this_tree = StrategyTreeNode::Create(mm);
 		this_tree->State.Guess = guess;
 
 		// Find the "best" guess route for each possible feedback
@@ -488,10 +500,10 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 		} else if ((this_tree->GetTotalDepth() < best_tree->GetTotalDepth()) ||
 			(this_tree->GetTotalDepth() == best_tree->GetTotalDepth() && 
 			 this_tree->GetDepth() < best_tree->GetDepth())) {
-			delete best_tree;
+			StrategyTreeNode::Destroy(mm, best_tree);
 			best_tree = this_tree;
 		} else {
-			delete this_tree;
+			StrategyTreeNode::Destroy(mm, this_tree);
 		}
 	}
 		

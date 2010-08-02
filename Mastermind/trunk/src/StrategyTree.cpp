@@ -4,35 +4,50 @@
 
 using namespace Mastermind;
 
-StrategyTreeNode::StrategyTreeNode()
+///////////////////////////////////////////////////////////////////////////
+// StrategyTreeNode implementation
+//
+
+StrategyTreeNode* StrategyTreeNode::Create(StrategyTreeMemoryManager *mm)
 {
-	// m_guess = guess;
-	memset(m_children, 0, sizeof(m_children));
-	m_depth = 0;
-	m_totaldepth = 0;
-	m_hits = 0;
+	assert(mm != NULL);
+
+	//StrategyTreeNode *node = (StrategyTreeNode*)malloc(sizeof(StrategyTreeNode));
+	StrategyTreeNode *node = mm->Alloc();
+	node->m_depth = 0;
+	node->m_totaldepth = 0;
+	node->m_hits = 0;
+	node->m_childcount = 0;
+	return node;
 }
 
-StrategyTreeNode::~StrategyTreeNode()
+void StrategyTreeNode::Destroy(StrategyTreeMemoryManager *mm, StrategyTreeNode *node)
 {
-	for (int i = 0; i < sizeof(m_children)/sizeof(m_children[0]); i++) {
-		if (m_children[i] != NULL) {
-			if (m_children[i] != Done())
-				delete m_children[i];
-			m_children[i] = NULL;
+	for (int i = 0; i < node->m_childcount; i++) {
+		int j = node->m_childindex[i];
+		StrategyTreeNode* child = node->m_children[j];
+		if (child != Done()) {
+			Destroy(mm, child);
 		}
 	}
-	m_depth = 0;
-	m_totaldepth = 0;
-	m_hits = 0;
-	// m_guess = Codeword::Empty();
+	//node->m_depth = 0;
+	//node->m_totaldepth = 0;
+	//node->m_hits = 0;
+	//node->m_childcount = 0;
+	//free(node);
+	mm->Free(node);
 }
 
 void StrategyTreeNode::AddChild(Feedback fb, StrategyTreeNode *child)
 {
-	int i = fb.GetValue();
-	assert(m_children[i] == NULL);
-	m_children[i] = child;
+	int j = fb.GetValue();
+#ifndef NDEBUG
+	for (int i = 0; i < m_childcount; i++) {
+		assert(m_childindex[i] != j);
+	}
+#endif
+	m_children[j] = child;
+	m_childindex[m_childcount++] = j;
 
 	if (child == Done()) {
 		if (m_depth < 1)
@@ -51,8 +66,9 @@ void StrategyTreeNode::AddChild(Feedback fb, StrategyTreeNode *child)
 int StrategyTreeNode::FillDepthInfo(int depth, int freq[], int max_depth) const
 {
 	int total = 0;
-	for (int i = 0; i < sizeof(m_children)/sizeof(m_children[0]); i++) {
-		const StrategyTreeNode *child = m_children[i];
+	for (int i = 0; i < m_childcount; i++) {
+		int j = m_childindex[i]; 
+		const StrategyTreeNode *child = m_children[j];
 		if (child == Done()) { // this is the leaf
 			if (depth > max_depth) {
 				freq[max_depth]++;
@@ -60,7 +76,7 @@ int StrategyTreeNode::FillDepthInfo(int depth, int freq[], int max_depth) const
 				freq[depth]++;
 			}
 			total += depth;
-		} else if (child != NULL) {
+		} else {
 			total += child->FillDepthInfo(depth + 1, freq, max_depth);
 		}
 	}
@@ -81,34 +97,33 @@ void StrategyTreeNode::WriteToFile(
 	assert(fp != NULL);
 	assert(indent >= 0 && indent < 200);
 
-	for (int i = 0; i < sizeof(m_children)/sizeof(m_children[0]); i++) {
-		const StrategyTreeNode *child = m_children[i];
-		if (child != NULL) {
-			if (format == XmlFormat) {
-				if (child == Done()) {
-					fprintf(fp, "%*s<case feedback=\"%s\">\n",
-						indent, "",
-						Feedback(i).ToString().c_str());
-				} else {
-					fprintf(fp, "%*s<case feedback=\"%s\" npos=\"%d\" ncand=\"%d\" guess=\"%s\">\n",
-						indent, "",
-						Feedback(i).ToString().c_str(),
-						child->State.NPossibilities,
-						child->State.NCandidates,
-						child->State.Guess.ToString().c_str());
-				}
+	for (int i = 0; i < m_childcount; i++) {
+		int j = m_childindex[i];
+		const StrategyTreeNode *child = m_children[j];
+		if (format == XmlFormat) {
+			if (child == Done()) {
+				fprintf(fp, "%*s<case feedback=\"%s\">\n",
+					indent, "",
+					Feedback(i).ToString().c_str());
 			} else {
-				fprintf(fp, "%*s%s:%s\n", 
-						indent, "",
-						State.Guess.ToString().c_str(),
-						Feedback(i).ToString().c_str());
+				fprintf(fp, "%*s<case feedback=\"%s\" npos=\"%d\" ncand=\"%d\" guess=\"%s\">\n",
+					indent, "",
+					Feedback(i).ToString().c_str(),
+					child->State.NPossibilities,
+					child->State.NCandidates,
+					child->State.Guess.ToString().c_str());
 			}
-			if (child != Done()) {
-				child->WriteToFile(fp, format, indent + 2);
-			}
-			if (format == XmlFormat) {
-				fprintf(fp, "%*s</case>\n", indent, "");
-			}
+		} else {
+			fprintf(fp, "%*s%s:%s\n", 
+					indent, "",
+					State.Guess.ToString().c_str(),
+					Feedback(i).ToString().c_str());
+		}
+		if (child != Done()) {
+			child->WriteToFile(fp, format, indent + 2);
+		}
+		if (format == XmlFormat) {
+			fprintf(fp, "%*s</case>\n", indent, "");
 		}
 	}
 }
@@ -144,9 +159,9 @@ void StrategyTreeNode::WriteToFile(
 	}
 }
 
-StrategyTreeNode* StrategyTreeNode::Single(const Codeword& possibility)
+StrategyTreeNode* StrategyTreeNode::Single(StrategyTreeMemoryManager *mm, const Codeword& possibility)
 {
-	StrategyTreeNode *node = new StrategyTreeNode();
+	StrategyTreeNode *node = Create(mm);
 	node->State.NPossibilities = 1;
 	node->State.NCandidates = 1;
 	node->State.Guess = possibility;

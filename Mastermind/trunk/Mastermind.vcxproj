@@ -42,6 +42,7 @@
     <ClCompile Include="src\CpuInfo.cpp" />
     <ClCompile Include="src\Enumerate.cpp" />
     <ClCompile Include="src\Feedback.cpp" />
+    <ClCompile Include="src\FifoMemoryManager.h" />
     <ClCompile Include="src\Frequency.cpp" />
     <ClCompile Include="src\HRTimer.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -60,6 +61,7 @@
     <ClInclude Include="src\Frequency.h" />
     <ClInclude Include="src\HRTimer.h" />
     <ClInclude Include="src\MMConfig.h" />
+    <ClInclude Include="src\PoolMemoryManager.h" />
     <ClInclude Include="src\RoutineSelector.h" />
     <ClInclude Include="src\CallCounter.h" />
     <ClInclude Include="src\Scan.h" />

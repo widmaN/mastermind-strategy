@@ -324,7 +324,8 @@ static void TestGuessingByTree(
 		}
 		printf("%6.1f\n", t);
 
-		delete tree;
+		// delete tree;
+		// TODO: garbage collection!
 	}
 
 }
@@ -387,7 +388,7 @@ int main(int argc, char* argv[])
 		rules.allow_repetition = false;
 	} else if (1) {
 		rules.length = 3;
-		rules.ndigits = 4;
+		rules.ndigits = 6;
 		rules.allow_repetition = false;
 	} else {
 		rules.length = 5;

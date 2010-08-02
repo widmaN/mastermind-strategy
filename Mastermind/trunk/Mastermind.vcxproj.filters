@@ -60,6 +60,9 @@
     <ClCompile Include="src\CpuInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FifoMemoryManager.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CodeBreaker.h">
@@ -102,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\CpuInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PoolMemoryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
