@@ -98,8 +98,7 @@ static StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManag
 StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, const Codeword &first_guess)
 {
 	Codeword guess = first_guess.IsEmpty()? MakeGuess(possibilities) : first_guess;
-	FeedbackList fbl(guess, possibilities);
-	FeedbackFrequencyTable freq(fbl);
+	FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 	StrategyTreeMemoryManager *mm = default_strat_mm;
 
 	StrategyTreeNode *node = StrategyTreeNode::Create(mm);
@@ -176,8 +175,7 @@ StrategyTreeNode* HeuristicCodeBreaker<Heuristic>::FillStrategy(
 	StrategyTreeMemoryManager *mm = default_strat_mm;
 
 	Codeword guess = state.Guess;
-	FeedbackList fbl(guess, possibilities);
-	FeedbackFrequencyTable freq(fbl);
+	FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 
 	Feedback perfect = Feedback(m_rules.length, 0);
 	StrategyTreeNode *node = StrategyTreeNode::Create(mm);
@@ -266,11 +264,9 @@ void HeuristicCodeBreaker<Heuristic>::MakeGuess(
 	int pretest = 0;
 	if (possibilities.GetCount() <= npegs*(npegs+3)/2) {
 		pretest = npos;
-		FeedbackList fbl(npos, npegs);
 		for (int i = 0; i < possibilities.GetCount(); i++) {
 			Codeword guess = possibilities[i];
-			guess.CompareTo(possibilities, fbl);
-			FeedbackFrequencyTable freq(fbl);
+			FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 			if (freq.GetMaximum() == 1) {
 				state->NCandidates = i + 1;
 				state->Guess = guess;
@@ -291,11 +287,9 @@ void HeuristicCodeBreaker<Heuristic>::MakeGuess(
 	int choose_i = -1;
 	int choose_ispos = false;
 	Feedback target = Feedback(m_rules.length, 0);
-	FeedbackList fbl(possibilities.GetCount(), m_rules.length);
 	for (int i = 0; i < candidates.GetCount(); i++) {
 		Codeword guess = candidates[i];
-		guess.CompareTo(possibilities, fbl);
-		FeedbackFrequencyTable freq(fbl);
+		FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 
 		// Evaluate each potential guess, and find the minimum
 		Heuristic::score_t score = Heuristic::compute(freq);
@@ -433,11 +427,9 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	int npretest = 0;
 #if 1
 	if (npos <= npegs*(npegs+3)/2) {
-		FeedbackList fbl(npos, npegs);
 		for (int i = 0; i < possibilities.GetCount(); i++) {
 			Codeword guess = possibilities[i];
-			guess.CompareTo(possibilities, fbl);
-			FeedbackFrequencyTable freq(fbl);
+			FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 			if (freq.GetMaximum() == 1) {
 				StrategyTreeNode *tree = StrategyTreeNode::Create(mm);
 				tree->State.NPossibilities = npos;
@@ -467,8 +459,7 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	StrategyTreeNode *best_tree = NULL;
 	for (int i = 0; i < candidates.GetCount(); i++) {
 		Codeword guess = candidates[i];
-		FeedbackList fbl(guess, possibilities);
-		FeedbackFrequencyTable freq(fbl);
+		FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 		
 		//assert(freq.GetPartitionCount() > 1);
 		if (freq.GetPartitionCount() <= 1) { // an impossible guess

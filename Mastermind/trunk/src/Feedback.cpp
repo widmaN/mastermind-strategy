@@ -5,6 +5,7 @@
 #include "Feedback.h"
 #include "Codeword.h"
 #include "Frequency.h"
+#include "Compare.h"
 
 using namespace Mastermind;
 
@@ -92,6 +93,11 @@ Feedback Feedback::Parse(const char *s)
 // FeedbackList class implementations
 //
 
+// TODO: implement this for multi-threading
+static unsigned char *prealloc_fblist = NULL;
+static int prealloc_size = 0;
+static bool prealloc_inuse = false;
+
 FeedbackList::FeedbackList(unsigned char *values, int count, int pegs)
 {
 	m_values = values;
@@ -99,25 +105,50 @@ FeedbackList::FeedbackList(unsigned char *values, int count, int pegs)
 	m_maxfb = Feedback(pegs, 0).GetValue();
 }
 
+/*
 FeedbackList::FeedbackList(int count, int pegs)
 {
 	m_count = count;
 	m_values = (unsigned char *)malloc(m_count);
 	m_maxfb = Feedback(pegs, 0).GetValue();
 }
+*/
 
 FeedbackList::FeedbackList(const Codeword &guess, const CodewordList &secrets)
 {
+	// Set attributes
 	m_count = secrets.GetCount();
-	m_values = (unsigned char *)malloc(m_count);
 	m_maxfb = Feedback(guess.GetPegCount(), 0).GetValue();
-	guess.CompareTo(secrets, *this);
+
+	// Allocate memory
+	if (!prealloc_inuse) {
+		if (prealloc_size < m_count) {
+			free(prealloc_fblist);
+			prealloc_size = m_count;
+			prealloc_fblist = (unsigned char *)malloc(prealloc_size);
+		}
+		m_values = prealloc_fblist;
+		prealloc_inuse = true;
+	} else {
+		m_values = (unsigned char *)malloc(m_count);
+	}
+
+	// Perform the actual comparison
+	if (secrets.GetRules().allow_repetition) {
+		CompareRepImpl->Run(guess.GetValue().value, (const __m128i*)secrets.GetData(), m_count, m_values);
+	} else {
+		CompareNoRepImpl->Run(guess.GetValue().value, (const __m128i*)secrets.GetData(), m_count, m_values);
+	}
 }
 
 FeedbackList::~FeedbackList()
 {
 	if (m_values != NULL) {
-		free(m_values);
+		if (m_values != prealloc_fblist) {
+			free(m_values);
+		} else {
+			prealloc_inuse = false;
+		}
 		m_values = NULL;
 		m_count = 0;
 	}

@@ -75,6 +75,7 @@ std::string Codeword::ToString() const
 	return buf;
 }
 
+/*
 void Codeword::CompareTo(const CodewordList& list, FeedbackList& fbl) const
 {
 	assert(list.GetCount() == fbl.GetCount());
@@ -87,21 +88,6 @@ void Codeword::CompareTo(const CodewordList& list, FeedbackList& fbl) const
 	} else {
 		CompareNoRepImpl->Run(m_value.value, (const __m128i*)list.GetData(), count, results);
 	}
-}
-
-/*
-FeedbackList* Codeword::CompareTo(const CodewordList& list) const
-{
-	int count = list.GetCount();
-	unsigned char *results = new unsigned char [count];
-
-	if (list.GetRules().allow_repetition) {
-		Compare_Rep(m_value, list.GetData(), count, results);
-	} else {
-		Compare_NoRep(m_value, list.GetData(), count, results);
-	}
-
-	return new FeedbackList(results, count);
 }
 */
 

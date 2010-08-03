@@ -131,9 +131,9 @@ namespace Mastermind
 
 	public:
 
-		/// Creates a feedback list by allocating the necessary amount of
-		/// memory without filling the values.
-		FeedbackList(int count, int pegs);
+		// Creates a feedback list by allocating the necessary amount of
+		// memory without filling the values.
+		//FeedbackList(int count, int pegs);
 
 		/// Creates a feedback list by attaching to a pre-allocated chunk
 		/// of memory.
