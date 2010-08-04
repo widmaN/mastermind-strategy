@@ -114,6 +114,8 @@ FeedbackList::FeedbackList(int count, int pegs)
 }
 */
 
+
+
 FeedbackList::FeedbackList(const Codeword &guess, const CodewordList &secrets)
 {
 	// Set attributes
@@ -165,6 +167,11 @@ Feedback FeedbackList::operator [] (int index) const
 //
 
 FeedbackFrequencyTable::FeedbackFrequencyTable(const FeedbackList &fblist)
+{
+	CountFrequencies(fblist);
+}
+
+void FeedbackFrequencyTable::CountFrequencies(const FeedbackList &fblist)
 {
 	m_maxfb = fblist.GetMaxFeedbackValue();
 	CountFrequenciesImpl->Run(fblist.GetData(), fblist.GetCount(), m_freq, m_maxfb);

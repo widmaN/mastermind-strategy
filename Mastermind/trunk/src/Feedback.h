@@ -108,6 +108,11 @@ namespace Mastermind
 			return Feedback(npegs, 0);
 		}
 
+		static int MaxValue(int npegs)
+		{
+			return Feedback(npegs, 0).GetValue();
+		}
+
 		/// Parses feedback from a string, in the form of "1A2B".
 		/// If the input string is invalid, <code>Feedback::Empty()</code> 
 		/// is returned.
@@ -175,7 +180,13 @@ namespace Mastermind
 			m_maxfb = maxfb;
 		}
 
+		FeedbackFrequencyTable()
+		{
+		}
+
 		FeedbackFrequencyTable(const FeedbackList &fblist);
+
+		void CountFrequencies(const FeedbackList &fblist);
 
 		int GetMaxFeedbackValue() const { return m_maxfb; }
 

@@ -363,14 +363,14 @@ int TestOutputStrategyTree(CodewordRules rules)
 // -r, --rep           allow repetition
 // -nr, --norep        don't allow repetition
 
-// TODO: Use feedback_map to put feedbacks together, if this can improve
-//       the performance of count_freq_v6 and GetSumOfSquares
-// TODO: Try use the CodewordList::Partition() method to speed up strategy
-//       tree calculation for Logik setup (5 pegs, 8 colors, with rep)
+// TODO: Test whether ordinal feedback or direct feedback performs better.
 // TODO: Improve strategy tree to save memory (pointer) and be thread-safe
 //       to prepare for multithreading.
 // TODO: Refactor MakeGuess() code to make each call longer and fewer calls
 //       to take advantage of OpenMP.
+// TODO: Add progress display to OptimalCodeBreaker
+// TODO: Output strategy tree after finishing a run
+// TODO: Refactor StrategyTree() to speed up Destroy() and clean up memory
 int main(int argc, char* argv[])
 {
 	if (0) {

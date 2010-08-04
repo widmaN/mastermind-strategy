@@ -12,6 +12,7 @@ namespace Mastermind
 {
 	class Codeword;
 	class CodewordList;
+	class FeedbackFrequencyTable;
 
 	/// Defines the rules that a codeword conforms to.
 	class CodewordRules
@@ -204,18 +205,12 @@ namespace Mastermind
 		/// Creates the list as a reference copy of another list. The two
 		/// lists share the same memory, and changing one of them affects
 		/// the other.
-		CodewordList(const CodewordList& list)
-		{
-			if (&list == this)
-				return;
+		CodewordList(const CodewordList& list);
 
-			this->m_rules = list.m_rules;
-			this->m_data = list.m_data;
-			this->m_count = list.m_count;
-			this->m_alloc = list.m_alloc;
-			this->m_refcount = list.m_refcount;
-			++(*m_refcount);
-		}
+		/// Creates the list as a reference copy of the range of another 
+		/// list. The two lists share the same memory, and changing one 
+		/// of them affects the other.
+		CodewordList(const CodewordList& list, int start, int count);
 
 		/// Destructor.
 		~CodewordList()
@@ -279,12 +274,12 @@ namespace Mastermind
 			unsigned short unguessed_mask,
 			unsigned short impossible_mask) const;
 
-		// Partition this codeword list according to feedback list _fbl_.
-		// The elements in the codeword list are reordered in-memory.
-		// After the partitioning, codewords with the same feedback are
-		// stored consecutively in memory.
-		// The feedback list _fbl_ is also reordered along with the codewords.
-		//void Partition(FeedbackList *fbl);
+		/// Partitions the codeword list by the given codeword.
+		/// The elements in the codeword list are re-ordered in-memory, 
+		/// such that codewords with the same feedback as compared to
+		/// the guess are stored consecutively in memory.
+		/// The feedback frequency table is also filled as a by-product.
+		void Partition(const Codeword &guess, FeedbackFrequencyTable &freq);
 
 		//void WriteToFile(FILE *fp) const;
 		void DebugPrint() const

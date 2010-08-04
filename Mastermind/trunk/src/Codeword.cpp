@@ -154,6 +154,34 @@ void CodewordList::ReleaseCurrent()
 	}
 }
 
+CodewordList::CodewordList(const CodewordList& list)
+{
+	if (&list == this)
+		return;
+
+	this->m_rules = list.m_rules;
+	this->m_data = list.m_data;
+	this->m_count = list.m_count;
+	this->m_alloc = list.m_alloc;
+	this->m_refcount = list.m_refcount;
+	++(*m_refcount);
+}
+
+CodewordList::CodewordList(const CodewordList& list, int start, int count)
+{
+	assert(&list != this);
+	assert(start >= 0);
+	assert(count >= 0);
+	assert(start + count <= list.m_count);
+	
+	this->m_rules = list.m_rules;
+	this->m_data = list.m_data + start;
+	this->m_count = count;
+	this->m_alloc = list.m_alloc;
+	this->m_refcount = list.m_refcount;
+	++(*m_refcount);
+}
+
 CodewordList CodewordList::Enumerate(CodewordRules rules)
 {
 	int length = rules.length;
@@ -206,6 +234,42 @@ CodewordList CodewordList::FilterByFeedback(
 	}
 
 	return cwl;
+}
+
+void CodewordList::Partition(const Codeword &guess, FeedbackFrequencyTable &freq)
+{
+	FeedbackList fbl(guess, *this);
+	freq.CountFrequencies(fbl);
+
+	// Build a table of start index of each feedback
+	int start_index[256];
+	int k = 0;
+	start_index[0] = 0;
+	for (int i = 0; i <= freq.GetMaxFeedbackValue(); i++) {
+		start_index[i] = k;
+		k += freq[Feedback(i)];
+	}
+
+	// Create a spare list to store temporary result
+	// TODO: Modify code to enable MT
+	static codeword_t* tmp_list = NULL;
+	static int tmp_size = 0;
+	if (tmp_size < m_count) {
+		_aligned_free(tmp_list);
+		tmp_list = (codeword_t*)_aligned_malloc(sizeof(codeword_t)*m_count, sizeof(codeword_t));
+		tmp_size = m_count;
+	}
+
+	// Re-order codewords to the temporary list
+	const unsigned char *fblist = fbl.GetData();
+	for (int i = 0; i < m_count; i++) {
+		tmp_list[start_index[fblist[i]]++] = m_data[i];
+	}
+
+	// Copy temporary list back
+	for (int i = 0; i < m_count; i++) {
+		m_data[i] = tmp_list[i];
+	}
 }
 
 CodewordList CodewordList::FilterByEquivalence(
