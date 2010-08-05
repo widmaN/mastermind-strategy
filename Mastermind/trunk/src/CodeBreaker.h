@@ -213,6 +213,13 @@ namespace Mastermind
 	class OptimalCodeBreaker : public CodeBreaker
 	{
 	private:
+		struct progress_t 
+		{
+			double begin;
+			double end;
+			bool display;
+		};
+
 		int SearchLowestSteps(
 			CodewordList possibilities,
 			unsigned short unguessed_mask,
@@ -225,7 +232,7 @@ namespace Mastermind
 			unsigned short unguessed_mask,
 			unsigned short impossible_mask,
 			const Codeword& first_guess,
-			int *progress);
+			const progress_t *progress);
 
 	public:
 		/// Creates an optimal code breaker.

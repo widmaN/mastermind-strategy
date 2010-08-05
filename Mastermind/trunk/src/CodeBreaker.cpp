@@ -399,7 +399,7 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	unsigned short unguessed_mask,
 	unsigned short impossible_mask,
 	const Codeword& first_guess,
-	int *progress)
+	const progress_t *progress)
 {
 	int npegs = m_rules.length; // number of pegs
 	int npos = possibilities.GetCount(); // number of remaining possibilities
@@ -459,9 +459,15 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 	}
 #endif
 
+
 	// Now we have to iterate through each candidate guess.
 	// Find out "distinct" codewords as candidate for next guess
 	CodewordList candidates = m_all.FilterByEquivalence(unguessed_mask, impossible_mask);
+
+	// Check whether we need children to display progress
+	double prog_step = (progress->end - progress->begin) / (double)candidates.GetCount();
+	bool display_progress = progress->display;
+	double last_pcnt = -1.0;
 
 	// Try each possible guess
 	StrategyTreeNode *best_tree = NULL;
@@ -471,8 +477,22 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 		possibilities.Partition(guess, freq);
 		// FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 		
+		// Display progress
+		if (display_progress) {
+			double pcnt = progress->begin + prog_step*i;
+			if (pcnt - last_pcnt >= 0.001) {
+				printf("\rProgress: %4.1f%%", pcnt*100);
+				fflush(stdout);
+			}
+			if (pcnt > 0.9) {
+				int k = 0;
+			}
+			last_pcnt = pcnt;
+		}
+
 		//assert(freq.GetPartitionCount() > 1);
-		if (freq.GetPartitionCount() <= 1) { // an impossible guess
+		int npart = freq.GetPartitionCount();
+		if (npart <= 1) { // an impossible guess
 			continue;
 		}
 		StrategyTreeNode *this_tree = StrategyTreeNode::Create(mm);
@@ -494,8 +514,18 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 				int new_unguessed_mask = unguessed_mask & ~guess.GetDigitMask();
 				int new_impossible_mask = m_rules.GetFullDigitMask() & ~filtered.GetDigitMask();
 				Codeword dummy = Codeword::Empty();
+				progress_t prog;
+				if (display_progress) {
+					prog.display = (prog_step > 0.001);
+					prog.begin = progress->begin + prog_step*i + prog_step*k/npos;
+					prog.end = progress->begin + prog_step*i + prog_step*(k+n)/npos;
+				} else {
+					prog.display = false;
+					prog.begin = 0;
+					prog.end = 0;
+				}
 				this_tree->AddChild(fb, FillStrategy(filtered, new_unguessed_mask, new_impossible_mask,
-					dummy, progress));
+					dummy, &prog));
 			}
 			k += n;
 		}
@@ -512,11 +542,10 @@ StrategyTreeNode* OptimalCodeBreaker::FillStrategy(
 			StrategyTreeNode::Destroy(mm, this_tree);
 		}
 	}
-		
+	
 	best_tree->State.NPossibilities = npos;
 	best_tree->State.NCandidates = npretest + candidates.GetCount();
 	return best_tree;
-
 }
 
 /*
@@ -660,7 +689,10 @@ StrategyTree* OptimalCodeBreaker::BuildStrategyTree(const Codeword& first_guess)
 	CodewordList all = m_all.Copy();
 	unsigned short impossible_mask = 0;
 	unsigned short unguessed_mask = m_rules.GetFullDigitMask();
-	int progress = 0;
+	progress_t progress;
+	progress.begin = 0.0;
+	progress.end = 1.0;
+	progress.display = true;
 	StrategyTreeNode *node = FillStrategy(
 		all, unguessed_mask, impossible_mask, first_guess, &progress);
 	return (StrategyTree*)node;
