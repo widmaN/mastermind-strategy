@@ -213,6 +213,8 @@ namespace Mastermind
 	class OptimalCodeBreaker : public CodeBreaker
 	{
 	private:
+		int *m_partsize2minsteps;
+
 		struct progress_t 
 		{
 			double begin;
@@ -227,12 +229,20 @@ namespace Mastermind
 			int *depth,
 			Codeword *choice);
 
+		struct search_t {
+			int round;
+			int total_steps;
+			int lower_bound;
+			int max_cost;
+		};
+
 		StrategyTreeNode* FillStrategy(
 			CodewordList possibilities,
 			unsigned short unguessed_mask,
 			unsigned short impossible_mask,
 			const Codeword& first_guess,
-			const progress_t *progress);
+			const progress_t *progress,
+			const search_t *arg);
 
 	public:
 		/// Creates an optimal code breaker.
@@ -333,6 +343,20 @@ namespace Mastermind
 			/// Computes the heuristic score - negative of the number of
 			/// partitions.
 			static score_t compute(const FeedbackFrequencyTable &freq);
+		};
+
+		class MinimizeSteps
+		{
+		public:
+			/// Data type of the score (signed integer).
+			typedef int score_t;
+			/// Short identifier of the heuristic function.
+			static const char *name;
+			/// Computes the heuristic score
+			static score_t compute(const FeedbackFrequencyTable &freq);
+
+		public:
+			static int partition_score[10000];
 		};
 	}
 }

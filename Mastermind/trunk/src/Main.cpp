@@ -349,6 +349,141 @@ int TestOutputStrategyTree(CodewordRules rules)
 	return 0;
 }
 
+// c.f. http://www.javaworld.com.tw/jute/post/view?bid=35&id=138372&sty=1&tpg=1&ppg=1&age=0#138372
+
+static int GetMaxBreakableWithin(
+	int nsteps, 
+	int f[], 
+	CodewordList possibilities, 
+	CodewordList all,
+	unsigned short unguessed_mask,
+	int expand_levels)
+{
+	assert(nsteps >= 0);
+	assert(expand_levels >= 0);
+
+	if (nsteps == 0) {
+		return 0;
+	} else if (nsteps == 1) {
+		return 1;
+	} 
+	//else if (nsteps == 2) {
+	//	int npegs = possibilities.GetRules().length;
+	//	return std::min(possibilities.GetCount(), npegs*(npegs+3)/2);
+	//}
+
+	unsigned short impossible_mask = ((1<<all.GetRules().ndigits)-1) & ~possibilities.GetDigitMask();
+	CodewordList candidates = all.FilterByEquivalence(unguessed_mask, impossible_mask);
+	int best = 0;
+	for (int i = 0; i < candidates.GetCount(); i++) {
+		Codeword guess = candidates[i];
+			
+		int nguessable = 0;
+		if (expand_levels == 0) {
+			FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
+			for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
+				int partition_size = freq[Feedback(fbv)];
+				nguessable += std::min(f[nsteps-1], partition_size);
+			}
+		} else {
+			FeedbackFrequencyTable freq;
+			possibilities.Partition(guess, freq);
+			int partition_start = 0;
+			for (int fbv = 0; fbv <= freq.GetMaxFeedbackValue(); fbv++) {
+				int partition_size = freq[Feedback(fbv)];
+				if (partition_size == 0)
+					continue;
+
+				CodewordList filtered(possibilities, partition_start, partition_size);
+				int tmpcount = GetMaxBreakableWithin(nsteps-1, f, filtered, all, 
+					unguessed_mask & ~guess.GetDigitMask(),
+					expand_levels-1);
+				nguessable += std::min(tmpcount, partition_size);
+				partition_start += partition_size;
+			}
+		}
+
+		best = std::max(best, nguessable);
+	}
+	return best;
+}
+
+static int TestBound(CodewordRules rules)
+{
+	// Find out the maximum size of any partition
+	CodewordList all = CodewordList::Enumerate(rules);
+	FeedbackFrequencyTable freq(FeedbackList(all[0], all));
+
+	int f[100];
+	f[0] = 0;
+	f[1] = 1;
+	int min_rounds = 0;
+	int expand_levels = 1;
+	for (int n = 2; n < 100; n++) {
+		unsigned short unguessed_mask = ((1<<all.GetRules().ndigits)-1);
+		f[n] = GetMaxBreakableWithin(n, f, all.Copy(), all, unguessed_mask, expand_levels);
+		if (f[n] >= all.GetCount()) {
+			min_rounds = n;
+			break;
+		}
+	}
+	for (int n = 1; n <= min_rounds; n++) {
+		printf("Maximum number of secrets that can be guessed in %2d rounds: <= %d\n",
+			n, f[n]);
+	}
+	printf("**** Minimum number of rounds necessary to guess all secrets: >= %d\n", 
+		min_rounds);
+
+	int min_steps = all.GetCount()*min_rounds;
+	for (int n = 1; n < min_rounds; n++) {
+		min_steps -= f[n];
+	}
+	printf("**** Minimum total steps necessary to guess all secrets: >= %d\n",
+		min_steps);
+	printf("**** Minimum average steps necessary to guess all secrets: >= %5.3f\n",
+		(double)min_steps/all.GetCount());
+
+	int *S = Mastermind::Heuristics::MinimizeSteps::partition_score;
+	S[0] = 0;
+	for (int i = 1; i <= all.GetCount(); i++) {
+		int nr = 0;
+		for (nr = 1; nr <= 100; nr++) {
+			if (f[nr] >= i)
+				break;
+		}
+		int score = i*nr;
+		for (int j = 1; j < nr; j++) {
+			score -= f[j];
+		}
+		S[i] = score;
+		//if (i % 40==0)
+		//printf("S[%d] = %d\n", i, score);
+	}
+
+#if 0
+	int m=14;
+
+	const int nmax=20;
+	int S[nmax+1];
+	S[0]=0;
+	int n;
+	for (n = 1; n <= nmax; n++) {
+		if (n <= m) {
+			S[n] = 1+(n-1)*2;
+		} else {
+			S[n]=n;
+			int nper = (n-1)/(m-1);
+			S[n] += S[nper]*(m-2);
+			S[n] += S[(n-1)-(nper*(m-2))];
+		}
+		printf("S[%4d] = %d\n", n, S[n]);
+	}
+#endif
+
+	//system("PAUSE");
+	return 0;
+}
+
 // Latest profiling results:
 // compare_long_codeword_v4():          28%
 // FilterByEquivalenceClass_norep_v2(): 22%
@@ -373,28 +508,25 @@ int TestOutputStrategyTree(CodewordRules rules)
 // TODO: Refactor StrategyTree() to speed up Destroy() and clean up memory
 int main(int argc, char* argv[])
 {
-	if (0) {
-		Feedback fb;
-		//fb.is
-		//fb.ise
-	}
-
 	string s;
 	
 	CodewordRules rules;
-	if (0) {
+	if (1) {
 		rules.length = 4;
 		rules.ndigits = 10;
 		rules.allow_repetition = false;
 	} else if (1) {
 		rules.length = 3;
-		rules.ndigits = 6;
+		rules.ndigits = 7;
 		rules.allow_repetition = false;
 	} else {
 		rules.length = 5;
 		rules.ndigits = 8;
 		rules.allow_repetition = true;
 	}
+
+	TestBound(rules);
+	//return system("PAUSE");
 
 	// There is an interesting bug with the FilterEquivalence_Rep
 	// If the first guess is 0011 and feedback is 0A1B,
@@ -480,7 +612,8 @@ int main(int argc, char* argv[])
 		new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
 		new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),
 		new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(rules, posonly),
-		new OptimalCodeBreaker(rules),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
+		//new OptimalCodeBreaker(rules),
 	};
 
 	// CountFrequenciesImpl->SelectRoutine("c");
@@ -502,6 +635,9 @@ int main(int argc, char* argv[])
 
 	void PrintMakeGuessStatistics();
 	//PrintMakeGuessStatistics();
+
+	void OCB_PrintStatistics();
+	OCB_PrintStatistics();
 
 	system("PAUSE");
 	return 0;
