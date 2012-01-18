@@ -1,3 +1,6 @@
+#include <iostream>
+#include <iomanip>
+
 #include <stdlib.h>
 
 #include "StrategyTree.h"
@@ -89,73 +92,81 @@ int StrategyTreeNode::GetDepthInfo(int freq[], int max_depth) const
 	return FillDepthInfo(1, freq, max_depth);
 }
 
-void StrategyTreeNode::WriteToFile(
-	FILE *fp, 
-	FileFormat format,
-	int indent) const
+void StrategyTreeNode::WriteToFile(std::ostream &os, FileFormat format, int indent) const
 {
-	assert(fp != NULL);
 	assert(indent >= 0 && indent < 200);
 
-	for (int i = 0; i < m_childcount; i++) {
+	for (int i = 0; i < m_childcount; i++) 
+	{
 		int j = m_childindex[i];
 		const StrategyTreeNode *child = m_children[j];
-		if (format == XmlFormat) {
-			if (child == Done()) {
-				fprintf(fp, "%*s<case feedback=\"%s\">\n",
-					indent, "",
-					Feedback(i).ToString().c_str());
-			} else {
-				fprintf(fp, "%*s<case feedback=\"%s\" npos=\"%d\" ncand=\"%d\" guess=\"%s\">\n",
-					indent, "",
-					Feedback(i).ToString().c_str(),
-					child->State.NPossibilities,
-					child->State.NCandidates,
-					child->State.Guess.ToString().c_str());
+		if (format == XmlFormat) 
+		{
+			if (child == Done()) 
+			{
+				os << std::setw(indent) << "" << "<case feedback=\""
+					<< Feedback(i) << "\">" << std::endl;
+			} 
+			else 
+			{
+				os << std::setw(indent) << "" << "<case "
+					<< "feedback=\"" << Feedback(i) << "\" "
+					<< "npos=\"" << child->State.NPossibilities << "\" "
+					<< "ncand=\"" << child->State.NCandidates << "\" "
+					<< "guess=\"" << child->State.Guess << "\">"
+					<< std::endl;
 			}
-		} else {
-			fprintf(fp, "%*s%s:%s\n", 
-					indent, "",
-					State.Guess.ToString().c_str(),
-					Feedback(i).ToString().c_str());
+		} 
+		else 
+		{
+			os << std::setw(indent) << "" 
+				<< State.Guess << ":" << Feedback(i) << std::endl;
 		}
-		if (child != Done()) {
-			child->WriteToFile(fp, format, indent + 2);
+		if (child != Done()) 
+		{
+			child->WriteToFile(os, format, indent + 2);
 		}
-		if (format == XmlFormat) {
-			fprintf(fp, "%*s</case>\n", indent, "");
+		if (format == XmlFormat) 
+		{
+			os << std::setw(indent) << "" << "</case>" << std::endl;
 		}
 	}
 }
 
 void StrategyTreeNode::WriteToFile(
-	FILE *fp, 
-	FileFormat format,
-	CodewordRules rules) const
+	std::ostream &os, FileFormat format, const CodewordRules &rules) const
 {
-	if (format == XmlFormat) {
-		fprintf(fp, "<mmstrat npegs=\"%d\" ncolors=\"%d\" allowrepetition=\"%s\">\n",
-			rules.length, rules.ndigits, (rules.allow_repetition? "true":"false"));
+	if (format == XmlFormat) 
+	{
+		os << "<mmstrat" 
+			<< " npegs=" << '"' << rules.pegs() << '"'
+			<< " ncolors=\"" << rules.colors() << '"'
+			<< " allowrepetition=\"" << std::boolalpha << rules.repeatable() << '"'
+			<< ">" << std::endl;
 		
 		const int max_depth = 100;
 		int freq[max_depth+1];
 		int total = GetDepthInfo(freq, max_depth);
 
-		fprintf(fp, "<summary totalsteps=\"%d\">\n", total);
-		for (int i = 0; i <= max_depth; i++) {
-			if (freq[i] > 0) {
-				fprintf(fp, "  <where steps=\"%d\" count=\"%d\"/>\n",
-					i, freq[i]);
+		os << "<summary totalsteps=\"" << total << "\">" << std::endl;
+		for (int i = 0; i <= max_depth; i++) 
+		{
+			if (freq[i] > 0) 
+			{
+				os << "  <where"
+					<< " steps=\"" << i << '"'
+					<< " count=\"" << freq[i] << '"'
+					<< "/>" << std::endl;
 			}
 		}
-		fprintf(fp, "</summary>\n");
-
-		fprintf(fp, "<details>\n");
+		os << "</summary>\n";
+		os << "<details>\n";
 	}
-	WriteToFile(fp, format, 0);
-	if (format == XmlFormat) {
-		fprintf(fp, "</details>\n");
-		fprintf(fp, "</mmstrat>\n");
+	WriteToFile(os, format, 0);
+	if (format == XmlFormat) 
+	{
+		os << "</details>" << std::endl;
+		os << "</mmstrat>" << std::endl;
 	}
 }
 
@@ -165,6 +176,6 @@ StrategyTreeNode* StrategyTreeNode::Single(StrategyTreeMemoryManager *mm, const 
 	node->State.NPossibilities = 1;
 	node->State.NCandidates = 1;
 	node->State.Guess = possibility;
-	node->AddChild(possibility.CompareTo(possibility), StrategyTreeNode::Done());
+	node->AddChild(compare(possibility, possibility), StrategyTreeNode::Done());
 	return node;
 }

@@ -21,6 +21,6 @@
 /// <code>0xF</code> is reserved for padding use.
 unsigned short ScanDigitMask(
 	/// Pointer to the codeword array
-	const codeword_t *codewords,
+	const __m128i *codewords,
 	/// Number of codewords in the array
 	unsigned int count);

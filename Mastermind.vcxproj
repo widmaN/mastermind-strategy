@@ -121,6 +121,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -129,7 +130,38 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\CallCounter.cpp" />
+    <ClCompile Include="src\Codeword.cpp" />
+    <ClCompile Include="src\Compare.cpp" />
+    <ClCompile Include="src\CpuInfo.cpp" />
+    <ClCompile Include="src\Enumerate.cpp" />
+    <ClCompile Include="src\Feedback.cpp" />
+    <ClCompile Include="src\Frequency.cpp" />
+    <ClCompile Include="src\HRTimer.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\MMConfig.cpp" />
+    <ClCompile Include="src\Scan.cpp" />
+    <ClCompile Include="src\StrategyTree.cpp" />
+    <ClCompile Include="src\Test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\CallCounter.h" />
+    <ClInclude Include="src\Codeword.h" />
+    <ClInclude Include="src\Codeword.hpp" />
+    <ClInclude Include="src\CodewordRules.hpp" />
+    <ClInclude Include="src\Compare.h" />
+    <ClInclude Include="src\CpuInfo.h" />
+    <ClInclude Include="src\Enumerate.h" />
+    <ClInclude Include="src\Feedback.h" />
+    <ClInclude Include="src\FifoMemoryManager.h" />
+    <ClInclude Include="src\Frequency.h" />
+    <ClInclude Include="src\HRTimer.h" />
+    <ClInclude Include="src\MMConfig.h" />
+    <ClInclude Include="src\PoolMemoryManager.h" />
+    <ClInclude Include="src\RoutineSelector.h" />
+    <ClInclude Include="src\Scan.h" />
+    <ClInclude Include="src\StrategyTree.h" />
+    <ClInclude Include="src\Test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

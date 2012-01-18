@@ -7,6 +7,9 @@
 #include "MMConfig.h"
 #include "Feedback.h"
 
+#include "CodewordRules.hpp"
+#include "Codeword.hpp"
+
 /// Contains everything related to the %Mastermind game.
 namespace Mastermind 
 {
@@ -14,38 +17,7 @@ namespace Mastermind
 	class CodewordList;
 	class FeedbackFrequencyTable;
 
-	/// Defines the rules that a codeword conforms to.
-	class CodewordRules
-	{
-	public:
-		/// Length of a codeword (i.e. the number of pegs).
-		unsigned char length;
-
-		/// Number of different digits that may appear in a codeword. 
-		/// In a typical number guessing game, this is 10. In a Mastermind game,
-		/// this is the number of colors.
-		unsigned char ndigits;
-
-		/// Whether the same digit (color) can appear more than once in a codeword.
-		bool allow_repetition;
-
-		// Reserved; must be zero.
-		// bool allow_empty;
-	public:
-
-		bool IsValid() const 
-		{
-			return (length > 0 && length <= MM_MAX_PEGS) 
-				&& (ndigits > 0 && ndigits <= MM_MAX_COLORS) 
-				&& (allow_repetition || ndigits >= length);
-		}
-
-		unsigned short GetFullDigitMask() const
-		{
-			return (1 << ndigits) - 1;
-		}
-	};
-
+#if 0
 	/// Represents a codeword.
 	class Codeword
 	{
@@ -144,7 +116,7 @@ namespace Mastermind
 			/// The string to parse
 			const char *text,
 			/// The rules to apply
-			CodewordRules rules);
+			const CodewordRules &rules);
 
 		/// Tests whether two codewords are equal.
 		static friend bool operator == (Codeword& a, Codeword& b)
@@ -152,6 +124,7 @@ namespace Mastermind
 			return memcmp(&a.m_value, &b.m_value, 16) == 0;
 		}
 	};
+#endif
 
 	/// An array of codewords. 
 	class CodewordList
@@ -166,27 +139,29 @@ namespace Mastermind
 		int m_count;
 
 		/// Pointer to the storage of the codeword array.
-		codeword_t *m_data; 
+		//codeword_t *m_data; 
+		__m128i *m_data;
 
 		/// Pointer to the memory actual allocated. This pointer can be different 
 		/// from <code>m_data</code> if this list is part of a larger
 		/// list.
-		codeword_t *m_alloc;
+		// codeword_t *m_alloc;
+		__m128i *m_alloc;
 
 		/// Pointer to the (volatile) memory that stores the reference counter.
 		int volatile* m_refcount;
 
 	private:
 
-		codeword_t* Allocate(int count);
+		__m128i* Allocate(int count);
 		void ReleaseCurrent();
 
 	public:
 
 		/// Creates an empty list with the given rules.
-		CodewordList(CodewordRules rules)
+		CodewordList(const CodewordRules &rules)
+			: m_rules(rules)
 		{
-			m_rules = rules;
 			m_refcount = NULL;
 			m_alloc = NULL;
 			m_data = NULL;
@@ -241,13 +216,13 @@ namespace Mastermind
 	public:
 
 		/// Returns the rules that all codewords in this list conform to.
-		CodewordRules GetRules() const { return m_rules; }
+		const CodewordRules& GetRules() const { return m_rules; }
 
 		/// Gets the number of codewords in this list.
 		int GetCount() const { return m_count; }
 
 		/// Gets a pointer to the internal array.
-		const codeword_t *GetData() const 
+		const __m128i* GetData() const 
 		{
 			assert(m_data != NULL);
 			return m_data; 
@@ -281,19 +256,21 @@ namespace Mastermind
 		/// The feedback frequency table is also filled as a by-product.
 		void Partition(const Codeword &guess, FeedbackFrequencyTable &freq);
 
+#if 0
 		//void WriteToFile(FILE *fp) const;
 		void DebugPrint() const
 		{
 			for (int i = 0; i < m_count; i++) {
+				// std::cout << 
 				printf("%s ", Codeword(m_data[i]).ToString().c_str());
 			}
 		}
+#endif
 
 	public:
 
 		/// Enumerates all codewords conforming to the given rules.
-		static CodewordList Enumerate(
-			CodewordRules rules);
+		static CodewordList Enumerate(const CodewordRules &rules);
 
 	};
 

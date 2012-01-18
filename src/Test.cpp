@@ -1,6 +1,7 @@
 /// \file Test.cpp
 /// Routines for testing the algorithms.
 
+#include <iostream>
 #include <stdio.h>
 #include <malloc.h>
 
@@ -11,6 +12,8 @@
 #include "Frequency.h"
 #include "Test.h"
 #include "Scan.h"
+
+#include "CodewordRules.hpp"
 
 using namespace Mastermind;
 using namespace Utilities;
@@ -166,7 +169,7 @@ int FilterByEquivalenceClass_rep_v1(
 	const unsigned char eqclass[16],
 	codeword_t *dest);
 
-int TestEquivalenceFilter(CodewordRules rules, long times)
+int TestEquivalenceFilter(const CodewordRules &rules, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
 	int total = list.GetCount();
@@ -182,10 +185,11 @@ int TestEquivalenceFilter(CodewordRules rules, long times)
 	if (times == 0) {
 		//count = FilterByEquivalenceClass_norep_v3(
 		count = FilterByEquivalenceClass_rep_v1(
-			list.GetData(), total, eqclass, (codeword_t *)output);
+			(codeword_t*)list.GetData(), total, eqclass, (codeword_t *)output);
 		if (1) {
-			for (int i = 0; i < count; i++) {
-				printf("%s ", Codeword(output[i]).ToString().c_str());
+			for (int i = 0; i < count; i++) 
+			{
+				std::cout << Codeword(output[i]) << " ";
 			}
 		}
 		_aligned_free(output);
@@ -204,14 +208,14 @@ int TestEquivalenceFilter(CodewordRules rules, long times)
 //			count = FilterByEquivalenceClass_norep_v1(
 //				(__m128i*)list.GetData(), list.GetCount(), eqclass, output);
 			count = FilterByEquivalenceClass_norep_v2(
-				list.GetData(), list.GetCount(), eqclass, (codeword_t *)output);
+				(codeword_t*)list.GetData(), list.GetCount(), eqclass, (codeword_t *)output);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int k = 0; k < times / 10; k++) {
 			count = FilterByEquivalenceClass_norep_v3(
-				list.GetData(), list.GetCount(), eqclass, (codeword_t *)output);
+				(codeword_t*)list.GetData(), list.GetCount(), eqclass, (codeword_t *)output);
 		}
 		t2 += timer.Stop();
 	}
@@ -359,7 +363,7 @@ int TestScan(CodewordRules rules, long times)
 /// Conclusion:
 /// Due to the memory-intensive nature of the algorithm, the performance
 /// cannot be improved much. count_freq_v6() is the chosen implementation.
-int TestFrequencyCounting(CodewordRules rules, long times)
+int TestFrequencyCounting(const CodewordRules &rules, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
 	FeedbackList fblist(list[0], list);
@@ -376,15 +380,14 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 		//count = 11;
 		func2(fbl, count, freq, maxfb);
 		for (int i = 0; i <= maxfb; i++) {
-			if (freq[i] > 0) {
-				printf("%s = %d\n",
-					Feedback(i).ToString().c_str(),
-					freq[i]);
+			if (freq[i] > 0) 
+			{
+				std::cout << Feedback(i) << " = " << freq[i] << std::endl;
 				total += freq[i];
 			}
 		}
-		printf("Expected count: %d\n", count);
-		printf("Actual total:   %d\n", total);
+		std::cout << "Expected count: " << count << std::endl;
+		std::cout << "Actual total:   " << total << std::endl;
 		system("PAUSE");
 		return 0;
 	}
@@ -416,7 +419,7 @@ int TestFrequencyCounting(CodewordRules rules, long times)
 }
 #endif
 
-int TestCompare(CodewordRules rules, const char *routine1, const char *routine2, long times)
+int TestCompare(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
 	unsigned int count = list.GetCount();
@@ -435,33 +438,32 @@ int TestCompare(CodewordRules rules, const char *routine1, const char *routine2,
 	func1(secret, data, count, results1);
 	func2(secret, data, count, results2);
 	for (unsigned int i = 0; i < count; i++) {
-		if (results1[i] != results2[i]) {
-			printf("**** ERROR: Inconsistent [%d]: Compare(%s, %s) = %s v %s\n", i,
-				Codeword(secret).ToString().c_str(),
-				Codeword(data[i]).ToString().c_str(),
-				Feedback(results1[i]).ToString().c_str(),
-				Feedback(results2[i]).ToString().c_str());
+		if (results1[i] != results2[i]) 
+		{
+			std::cout << "**** ERROR: Inconsistent [" << i << "]: "
+				<< "Compare(" << Codeword(secret) << ", " << Codeword(data[i])
+				<< ") = " << Feedback(results1[i]) << " v "
+				<< Feedback(results2[i]) << std::endl;
 		}
 	}
 
 	int k = 0;
 	if (times == 0) {
 		if (1) {
-			FeedbackList fbl(results1, count, rules.length);
+			FeedbackList fbl(results1, count, rules.pegs());
 			FeedbackFrequencyTable freq(fbl);
-			freq.DebugPrint();
+			std::cout << freq;
 		}
 		if (1) {
-			FeedbackList fbl(results2, count, rules.length);
+			FeedbackList fbl(results2, count, rules.pegs());
 			FeedbackFrequencyTable freq(fbl);
-			freq.DebugPrint();
+			std::cout << freq;
 		}
 		if (0) {
-			for (unsigned int i = 0; i < count*0+25; i++) {
-				printf("%s %s = %s\n",
-					Codeword(secret).ToString().c_str(),
-					Codeword(data[i]).ToString().c_str(),
-					Feedback(results1[i]).ToString().c_str());
+			for (unsigned int i = 0; i < count*0+25; i++) 
+			{
+				std::cout << Codeword(secret) << ' ' << Codeword(data[i])
+					<< " = " << Feedback(results1[i]) << std::endl;
 			}
 		}
 		//delete [] results1; // already deleted in fbl destructor
@@ -551,7 +553,7 @@ int TestNewScan(CodewordRules rules, long times)
 }
 #endif
 
-int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *routine2, long times)
+int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
 	FeedbackList fbl(list[0], list);

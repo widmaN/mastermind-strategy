@@ -80,7 +80,7 @@ unsigned short ScanDigitMask_long_v2(
 // Interface Routines
 //
 
-unsigned short ScanDigitMask(const codeword_t *codewords, unsigned int count)
+unsigned short ScanDigitMask(const __m128i *codewords, unsigned int count)
 {
-	return ScanDigitMask_long_v1((__m128i*)codewords, count);
+	return ScanDigitMask_long_v1(codewords, count);
 }

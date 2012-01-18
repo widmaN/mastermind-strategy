@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <assert.h>
 
@@ -7,7 +8,9 @@
 #include "Frequency.h"
 #include "Compare.h"
 
-using namespace Mastermind;
+// using namespace Mastermind;
+
+namespace Mastermind {
 
 ///////////////////////////////////////////////////////////////////////////
 // Feedback class implementations
@@ -65,6 +68,7 @@ int Feedback::GetCommon() const
 #endif
 }
 
+#if 0
 std::string Feedback::ToString() const
 {
 	char s[5];
@@ -75,6 +79,13 @@ std::string Feedback::ToString() const
 	s[4] = '\0';
 	return s;
 }
+#else
+std::ostream& operator << (std::ostream &os, const Feedback &fb)
+{
+	return os << fb.GetExact() << 'A' << fb.GetCommon() << 'B';
+}
+#endif
+
 
 Feedback Feedback::Parse(const char *s)
 {
@@ -87,6 +98,14 @@ Feedback Feedback::Parse(const char *s)
 		return Feedback(s[0] - '0', s[2] - '0');
 	} 
 	return Feedback::Empty();
+}
+
+Feedback compare(const Codeword& secret, const Codeword& guess)
+{
+	unsigned char fb;
+	__m128i guess_value = guess.value();
+	CompareRepImpl->Run(secret.value(), &guess_value, 1, &fb);
+	return Feedback(fb);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -120,7 +139,7 @@ FeedbackList::FeedbackList(const Codeword &guess, const CodewordList &secrets)
 {
 	// Set attributes
 	m_count = secrets.GetCount();
-	m_maxfb = Feedback(guess.GetPegCount(), 0).GetValue();
+	m_maxfb = Feedback(guess.pegs(), 0).GetValue();
 
 	// Allocate memory
 	if (!prealloc_inuse) {
@@ -136,10 +155,10 @@ FeedbackList::FeedbackList(const Codeword &guess, const CodewordList &secrets)
 	}
 
 	// Perform the actual comparison
-	if (secrets.GetRules().allow_repetition) {
-		CompareRepImpl->Run(guess.GetValue().value, (const __m128i*)secrets.GetData(), m_count, m_values);
+	if (secrets.GetRules().repeatable()) {
+		CompareRepImpl->Run(guess.value(), (const __m128i*)secrets.GetData(), m_count, m_values);
 	} else {
-		CompareNoRepImpl->Run(guess.GetValue().value, (const __m128i*)secrets.GetData(), m_count, m_values);
+		CompareNoRepImpl->Run(guess.value(), (const __m128i*)secrets.GetData(), m_count, m_values);
 	}
 }
 
@@ -175,13 +194,6 @@ void FeedbackFrequencyTable::CountFrequencies(const FeedbackList &fblist)
 {
 	m_maxfb = fblist.GetMaxFeedbackValue();
 	CountFrequenciesImpl->Run(fblist.GetData(), fblist.GetCount(), m_freq, m_maxfb);
-}
-
-unsigned int FeedbackFrequencyTable::operator [] (Feedback fb) const 
-{
-	unsigned char k = fb.GetValue();
-	assert(k >= 0 && k <= m_maxfb);
-	return m_freq[k]; 
 }
 
 unsigned int FeedbackFrequencyTable::GetSumOfSquares() const
@@ -226,6 +238,22 @@ int FeedbackFrequencyTable::GetPartitionCount() const
 	return n;
 }
 
+#if 1
+std::ostream& operator << (std::ostream &os, const FeedbackFrequencyTable &f)
+{
+	int total = 0;
+	for (unsigned char i = 0; i <= f.maxFeedback(); i++) 
+	{
+		if (f[i] != 0) 
+		{
+			os << Feedback(i) << " = " << f[i] << std::endl;
+			total += f[i];
+		}
+	}
+	os << "Total: " << total << std::endl;
+	return os;
+}
+#else
 void FeedbackFrequencyTable::DebugPrint() const 
 {
 	int total = 0;
@@ -239,3 +267,6 @@ void FeedbackFrequencyTable::DebugPrint() const
 	}
 	printf("Total: %d\n", total);
 }
+#endif
+
+} // namespace Mastermind
