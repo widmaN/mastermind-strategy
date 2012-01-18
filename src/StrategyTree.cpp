@@ -1,9 +1,11 @@
 #include <iostream>
 #include <iomanip>
+#include <cassert>
 
 #include <stdlib.h>
 
 #include "StrategyTree.h"
+#include "Algorithm.hpp"
 
 using namespace Mastermind;
 

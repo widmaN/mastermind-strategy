@@ -4,7 +4,7 @@
 
 #include "MMConfig.h"
 #include "Feedback.h"
-#include "Codeword.h"
+#include "CodewordList.hpp"
 #include "Frequency.h"
 #include "Compare.h"
 
@@ -100,13 +100,6 @@ Feedback Feedback::Parse(const char *s)
 	return Feedback::Empty();
 }
 
-Feedback compare(const Codeword& secret, const Codeword& guess)
-{
-	unsigned char fb;
-	__m128i guess_value = guess.value();
-	CompareRepImpl->Run(secret.value(), &guess_value, 1, &fb);
-	return Feedback(fb);
-}
 
 ///////////////////////////////////////////////////////////////////////////
 // FeedbackList class implementations
@@ -114,7 +107,7 @@ Feedback compare(const Codeword& secret, const Codeword& guess)
 
 // TODO: implement this for multi-threading
 static unsigned char *prealloc_fblist = NULL;
-static int prealloc_size = 0;
+static size_t prealloc_size = 0;
 static bool prealloc_inuse = false;
 
 FeedbackList::FeedbackList(unsigned char *values, int count, int pegs)
@@ -133,17 +126,15 @@ FeedbackList::FeedbackList(int count, int pegs)
 }
 */
 
-
-
-FeedbackList::FeedbackList(const Codeword &guess, const CodewordList &secrets)
+/*
+FeedbackList::FeedbackList(const CodewordRules &rules, const Codeword &guess, const CodewordList &secrets) 
+	: m_count(secrets.size()), m_maxfb(Feedback(guess.pegs(), 0).GetValue())
 {
-	// Set attributes
-	m_count = secrets.GetCount();
-	m_maxfb = Feedback(guess.pegs(), 0).GetValue();
-
 	// Allocate memory
-	if (!prealloc_inuse) {
-		if (prealloc_size < m_count) {
+	if (!prealloc_inuse) 
+	{
+		if (prealloc_size < m_count) 
+		{
 			free(prealloc_fblist);
 			prealloc_size = m_count;
 			prealloc_fblist = (unsigned char *)malloc(prealloc_size);
@@ -155,10 +146,49 @@ FeedbackList::FeedbackList(const Codeword &guess, const CodewordList &secrets)
 	}
 
 	// Perform the actual comparison
-	if (secrets.GetRules().repeatable()) {
-		CompareRepImpl->Run(guess.value(), (const __m128i*)secrets.GetData(), m_count, m_values);
-	} else {
-		CompareNoRepImpl->Run(guess.value(), (const __m128i*)secrets.GetData(), m_count, m_values);
+	if (rules.repeatable()) 
+	{
+		CompareRepImpl->Run(guess.value(), (const __m128i*)secrets.data(), m_count, m_values);
+	} 
+	else 
+	{
+		CompareNoRepImpl->Run(guess.value(), (const __m128i*)secrets.data(), m_count, m_values);
+	}
+}
+*/
+
+FeedbackList::FeedbackList(
+	const CodewordRules &rules, 
+	const Codeword &guess, 
+	CodewordIterator first,
+	CodewordIterator last)
+	: m_count(last - first), m_maxfb(Feedback(guess.pegs(), 0).GetValue())
+{
+	// Allocate memory
+	if (!prealloc_inuse) 
+	{
+		if (prealloc_size < m_count)
+		{
+			free(prealloc_fblist);
+			prealloc_size = m_count;
+			prealloc_fblist = (unsigned char *)malloc(prealloc_size);
+		}
+		m_values = prealloc_fblist;
+		prealloc_inuse = true;
+	} 
+	else 
+	{
+		m_values = (unsigned char *)malloc(m_count);
+	}
+
+	// Perform the actual comparison
+	if (rules.repeatable()) 
+	{
+		CompareRepImpl->Run(guess.value(), (const __m128i*)&(*first), m_count, m_values);
+	} 
+	else 
+	{
+		CompareNoRepImpl->Run(guess.value(), (const __m128i*)&(*first), m_count, m_values);
 	}
 }
 
@@ -177,7 +207,7 @@ FeedbackList::~FeedbackList()
 
 Feedback FeedbackList::operator [] (int index) const
 {
-	assert(index >= 0 && index < m_count);
+	assert(index >= 0 && index < (int)m_count);
 	return Feedback(m_values[index]);
 }
 

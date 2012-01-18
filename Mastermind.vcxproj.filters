@@ -9,15 +9,18 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Code Breakers">
+      <UniqueIdentifier>{681bc43e-9dc8-4103-beae-f217c03e5829}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Algorithms">
+      <UniqueIdentifier>{d2d28458-e564-423e-8824-49ce9ac8868f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Codeword.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Compare.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Enumerate.cpp">
@@ -50,18 +53,27 @@
     <ClCompile Include="src\StrategyTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CodewordList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CodeBreaker.cpp">
+      <Filter>Code Breakers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SimpleCodeBreaker.cpp">
+      <Filter>Code Breakers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Algorithm.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Compare.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Codeword.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Enumerate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Test.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Compare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\CpuInfo.h">
@@ -102,6 +114,30 @@
     </ClInclude>
     <ClInclude Include="src\Codeword.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CodewordList.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AlignedAllocator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SimpleCodeBreaker.hpp">
+      <Filter>Code Breakers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OptimalCodeBreaker.hpp">
+      <Filter>Code Breakers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HeuristicCodeBreaker.hpp">
+      <Filter>Code Breakers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CodeBreaker.h">
+      <Filter>Code Breakers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Algorithm.hpp">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Compare.h">
+      <Filter>Algorithms</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -6,12 +6,13 @@
 #include <malloc.h>
 
 #include "Compare.h"
-#include "Codeword.h"
+#include "CodewordList.hpp"
 #include "HRTimer.h"
 #include "Enumerate.h"
 #include "Frequency.h"
 #include "Test.h"
 #include "Scan.h"
+#include "Feedback.h"
 
 #include "CodewordRules.hpp"
 
@@ -171,8 +172,8 @@ int FilterByEquivalenceClass_rep_v1(
 
 int TestEquivalenceFilter(const CodewordRules &rules, long times)
 {
-	CodewordList list = CodewordList::Enumerate(rules);
-	int total = list.GetCount();
+	CodewordList list = generateCodewords(rules);
+	int total = (int)list.size();
 
 	unsigned char eqclass[16] = {
 		//0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 }; // all diff
@@ -185,7 +186,7 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 	if (times == 0) {
 		//count = FilterByEquivalenceClass_norep_v3(
 		count = FilterByEquivalenceClass_rep_v1(
-			(codeword_t*)list.GetData(), total, eqclass, (codeword_t *)output);
+			(codeword_t*)list.data(), total, eqclass, (codeword_t *)output);
 		if (1) {
 			for (int i = 0; i < count; i++) 
 			{
@@ -208,14 +209,14 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 //			count = FilterByEquivalenceClass_norep_v1(
 //				(__m128i*)list.GetData(), list.GetCount(), eqclass, output);
 			count = FilterByEquivalenceClass_norep_v2(
-				(codeword_t*)list.GetData(), list.GetCount(), eqclass, (codeword_t *)output);
+				(codeword_t*)list.data(), list.size(), eqclass, (codeword_t *)output);
 		}
 		t1 += timer.Stop();
 
 		timer.Start();
 		for (int k = 0; k < times / 10; k++) {
 			count = FilterByEquivalenceClass_norep_v3(
-				(codeword_t*)list.GetData(), list.GetCount(), eqclass, (codeword_t *)output);
+				(codeword_t*)list.data(), list.size(), eqclass, (codeword_t *)output);
 		}
 		t2 += timer.Stop();
 	}
@@ -365,8 +366,8 @@ int TestScan(CodewordRules rules, long times)
 /// cannot be improved much. count_freq_v6() is the chosen implementation.
 int TestFrequencyCounting(const CodewordRules &rules, long times)
 {
-	CodewordList list = CodewordList::Enumerate(rules);
-	FeedbackList fblist(list[0], list);
+	CodewordList list = generateCodewords(rules);
+	FeedbackList fblist(rules, list[0], list);
 	int count = fblist.GetCount();
 	const unsigned char *fbl = fblist.GetData();
 	const unsigned char maxfb = 63;
@@ -421,9 +422,9 @@ int TestFrequencyCounting(const CodewordRules &rules, long times)
 
 int TestCompare(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
 {
-	CodewordList list = CodewordList::Enumerate(rules);
-	unsigned int count = list.GetCount();
-	const __m128i *data = (const __m128i *)list.GetData();
+	CodewordList list = generateCodewords(rules);
+	size_t count = list.size();
+	const __m128i *data = (const __m128i *)list.data();
 	__m128i secret = data[count / 2];
 	unsigned char *results1 = new unsigned char [count];
 	unsigned char *results2 = new unsigned char [count];
@@ -555,8 +556,8 @@ int TestNewScan(CodewordRules rules, long times)
 
 int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
 {
-	CodewordList list = CodewordList::Enumerate(rules);
-	FeedbackList fbl(list[0], list);
+	CodewordList list = generateCodewords(rules);
+	FeedbackList fbl(rules, list[0], list);
 	FeedbackFrequencyTable freq(fbl);
 	unsigned char maxfb = fbl.GetMaxFeedbackValue();
 

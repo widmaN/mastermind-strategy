@@ -1,21 +1,21 @@
-//#include <cstdio>
 #include <iostream>
+#include <vector>
 
 #include "Compare.h"
-#include "Codeword.h"
 #include "Test.h"
 #include "Enumerate.h"
 
 #if 0
 #include "HRTimer.h"
-#include "CodeBreaker.h"
-
-using namespace std;
-using namespace Mastermind;
 #endif
 
 #include <iostream>
 #include "CodewordRules.hpp"
+#include "CodewordList.hpp"
+#include "CodeBreaker.h"
+#include "SimpleCodeBreaker.hpp"
+
+using namespace Mastermind;
 
 #if 0
 static int RegressionTestUnit()
@@ -405,8 +405,6 @@ int main(int argc, char* argv[])
 {
 	using namespace Mastermind;
 
-	//string s;
-	
 #if 1
 	CodewordRules rules(4, 10, false); // Guess Number rules
 #elif 1
@@ -482,7 +480,7 @@ int main(int argc, char* argv[])
 #define LOOP_FLAG 0
 #endif
 	//1829320017
-	return TestCompare(rules, "r_p1a", "r_p1a_omp1", 100000*LOOP_FLAG);
+	//return TestCompare(rules, "r_p1a", "r_p1a_omp1", 100000*LOOP_FLAG);
 	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
 
 	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
@@ -496,20 +494,20 @@ int main(int argc, char* argv[])
 	//return TestScan(rules, 100000*1);
 	//return TestEnumeration(rules, 200000*1);
 
-#if 0
-
 	Codeword first_guess = Codeword::Empty();
 	//Codeword first_guess = Codeword::Parse("0011", rules);
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(rules),
-		new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(rules, posonly),
-		new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
-		new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),
-		new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(rules, posonly),
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};
+
+#if 0
 
 	// CountFrequenciesImpl->SelectRoutine("c");
 	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
@@ -534,9 +532,12 @@ int main(int argc, char* argv[])
 	void OCB_PrintStatistics();
 	OCB_PrintStatistics();
 
+#endif
+
 	system("PAUSE");
 	return 0;
 
+#if 0
 	printf("Enumerating all codewords...");
 	CodewordList all = CodewordList::Enumerate(rules);
 	printf(" total %d\n", all.GetCount());

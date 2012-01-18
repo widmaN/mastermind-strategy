@@ -14,6 +14,7 @@ namespace Mastermind {
 // __declspec(align(16)) 
 class Codeword
 {
+	// The internal representation of the codeword value.
 	union 
 	{
 		__m128i _value;
@@ -23,9 +24,6 @@ class Codeword
 			unsigned char _digit[MM_MAX_PEGS];
 		};
 	};
-	
-	// The internal representation of the codeword value.
-	// codeword_t m_value;
 
 public:
 
@@ -38,15 +36,8 @@ public:
 		memset(_digit, -1, sizeof(_digit));
 	}
 
+	/// Creates a codeword from its internal representation.
 	Codeword(__m128i value) : _value(value) { }
-
-#if 0
-	/// Creates the codeword from its internal representation.
-	Codeword(codeword_t &value)
-	{
-		m_value = value;
-	}
-#endif
 
 	/// Gets the internal representation of the codeword.
 	__m128i value() const { 	return _value; }
@@ -67,6 +58,12 @@ public:
 	/// Returns the number of pegs in the codeword.
 	int pegs() const;
 
+	/// Tests whether two codewords are equal.
+	static friend bool operator == (const Codeword &a, const Codeword &b)
+	{
+		return memcmp(&a, &b, sizeof(Codeword)) == 0;
+	}
+
 #if 0
 	/// Converts the codeword to a string.
 	std::string ToString() const;
@@ -80,28 +77,17 @@ public:
 	//void CompareTo(const CodewordList& list, FeedbackList& fbl) const;
 
 	/// Returns a 16-bit mask of digits present in the codeword.
-	unsigned short GetDigitMask() const;
-
-	
+	unsigned short GetDigitMask() const;	
 #endif
 
-public:
-
-	/// Tests whether two codewords are equal.
-	static friend bool operator == (const Codeword &a, const Codeword &b)
-	{
-		return memcmp(&a, &b, sizeof(Codeword)) == 0;
-	}
-
-#if 0
-	/// Returns an empty codeword.
-	/// This function has the same effect as calling the constructor with
-	/// no parameter.
+	/// Returns an empty codeword. This function has the same effect as
+	// calling the constructor with no parameter.
 	static Codeword Empty()
 	{
 		return Codeword();
 	}
 
+#if 0
 	/// Parses codeword from a string, conforming to given rules.
 	/// If the input text is invalid or is not conformant to the given rules,
 	/// <code>Codeword::Empty()</code> is returned.
@@ -112,6 +98,19 @@ public:
 		const CodewordRules &rules);
 #endif
 
+#if 0
+	void* operator new (size_t size)
+	{
+		std::cout << "new(" << size << ")" << std::endl;
+		return ::operator new(size);
+	}
+
+	void* operator new[](size_t size)
+	{
+		std::cout << "new[](" << size << ")" << std::endl;
+		return ::operator new(size);
+	}
+#endif
 };
 
 /// Outputs a codeword to a stream.

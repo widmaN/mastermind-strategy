@@ -6,12 +6,13 @@
 
 #include "MMConfig.h"
 #include "Frequency.h"
+#include "CodewordList.hpp"
 
 namespace Mastermind 
 {
 
 class Codeword;
-class CodewordList;
+//class CodewordList;
 
 /// Represents the feedback from comparing two codewords.
 class Feedback
@@ -128,8 +129,7 @@ public:
 /// Outputs the feedback to a stream in the format "1A2B".
 std::ostream& operator << (std::ostream &os, const Feedback &fb);
 
-/// Compares two codewords and returns the feedback.
-Feedback compare(const Codeword& secret, const Codeword& guess);
+
 
 /// Represents an array of feedbacks.
 class FeedbackList
@@ -140,7 +140,7 @@ private:
 	unsigned char *m_values;
 
 	/// Number of elements in the feedback list.
-	int m_count;
+	size_t m_count;
 
 	/// Maximum feedback value in this list.
 	unsigned char m_maxfb;
@@ -157,7 +157,15 @@ public:
 
 	/// Creates a feedback list as the result of comparing a particular
 	/// codeword to a list of codewords.
-	FeedbackList(const Codeword &guess, const CodewordList &secrets);
+	FeedbackList(const CodewordRules &rules, const Codeword &guess, const CodewordList &secrets);
+
+	/// Creates a feedback list as the result of comparing a particular
+	/// codeword to a list of codewords.
+	FeedbackList(
+		const CodewordRules &rules, 
+		const Codeword &guess, 
+		CodewordIterator first,
+		CodewordIterator last);
 
 	/// Destructor.
 	~FeedbackList();
@@ -223,7 +231,6 @@ public:
 	double GetModifiedEntropy() const;
 
 };
-
 
 std::ostream& operator << (std::ostream&, const FeedbackFrequencyTable&);
 
