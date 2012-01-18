@@ -4,8 +4,10 @@
 #include <ostream>
 
 #include "MMConfig.h"
-#include "Codeword.h"
+#include "Feedback.h"
 #include "PoolMemoryManager.h"
+
+#include "CodewordList.hpp"
 
 // StrategyTree data structure
 //
