@@ -6,18 +6,19 @@
 #ifndef NTEST
 
 #include "Codeword.h"
+#include "CodewordRules.hpp"
 
 using namespace Mastermind;
 
-int TestCompare(CodewordRules rules, const char *routine1, const char *routine2, long times);
-int TestSumOfSquares(CodewordRules rules, const char *routine1, const char *routine2, long times);
+int TestCompare(const CodewordRules &rules, const char *routine1, const char *routine2, long times);
+int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const char *routine2, long times);
 
-int TestEnumeration(CodewordRules rules, long times);
+int TestEnumeration(const CodewordRules &rules, long times);
 int TestEnumerationDirect(long times);
-int TestEquivalenceFilter(CodewordRules rules, long times);
-int TestScan(CodewordRules rules, long times);
-int TestFrequencyCounting(CodewordRules rules, long times);
-int TestNewCompare(CodewordRules rules, long times);
-int TestNewScan(CodewordRules rules, long times);
+int TestEquivalenceFilter(const CodewordRules &rules, long times);
+int TestScan(const CodewordRules &rules, long times);
+int TestFrequencyCounting(const CodewordRules &rules, long times);
+int TestNewCompare(const CodewordRules &rules, long times);
+int TestNewScan(const CodewordRules &rules, long times);
 
 #endif

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <ostream>
 
 #include "MMConfig.h"
 #include "Codeword.h"
@@ -87,7 +88,7 @@ namespace Mastermind
 		//~StrategyTreeNode();
 
 	protected:
-		void WriteToFile(FILE *fp, FileFormat format, int indent) const;
+		void WriteToFile(std::ostream &os, FileFormat format, int indent) const;
 
 	public:
 		static StrategyTreeNode* Create(StrategyTreeMemoryManager *mm);
@@ -108,7 +109,7 @@ namespace Mastermind
 		int GetTotalDepth() const { return m_totaldepth; }
 
 		/// Outputs the strategy tree to a file.
-		void WriteToFile(FILE *fp, FileFormat format, CodewordRules rules) const;
+		void WriteToFile(std::ostream &os, FileFormat format, const CodewordRules &rules) const;
 	};
 
 	class StrategyTree : public StrategyTreeNode

@@ -1,130 +1,21 @@
-/**
- * @file Main.cpp
- * Entry point of the program.
- *
- * \mainpage %Mastermind
- *
- * This project explores various strategies to solve the %Mastermind game 
- * and its variations. The final objective will be a program that solves the 
- * game both in real-time and offline.
- *
- * \section intro Introduction
- *
- * %Mastermind is a game played by two players, the <i>code maker</i> and
- * the <i>code breaker</i>. At the start of the game, the code maker thinks 
- * of a <i>secret</i> <i>codeword</i> with <code>p</code> pegs and 
- * <code>c</code> colors. Then the code breaker makes <i>guesses</i>.
- * For each guess, the code maker responds with a 
- * <i>feedback</i> in the form of <code>xAyB</code>, where <code>x</code>
- * is the number of correct colors in the correct pegs, and <code>y</code>
- * is the number of correct colors in the wrong pegs. The game continues
- * until the code breaker hits the secret.
- * 
- * There are two variations of the %Mastermind game. The traditional 
- * game is played on a board with four pegs and six color.
- * A codeword can contain the same color more than once. A variation of
- * the game is called GuessNumber, also known as Bulls-n-Cows. In this variation,
- * the codeword is not allowed to contain repetitive colors.
- *
- * This program plays the role of the code breaker. The goal is to find out
- * the secret within as few guesses as possible. The program supports both
- * the %Mastermind rule and the GuessNumber rule, subject to the limits:
- *    - Maximum number of colors (defined in <code>MM_MAX_COLORS</code>): 10
- *    - Maximum number of pegs (defined in <code>MM_MAX_PEGS</code>): 6
- *
- * \section strat Strageties of the Code Breaker
- * 
- * There are three types of strategies for the code breaker:
- *
- * <i>Simple strategies</i>. The code breaker just makes a random guess, as
- * long as the guess will bring some information. For example, a simple
- * choice can be the first codeword from the remaining possibilities. 
- * These strategies obviously perform poorly in that they take many
- * steps to find out the secret, but they are very fast and can be used as
- * a benchmark for other more intelligent strategies. The simple strategy 
- * is implemented in <code>Mastermind::SimpleCodeBreaker</code>.
- *
- * <i>Heuristic strategies</i>. The code breaker evaluates each potential 
- * guess according to some scoring criteria, and picks the one that scores 
- * the highest. These strategies are fast enough for real-time games, and
- * performs fairly well. Most research efforts in this field focus on finding
- * a good heuristic criteria, and a number of intuitive and well-performing
- * heuristics have been proposed. See Kooi (2005) for details. The heuristic
- * strategies are implemented in <code>Mastermind::HeuristicCodeBreaker</code>.
- * The supported heuristic criteria are defined in 
- * <code>Mastermind::HeuristicCriteria</code>.
- *
- * <i>Optimal strategy</i>. Since the number of possible secrets
- * and sequences of guesses are finite, the code breaker can employ a 
- * depth-first search to find out the <i>optimal</i> guessing strategy.
- * The optimal strategy minimizes the expected number of guesses, optionally
- * subject to a maximum-rounds constraint. Obviously these strategies are
- * very slow, and therefore they are not suitable for real-time application.
- * The exhaustive search strategy is implemented in 
- * <code>Mastermind::OptimalCodeBreaker</code>.
- *
- * \section optim Program Optimization Techniques
- *
- * While the code-breaking algorithms are quite straightforward, much
- * effort of this project has been put to optimize the performance of a 
- * real-time code breaker. Some of the hot-spots are identified by the
- * profiler. The major points of optimization are described
- * below. Most of the optimized routines are implemented in standalone
- * source files for clarity.
- *
- * <i>Search space pruning</i>. While all codewords are candidates for
- * making a guess, some of them are apparently "equal" in terms of
- * bringing new information. For example, in the first round of a
- * Number Guessing game, any guess works the same. Aware of this, we 
- * implement pruning by classifying digits into three classes: 
- * <i>impossible</i>, <i>unguessed</i>, and the rest. After each round
- * of feedback, we update the list of <i>distinct</i> guesses (in 
- * terms of bringing information) and search within this list only.
- * This reduces the search space significantly.
- *
- * <i>Codeword comparison</i>. This is the most intensive operation
- * in the program, accounting for 40% of all CPU time. The program uses
- * SSE2 instructions (implemented via compiler intrinsics) to compare
- * each pair of codewords in four instructions.
- *
- * <i>Feedback frequency counting</i>. The heuristic code breaker relies
- * heavily on these routines to count statistics on partitions. This 
- * is an intensive operation which accounts for about 20% of all CPU time.
- * The program uses an ASM implementation to maximize performance. See
- * <code>Frequency.cpp</code>.
- *
- * \section reference Reference
- *
- * <a href="http://www.dcc.fc.up.pt/~sssousa/RM09101.pdf">Knuth (1976)</a>
- * published the first paper on Mastermind, where he introduced a 
- * heuristic strategy that aimed at minimizing the worst-case number of
- * remaining possibilities.
- *
- * <a href="http://www.philos.rug.nl/~barteld/master.pdf">Kooi (2005)</a>
- * provided a concise yet thorough overview of the heuristic
- * algorithms to solve the %Mastermind game. He also proposed the %MaxParts
- * heuristic, which proved to work well for a %Mastermind game with 4 pegs
- * and 6 colors, but didn't work well for one with 5 pegs and 8 colors.
- *
- * <a href="http://logica.ugent.be/albrecht/thesis/Logik.pdf">Heeffer (2007)</a>
- * tested various heuristic algorithms on the %Mastermind game with 5 pegs
- * and 8 colors, and found the Entropy method to perform the best.
- *
- * Not much results seen out there for the Number Guesser game.
- */
-
-#include <cstdio>
+//#include <cstdio>
 #include <iostream>
 
 #include "Compare.h"
 #include "Codeword.h"
-#include "HRTimer.h"
-#include "CodeBreaker.h"
 #include "Test.h"
 #include "Enumerate.h"
 
+#if 0
+#include "HRTimer.h"
+#include "CodeBreaker.h"
+
 using namespace std;
 using namespace Mastermind;
+#endif
+
+#include <iostream>
+#include "CodewordRules.hpp"
 
 #if 0
 static int RegressionTestUnit()
@@ -508,24 +399,21 @@ static int TestBound(CodewordRules rules)
 // TODO: Add progress display to OptimalCodeBreaker
 // TODO: Output strategy tree after finishing a run
 // TODO: Refactor StrategyTree() to speed up Destroy() and clean up memory
+
+// Step 1: change codeword list to a std::vector.
 int main(int argc, char* argv[])
 {
-	string s;
+	using namespace Mastermind;
+
+	//string s;
 	
-	CodewordRules rules;
-	if (1) {
-		rules.length = 4;
-		rules.ndigits = 10;
-		rules.allow_repetition = false;
-	} else if (1) {
-		rules.length = 3;
-		rules.ndigits = 7;
-		rules.allow_repetition = false;
-	} else {
-		rules.length = 5;
-		rules.ndigits = 8;
-		rules.allow_repetition = true;
-	}
+#if 1
+	CodewordRules rules(4, 10, false); // Guess Number rules
+#elif 1
+	CodewordRules rules(4, 6, true);   // Mastermind rules
+#else
+	CodewordRules rules(5, 8, false);
+#endif
 
 #if 0
 	TestBound(rules);
@@ -586,13 +474,15 @@ int main(int argc, char* argv[])
 
 	//return TestOutputStrategyTree(rules);
 
+#endif
+
 #ifdef NDEBUG
 #define LOOP_FLAG 1
 #else
 #define LOOP_FLAG 0
 #endif
 	//1829320017
-	//return TestCompare(rules, "r_p1a", "r_p1a_omp1", 10000*LOOP_FLAG);
+	return TestCompare(rules, "r_p1a", "r_p1a_omp1", 100000*LOOP_FLAG);
 	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
 
 	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
@@ -605,6 +495,8 @@ int main(int argc, char* argv[])
 	//return TestEnumerationDirect(200000*1);
 	//return TestScan(rules, 100000*1);
 	//return TestEnumeration(rules, 200000*1);
+
+#if 0
 
 	Codeword first_guess = Codeword::Empty();
 	//Codeword first_guess = Codeword::Parse("0011", rules);

@@ -9,7 +9,7 @@
 #include "Scan.h"
 #include "Frequency.h"
 
-using namespace Mastermind;
+namespace Mastermind {
 
 // IMPORTANT:
 //
@@ -20,15 +20,17 @@ using namespace Mastermind;
 // Codeword implementations
 //
 
-Codeword Codeword::Parse(const char *s, CodewordRules rules)
+#if 1
+#else
+Codeword Codeword::Parse(const char *s, const CodewordRules &rules)
 {
 #if MM_MAX_COLORS > 10
 # error Codeword::Parse() only handles MM_MAX_COLORS <= 9
 #endif
 
-	int length = rules.length;
-	int ndigits = rules.ndigits;
-	bool allow_repetition = rules.allow_repetition;
+	int length = rules.pegs();
+	int ndigits = rules.colors();
+	bool allow_repetition = rules.repeatable();
 
 	assert(s != NULL);
 	assert(length > 0 && length <= MM_MAX_PEGS);
@@ -59,7 +61,21 @@ Codeword Codeword::Parse(const char *s, CodewordRules rules)
 	}
 	return ret;
 }
+#endif
 
+#if 1
+std::ostream& operator << (std::ostream &os, const Codeword &c)
+{
+	for (int k = 0; k < MM_MAX_PEGS; k++) 
+	{
+		unsigned char d = c[k];
+		if (d == 0xFF)
+			break;
+		os << (char)('0' + d);
+	}
+	return os;
+}
+#else
 std::string Codeword::ToString() const
 {
 	char buf[17];
@@ -74,6 +90,7 @@ std::string Codeword::ToString() const
 	buf[k] = '\0';
 	return buf;
 }
+#endif
 
 /*
 void Codeword::CompareTo(const CodewordList& list, FeedbackList& fbl) const
@@ -91,6 +108,7 @@ void Codeword::CompareTo(const CodewordList& list, FeedbackList& fbl) const
 }
 */
 
+#if 0
 /// Compares this codeword to another codeword. 
 /// \return The feedback of the comparison.
 Feedback Codeword::CompareTo(const Codeword& guess) const
@@ -100,31 +118,31 @@ Feedback Codeword::CompareTo(const Codeword& guess) const
 	CompareRepImpl->Run(m_value.value, (const __m128i*)&guess_value, 1, &fb);
 	return Feedback(fb);
 }
+#endif
 
+#if 0
 /// Returns a 16-bit mask of digits present in the codeword.
 unsigned short Codeword::GetDigitMask() const
 {
 	return ScanDigitMask(&m_value, 1);
 }
+#endif
 
-int Codeword::GetPegCount() const
+int Codeword::pegs() const
 {
 	int k;
-	for (k = 0; k < MM_MAX_PEGS; k++) {
-		unsigned char d = m_value.digit[k];
-		if (d == 0xFF)
-			break;
-	}
+	for (k = 0; k < MM_MAX_PEGS && _digit[k] != 0xFF; k++);
 	return k;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////
 // CodewordList implementations
 //
 
-codeword_t* CodewordList::Allocate(int count)
+__m128i* CodewordList::Allocate(int count)
 {
-	m_alloc = (codeword_t *)_aligned_malloc(sizeof(codeword_t)*count, sizeof(codeword_t));
+	m_alloc = (__m128i *)_aligned_malloc(sizeof(codeword_t)*count, sizeof(codeword_t));
 	m_data = m_alloc;
 	m_count = count;
 	m_refcount = new int(1);
@@ -182,23 +200,23 @@ CodewordList::CodewordList(const CodewordList& list, int start, int count)
 	++(*m_refcount);
 }
 
-CodewordList CodewordList::Enumerate(CodewordRules rules)
+CodewordList CodewordList::Enumerate(const CodewordRules &rules)
 {
-	int length = rules.length;
-	int ndigits = rules.ndigits;
+	int length = rules.pegs();
+	int ndigits = rules.colors();
 	assert(length > 0 && length <= MM_MAX_PEGS);
 	assert(ndigits > 0 && ndigits <= MM_MAX_COLORS);
 
 	CodewordList list(rules);
 
-	if (rules.allow_repetition) {
+	if (rules.repeatable()) {
 		int count = NPower(ndigits, length);
-		codeword_t *data = list.Allocate(count);
+		codeword_t *data = (codeword_t *)list.Allocate(count);
 		Enumerate_Rep(length, ndigits, data);
 	} else {
 		assert(ndigits >= length);
-		int count = NPermute(ndigits, rules.length);
-		codeword_t *data = list.Allocate(count);
+		int count = NPermute(ndigits, rules.pegs());
+		codeword_t *data = (codeword_t *)list.Allocate(count);
 		Enumerate_NoRep(length, ndigits, data);
 	}
 	
@@ -226,7 +244,7 @@ CodewordList CodewordList::FilterByFeedback(
 
 	// Copy elements whose feedback are equal to fb
 	CodewordList cwl(m_rules);
-	codeword_t *data = cwl.Allocate(count);
+	__m128i *data = cwl.Allocate(count);
 	int j = 0;
 	for (int i = 0; i < fblist.GetCount(); i++) {
 		if (fblist[i] == fb) 
@@ -245,18 +263,18 @@ void CodewordList::Partition(const Codeword &guess, FeedbackFrequencyTable &freq
 	int start_index[256];
 	int k = 0;
 	start_index[0] = 0;
-	for (int i = 0; i <= freq.GetMaxFeedbackValue(); i++) {
+	for (int i = 0; i <= freq.maxFeedback(); i++) {
 		start_index[i] = k;
 		k += freq[Feedback(i)];
 	}
 
 	// Create a spare list to store temporary result
 	// TODO: Modify code to enable MT
-	static codeword_t* tmp_list = NULL;
+	static __m128i* tmp_list = NULL;
 	static int tmp_size = 0;
 	if (tmp_size < m_count) {
 		_aligned_free(tmp_list);
-		tmp_list = (codeword_t*)_aligned_malloc(sizeof(codeword_t)*m_count, sizeof(codeword_t));
+		tmp_list = (__m128i *)_aligned_malloc(sizeof(codeword_t)*m_count, sizeof(codeword_t));
 		tmp_size = m_count;
 	}
 
@@ -314,13 +332,13 @@ CodewordList CodewordList::FilterByEquivalence(
 	const unsigned char eqclass[16]) const
 {
 	CodewordList list(m_rules);
-	codeword_t *filtered = list.Allocate(m_count); // allocate more elements then necessary
+	codeword_t *filtered = (codeword_t *)list.Allocate(m_count); // allocate more elements then necessary
 	int count = 0;
 	
-	if (m_rules.allow_repetition) {
-		count = FilterByEquivalence_Rep(m_data, m_count, eqclass, filtered);
+	if (m_rules.repeatable()) {
+		count = FilterByEquivalence_Rep((const codeword_t *)m_data, m_count, eqclass, filtered);
 	} else {
-		count = FilterByEquivalence_NoRep(m_data, m_count, eqclass, filtered);
+		count = FilterByEquivalence_NoRep((const codeword_t *)m_data, m_count, eqclass, filtered);
 	}
 	list.m_count = count;
 
@@ -368,3 +386,5 @@ unsigned short CodewordList::GetDigitMask() const
 {
 	return ScanDigitMask(m_data, m_count);
 }
+
+} // namespace Mastermind
