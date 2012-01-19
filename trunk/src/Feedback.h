@@ -3,6 +3,8 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
+#include "PoolAllocator.hpp"
 
 #include "MMConfig.h"
 #include "Frequency.h"
@@ -10,9 +12,6 @@
 
 namespace Mastermind 
 {
-
-class Codeword;
-//class CodewordList;
 
 /// Represents the feedback from comparing two codewords.
 class Feedback
@@ -29,7 +28,7 @@ private:
 	///
 	/// In the standard format, a feedback takes up 
 	/// <code>MM_FEEDBACK_BITS</code> bits (6 by default).
-	/// Bits 0-2 stores <code>nB</code>, and bits 3-6 stores
+	/// Bits 0-2 stores <code>nB</code>, and bits 3-5 stores
 	/// <code>nA</code>. To encode a feedback, use the formula
 	/// <code>x = (nA << MM_FEEDBACK_ASHIFT) | nB</code>. To decode 
 	/// a feedback, use the formula <code>nA = x >> MM_FEEDBACK_ASHIFT</code>
@@ -61,23 +60,24 @@ public:
 	Feedback(int nA, int nB);
 
 	/// Sets the value of the feedback.
-	void SetValue(int nA, int nB);
+	void setValue(int nA, int nB);
 
 	/// Gets the internal representation of the feedback.
-	unsigned char GetValue() const { return m_value; }
+	unsigned char value() const { return m_value; }
 
 	/// Tests whether the feedback is empty. 
-	/// An empty feedback can be created either by calling the constructor
-	/// with no parameters, or through the static call <code>Feedback::Empty()</code>.
-	bool IsEmpty() const { return (m_value == 0xff); }
+	/// An empty feedback can be created by <code>Feedback::emptyValue()</code>.
+	bool empty() const { return (m_value == 0xff); }
 
 	/// Returns <code>nA</code>, the number of correct colors
 	/// in the correct pegs.
 	int GetExact() const;
+	int nA() const { return GetExact(); }
 
 	/// Returns <code>nB</code>, the number of correct colors
 	/// in the wrong pegs.
 	int GetCommon() const;
+	int nB() const { return GetCommon(); }
 
 #if 0
 	/// Converts the feedback to a string.
@@ -102,21 +102,30 @@ public:
 public:
 
 	/// Returns an empty feedback value. 
-	/// This is equivalent to calling the constructor with no parameter.
-	static Feedback Empty()
+	static Feedback emptyValue()
 	{
-		return Feedback();
+		return Feedback(0xff);
 	}
 
 	/// Returns a feedback value corresponding to a perfect match.
-	static Feedback Perfect(int npegs)
+	static Feedback perfectValue(int npegs)
 	{
 		return Feedback(npegs, 0);
 	}
 
+	static Feedback perfectValue(const CodewordRules &rules)
+	{
+		return Feedback(rules.pegs(), 0);
+	}
+
 	static int MaxValue(int npegs)
 	{
-		return Feedback(npegs, 0).GetValue();
+		return Feedback(npegs, 0).value();
+	}
+
+	static unsigned char maxValue(const CodewordRules &rules)
+	{
+		return perfectValue(rules).value();
 	}
 
 	/// Parses feedback from a string, in the form of "1A2B".
@@ -129,8 +138,9 @@ public:
 /// Outputs the feedback to a stream in the format "1A2B".
 std::ostream& operator << (std::ostream &os, const Feedback &fb);
 
+typedef std::vector<Feedback,Utilities::pool_allocator<Feedback>> FeedbackList;
 
-
+#if 0
 /// Represents an array of feedbacks.
 class FeedbackList
 {
@@ -184,10 +194,13 @@ public:
 	/// Gets the feedback value at a given index.
 	Feedback operator [] (int index) const;
 
+#if 0
 	/// Gets the maximum feedback value contained in this list.
 	unsigned char GetMaxFeedbackValue() const { return m_maxfb; }
+#endif
 
 };
+#endif
 
 class FeedbackFrequencyTable
 {
@@ -196,6 +209,7 @@ private:
 	unsigned char m_maxfb;
 
 public:
+
 	FeedbackFrequencyTable(unsigned char maxfb)
 	{
 		m_maxfb = maxfb;
@@ -205,17 +219,20 @@ public:
 	{
 	}
 
+#if 0
 	FeedbackFrequencyTable(const FeedbackList &fblist);
+#endif
 
-	void CountFrequencies(const FeedbackList &fblist);
+	//void CountFrequencies(const FeedbackList &fblist);
 
 	unsigned char maxFeedback() const { return m_maxfb; }
 
 	unsigned int * GetData() { return m_freq; }
+	unsigned int *data() { return m_freq; }
 
 	unsigned int operator [] (Feedback fb) const
 	{
-		unsigned char k = fb.GetValue();
+		unsigned char k = fb.value();
 		assert(k >= 0 && k <= m_maxfb);
 		return m_freq[k]; 
 	}

@@ -15,7 +15,7 @@
 namespace Mastermind 
 {
 	
-typedef 	std::vector<Codeword,aligned_allocator<Codeword,16>> CodewordList;
+typedef 	std::vector<Codeword,Utilities::aligned_allocator<Codeword,16>> CodewordList;
 
 //typedef CodewordList::iterator CodewordIterator;
 

@@ -45,7 +45,7 @@ void StrategyTreeNode::Destroy(StrategyTreeMemoryManager *mm, StrategyTreeNode *
 
 void StrategyTreeNode::AddChild(Feedback fb, StrategyTreeNode *child)
 {
-	int j = fb.GetValue();
+	int j = fb.value();
 #ifndef NDEBUG
 	for (int i = 0; i < m_childcount; i++) {
 		assert(m_childindex[i] != j);

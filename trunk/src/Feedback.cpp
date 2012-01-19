@@ -18,10 +18,10 @@ namespace Mastermind {
 
 Feedback::Feedback(int nA, int nB)
 {
-	SetValue(nA, nB);
+	setValue(nA, nB);
 }
 
-void Feedback::SetValue(int nA, int nB)
+void Feedback::setValue(int nA, int nB)
 {
 	assert(nA >= 0 && nA <= MM_MAX_PEGS);
 	assert(nB >= 0 && nB <= MM_MAX_PEGS);
@@ -34,6 +34,7 @@ void Feedback::SetValue(int nA, int nB)
 #endif
 }
 
+// @todo Should we use the mapping defined in MMConfig.h?
 int Feedback::GetExact() const
 {
 #if MM_FEEDBACK_COMPACT
@@ -51,6 +52,7 @@ int Feedback::GetExact() const
 #endif
 }
 
+// @todo Should we use the mapping defined in MMConfig.h?
 int Feedback::GetCommon() const
 {
 #if MM_FEEDBACK_COMPACT
@@ -68,23 +70,10 @@ int Feedback::GetCommon() const
 #endif
 }
 
-#if 0
-std::string Feedback::ToString() const
-{
-	char s[5];
-	s[0] = '0' + GetExact();
-	s[1] = 'A';
-	s[2] = '0' + GetCommon();
-	s[3] = 'B';
-	s[4] = '\0';
-	return s;
-}
-#else
 std::ostream& operator << (std::ostream &os, const Feedback &fb)
 {
-	return os << fb.GetExact() << 'A' << fb.GetCommon() << 'B';
+	return os << fb.nA() << 'A' << fb.nB() << 'B';
 }
-#endif
 
 
 Feedback Feedback::Parse(const char *s)
@@ -97,7 +86,7 @@ Feedback Feedback::Parse(const char *s)
 		(s[4] == '\0')) {
 		return Feedback(s[0] - '0', s[2] - '0');
 	} 
-	return Feedback::Empty();
+	return Feedback::emptyValue();
 }
 
 
@@ -105,6 +94,7 @@ Feedback Feedback::Parse(const char *s)
 // FeedbackList class implementations
 //
 
+#if 0
 // TODO: implement this for multi-threading
 static unsigned char *prealloc_fblist = NULL;
 static size_t prealloc_size = 0;
@@ -114,8 +104,9 @@ FeedbackList::FeedbackList(unsigned char *values, int count, int pegs)
 {
 	m_values = values;
 	m_count = count;
-	m_maxfb = Feedback(pegs, 0).GetValue();
+	m_maxfb = Feedback::MaxValue(pegs);
 }
+#endif
 
 /*
 FeedbackList::FeedbackList(int count, int pegs)
@@ -126,43 +117,13 @@ FeedbackList::FeedbackList(int count, int pegs)
 }
 */
 
-/*
-FeedbackList::FeedbackList(const CodewordRules &rules, const Codeword &guess, const CodewordList &secrets) 
-	: m_count(secrets.size()), m_maxfb(Feedback(guess.pegs(), 0).GetValue())
-{
-	// Allocate memory
-	if (!prealloc_inuse) 
-	{
-		if (prealloc_size < m_count) 
-		{
-			free(prealloc_fblist);
-			prealloc_size = m_count;
-			prealloc_fblist = (unsigned char *)malloc(prealloc_size);
-		}
-		m_values = prealloc_fblist;
-		prealloc_inuse = true;
-	} else {
-		m_values = (unsigned char *)malloc(m_count);
-	}
-
-	// Perform the actual comparison
-	if (rules.repeatable()) 
-	{
-		CompareRepImpl->Run(guess.value(), (const __m128i*)secrets.data(), m_count, m_values);
-	} 
-	else 
-	{
-		CompareNoRepImpl->Run(guess.value(), (const __m128i*)secrets.data(), m_count, m_values);
-	}
-}
-*/
-
+#if 0
 FeedbackList::FeedbackList(
 	const CodewordRules &rules, 
 	const Codeword &guess, 
 	CodewordList::const_iterator first,
 	CodewordList::const_iterator last)
-	: m_count(last - first), m_maxfb(Feedback(guess.pegs(), 0).GetValue())
+	: m_count(last - first), m_maxfb(Feedback::maxValue(rules))
 {
 	// Allocate memory
 	if (!prealloc_inuse) 
@@ -210,21 +171,26 @@ Feedback FeedbackList::operator [] (int index) const
 	assert(index >= 0 && index < (int)m_count);
 	return Feedback(m_values[index]);
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 // FeedbackFrequencyTable class implementations
 //
 
+#if 0
 FeedbackFrequencyTable::FeedbackFrequencyTable(const FeedbackList &fblist)
 {
 	CountFrequencies(fblist);
 }
+#endif
 
+#if 0
 void FeedbackFrequencyTable::CountFrequencies(const FeedbackList &fblist)
 {
 	m_maxfb = fblist.GetMaxFeedbackValue();
 	CountFrequenciesImpl->Run(fblist.GetData(), fblist.GetCount(), m_freq, m_maxfb);
 }
+#endif
 
 unsigned int FeedbackFrequencyTable::GetSumOfSquares() const
 {

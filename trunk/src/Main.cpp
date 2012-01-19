@@ -400,7 +400,7 @@ static int TestBound(CodewordRules rules)
 // TODO: Output strategy tree after finishing a run
 // TODO: Refactor StrategyTree() to speed up Destroy() and clean up memory
 
-// Step 1: change codeword list to a std::vector.
+// Step 2: change feedback list to a std::vector.
 int main(int argc, char* argv[])
 {
 	using namespace Mastermind;

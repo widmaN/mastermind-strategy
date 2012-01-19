@@ -15,6 +15,7 @@
 #include "Feedback.h"
 
 #include "CodewordRules.hpp"
+#include "Algorithm.hpp"
 
 using namespace Mastermind;
 using namespace Utilities;
@@ -373,9 +374,9 @@ int TestScan(CodewordRules rules, long times)
 int TestFrequencyCounting(const CodewordRules &rules, long times)
 {
 	CodewordList list = generateCodewords(rules);
-	FeedbackList fblist(rules, list[0], list.cbegin(), list.cend());
-	int count = fblist.GetCount();
-	const unsigned char *fbl = fblist.GetData();
+	FeedbackList fblist = compare(rules, list[0], list.cbegin(), list.cend());
+	int count = fblist.size();
+	const unsigned char *fbl = (const unsigned char *)fblist.data();
 	const unsigned char maxfb = 63;
 	unsigned int freq[(int)maxfb+1];
 
@@ -457,13 +458,17 @@ int TestCompare(const CodewordRules &rules, const char *routine1, const char *ro
 	//int k = 0;
 	if (times == 0) {
 		if (1) {
-			FeedbackList fbl(results1, count, rules.pegs());
-			FeedbackFrequencyTable freq(fbl);
+			//FeedbackList fbl(results1, count, rules.pegs());
+			FeedbackList fbl(&results1[0], &results1[count]);
+			FeedbackFrequencyTable freq;
+			countFrequencies(rules, fbl.cbegin(), fbl.cend(), freq);
 			std::cout << freq;
 		}
 		if (1) {
-			FeedbackList fbl(results2, count, rules.pegs());
-			FeedbackFrequencyTable freq(fbl);
+			//FeedbackList fbl(results2, count, rules.pegs());
+			FeedbackList fbl(&results2[0], &results2[count]);
+			FeedbackFrequencyTable freq;
+			countFrequencies(rules, fbl.cbegin(), fbl.cend(), freq);
 			std::cout << freq;
 		}
 		if (0) {
@@ -563,9 +568,10 @@ int TestNewScan(CodewordRules rules, long times)
 int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
 {
 	CodewordList list = generateCodewords(rules);
-	FeedbackList fbl(rules, list[0], list.cbegin(), list.cend());
-	FeedbackFrequencyTable freq(fbl);
-	unsigned char maxfb = fbl.GetMaxFeedbackValue();
+	FeedbackList fbl = compare(rules, list[0], list.cbegin(), list.cend());
+	FeedbackFrequencyTable freq;
+	countFrequencies(rules, fbl.begin(), fbl.end(), freq);
+	unsigned char maxfb = Feedback::maxValue(rules); // fbl.GetMaxFeedbackValue();
 
 	FREQUENCY_SUMSQUARES_ROUTINE *func1 = GetSumOfSquaresImpl->GetRoutine(routine1);
 	FREQUENCY_SUMSQUARES_ROUTINE *func2 = GetSumOfSquaresImpl->GetRoutine(routine2);
