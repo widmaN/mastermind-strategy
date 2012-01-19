@@ -45,7 +45,7 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 			} 
 			else 
 			{
-				Codeword t = Codeword::Empty();
+				Codeword t = Codeword::emptyValue();
 				StrategyTreeNode *child = FillStrategy(filterByFeedback(possibilities, m_rules, guess, fb), t);
 				node->AddChild(fb, child);
 			}

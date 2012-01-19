@@ -16,6 +16,8 @@
 
 #include "CodewordRules.hpp"
 #include "Algorithm.hpp"
+#include "CodeBreaker.h"
+#include "SimpleCodeBreaker.hpp"
 
 using namespace Mastermind;
 using namespace Utilities;
@@ -618,5 +620,72 @@ int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const cha
 	// printf("Speed Ratio: %5.2fX\n", t1/t2);
 
 	// system("PAUSE");
+	return 0;
+}
+
+/// Runs regression and benchmark tests.
+int test(const CodewordRules &rules)
+{
+#ifdef NDEBUG
+#define LOOP_FLAG 1
+#else
+#define LOOP_FLAG 0
+#endif
+	//1829320017
+	return TestCompare(rules, "r_p1a", "r_p1a_omp1", 100000*LOOP_FLAG);
+	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
+
+	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
+	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
+	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
+	//return TestSumOfSquares(rules, "c", "c_p2", 15000000*LOOP_FLAG);
+	//return TestSumOfSquares(rules, "c", "c_p2", 300000*LOOP_FLAG);
+	//return TestNewScan(rules, 100000*1);
+	//return BuildLookupTableForLongComparison();
+	//return TestEnumerationDirect(200000*1);
+	//return TestScan(rules, 100000*1);
+	//return TestEnumeration(rules, 200000*1);
+
+	Codeword first_guess = Codeword::emptyValue();
+	//Codeword first_guess = Codeword::Parse("0011", rules);
+	bool posonly = false; // only guess from remaining possibilities
+	CodeBreaker* breakers[] = {
+		new SimpleCodeBreaker(rules),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(rules, posonly),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
+		//new OptimalCodeBreaker(rules),
+	};
+
+#if 0
+
+	// CountFrequenciesImpl->SelectRoutine("c");
+	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
+	printf("\n");
+
+	if (0) {
+		printf("\nRun again:\n");
+		CountFrequenciesImpl->SelectRoutine("c_p8_il_os");
+		TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
+		printf("\n");
+	}
+
+	void PrintFrequencyStatistics();
+	//PrintFrequencyStatistics();
+
+	void PrintCompareStatistics();
+	//PrintCompareStatistics();
+
+	void PrintMakeGuessStatistics();
+	//PrintMakeGuessStatistics();
+
+	void OCB_PrintStatistics();
+	OCB_PrintStatistics();
+
+#endif
+
+	system("PAUSE");
 	return 0;
 }

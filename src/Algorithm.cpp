@@ -198,6 +198,7 @@ void countFrequencies(
 	int maxfb = Feedback::maxValue(rules);
 	CountFrequenciesImpl->Run(
 		(const unsigned char *)&(*first), (last - first), freq.data(), maxfb);
+	freq.setMaxFeedback(maxfb);
 }
 
 

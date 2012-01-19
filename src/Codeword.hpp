@@ -6,6 +6,7 @@
 #include <emmintrin.h>
 #include <algorithm>
 #include "MMConfig.h"
+#include "CodewordRules.hpp"
 
 namespace Mastermind {
 
@@ -48,6 +49,15 @@ public:
 	/// Returns the color on a given peg.
 	unsigned char operator [] (int peg) const { return _digit[peg]; }
 
+	/// Sets the color on a given peg.
+	void set(int peg, int color)
+	{
+		if (_digit[peg] != 0xFF)
+			--_counter[_digit[peg]];
+		if ((_digit[peg] = color) != 0xFF)
+			++_counter[color];
+	}
+
 	/// Tests whether the codeword contains any color more than once.
 	bool repeated() const
 	{
@@ -58,6 +68,9 @@ public:
 	/// Returns the number of pegs in the codeword.
 	int pegs() const;
 
+	/// Checks whether this codeword conforms to the supplied rules.
+	bool valid(const CodewordRules &rules) const;
+
 	/// Tests whether two codewords are equal.
 	bool operator == (const Codeword &c) const
 	{
@@ -65,57 +78,20 @@ public:
 		return memcmp(this, &c, sizeof(Codeword)) == 0;
 	}
 
-#if 0
-	/// Converts the codeword to a string.
-	std::string ToString() const;
-
-	/// Compares this codeword to another codeword.
-	/// Returns the feedback.
-	Feedback CompareTo(const Codeword& guess) const;
-
-	// Compares this codeword to a codeword list.
-	// @return A list of feedbacks.
-	//void CompareTo(const CodewordList& list, FeedbackList& fbl) const;
-
-	/// Returns a 16-bit mask of digits present in the codeword.
-	unsigned short GetDigitMask() const;
-#endif
-
 	/// Returns an empty codeword. This function has the same effect as
 	// calling the constructor with no parameter.
-	static Codeword Empty()
+	static Codeword emptyValue()
 	{
 		return Codeword();
 	}
 
-#if 0
-	/// Parses codeword from a string, conforming to given rules.
-	/// If the input text is invalid or is not conformant to the given rules,
-	/// <code>Codeword::Empty()</code> is returned.
-	static Codeword Parse(
-		/// The string to parse
-		const char *text,
-		/// The rules to apply
-		const CodewordRules &rules);
-#endif
-
-#if 0
-	void* operator new (size_t size)
-	{
-		std::cout << "new(" << size << ")" << std::endl;
-		return ::operator new(size);
-	}
-
-	void* operator new[](size_t size)
-	{
-		std::cout << "new[](" << size << ")" << std::endl;
-		return ::operator new(size);
-	}
-#endif
 };
 
 /// Outputs a codeword to a stream.
 std::ostream& operator << (std::ostream &os, const Codeword &c);
+
+/// Inputs a codeword from a stream. No rules are enforced.
+std::istream& operator >> (std::istream &is, Codeword &c);
 
 } // namespace Mastermind
 
