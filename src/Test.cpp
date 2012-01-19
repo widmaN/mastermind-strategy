@@ -367,7 +367,7 @@ int TestScan(CodewordRules rules, long times)
 int TestFrequencyCounting(const CodewordRules &rules, long times)
 {
 	CodewordList list = generateCodewords(rules);
-	FeedbackList fblist(rules, list[0], list);
+	FeedbackList fblist(rules, list[0], list.cbegin(), list.cend());
 	int count = fblist.GetCount();
 	const unsigned char *fbl = fblist.GetData();
 	const unsigned char maxfb = 63;
@@ -557,7 +557,7 @@ int TestNewScan(CodewordRules rules, long times)
 int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
 {
 	CodewordList list = generateCodewords(rules);
-	FeedbackList fbl(rules, list[0], list);
+	FeedbackList fbl(rules, list[0], list.cbegin(), list.cend());
 	FeedbackFrequencyTable freq(fbl);
 	unsigned char maxfb = fbl.GetMaxFeedbackValue();
 

@@ -155,17 +155,19 @@ public:
 	/// of memory.
 	FeedbackList(unsigned char *values, int count, int pegs);
 
+#if 0
 	/// Creates a feedback list as the result of comparing a particular
 	/// codeword to a list of codewords.
 	FeedbackList(const CodewordRules &rules, const Codeword &guess, const CodewordList &secrets);
+#endif
 
 	/// Creates a feedback list as the result of comparing a particular
 	/// codeword to a list of codewords.
 	FeedbackList(
 		const CodewordRules &rules, 
 		const Codeword &guess, 
-		CodewordIterator first,
-		CodewordIterator last);
+		CodewordList::const_iterator first,
+		CodewordList::const_iterator last);
 
 	/// Destructor.
 	~FeedbackList();

@@ -1,66 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Code Breakers">
+    <Filter Include="Strategies">
       <UniqueIdentifier>{681bc43e-9dc8-4103-beae-f217c03e5829}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{50a2b6a0-8c20-4166-a432-cc13ee5831af}</UniqueIdentifier>
     </Filter>
     <Filter Include="Algorithms">
       <UniqueIdentifier>{d2d28458-e564-423e-8824-49ce9ac8868f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Types">
+      <UniqueIdentifier>{1bea9f38-527f-4f26-a590-106a3a0f46dd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Codeword.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Enumerate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CallCounter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CpuInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Feedback.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HRTimer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MMConfig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scan.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Frequency.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StrategyTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CodewordList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\CodeBreaker.cpp">
-      <Filter>Code Breakers</Filter>
+      <Filter>Strategies</Filter>
     </ClCompile>
     <ClCompile Include="src\SimpleCodeBreaker.cpp">
-      <Filter>Code Breakers</Filter>
+      <Filter>Strategies</Filter>
     </ClCompile>
     <ClCompile Include="src\Algorithm.cpp">
       <Filter>Algorithms</Filter>
@@ -68,70 +27,52 @@
     <ClCompile Include="src\Compare.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
+    <ClCompile Include="src\CallCounter.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Codeword.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CodewordList.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CpuInfo.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Enumerate.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Feedback.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Frequency.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scan.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HRTimer.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrategyTree.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Test.cpp" />
+    <ClCompile Include="src\MMConfig.cpp" />
+    <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Enumerate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Test.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CpuInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Feedback.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\HRTimer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MMConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RoutineSelector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scan.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CallCounter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FifoMemoryManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Frequency.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PoolMemoryManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StrategyTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CodewordRules.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Codeword.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CodewordList.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AlignedAllocator.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\SimpleCodeBreaker.hpp">
-      <Filter>Code Breakers</Filter>
+      <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\OptimalCodeBreaker.hpp">
-      <Filter>Code Breakers</Filter>
+      <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\HeuristicCodeBreaker.hpp">
-      <Filter>Code Breakers</Filter>
+      <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\CodeBreaker.h">
-      <Filter>Code Breakers</Filter>
+      <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\Algorithm.hpp">
       <Filter>Algorithms</Filter>
@@ -139,5 +80,52 @@
     <ClInclude Include="src\Compare.h">
       <Filter>Algorithms</Filter>
     </ClInclude>
+    <ClInclude Include="src\AlignedAllocator.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Codeword.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CodewordList.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CodewordRules.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CallCounter.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CpuInfo.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Enumerate.h">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FifoMemoryManager.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Feedback.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Frequency.h">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HRTimer.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PoolMemoryManager.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RoutineSelector.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scan.h">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StrategyTree.h">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MMConfig.h" />
+    <ClInclude Include="src\Test.h" />
   </ItemGroup>
 </Project>

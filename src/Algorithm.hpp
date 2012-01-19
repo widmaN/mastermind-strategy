@@ -8,42 +8,54 @@
 
 namespace Mastermind {
 
-	
-// Returns a bit-mask of the colors that are present in the codeword.
+/// Returns a bit-mask of the colors that are present in the codeword.
 unsigned short getDigitMask(const Codeword &c);
 
-/// Returns a bit-mask of all the colors that appeared in the list.
-unsigned short getDigitMask(const CodewordList &list);
-
+/// Returns a bit-mask of all the colors that are present in a list 
+/// of codewords.
 unsigned short getDigitMask(
 	CodewordList::const_iterator first, 
 	CodewordList::const_iterator last);
 
+#if 0
+/// Returns a bit-mask of all the colors that are present in a list 
+/// of codewords.
+unsigned short getDigitMask(const CodewordList &list);
+#endif
+
 /// Compares two codewords.
 /// @returns The feedback.
-Feedback compare(const Codeword& secret, const Codeword& guess);
+Feedback compare(
+	const CodewordRules &rules, 
+	const Codeword& guess, 
+	const Codeword& secret);
 
 /// Compares a codeword to a list of codewords.
+/// @returns A list of feedbacks.
 FeedbackList compare(
 	const CodewordRules &rules, 
 	const Codeword& guess,
-	CodewordIterator first,
-	CodewordIterator last);
+	CodewordList::const_iterator first,
+	CodewordList::const_iterator last);
 
+/// ???
 CodewordList filterByFeedback(
 	const CodewordList &list,
 	const CodewordRules &rules, 
 	const Codeword &guess, 
 	Feedback feedback);
 
-/// Partitions a codeword list by a supplied _guess_.
-/// The elements in the codeword list are re-ordered in-memory, 
-/// such that codewords with the same feedback when compared to
-/// the guess are stored consecutively in memory.
-/// The feedback frequency table is also filled as a by-product.
+/// Partitions a list of codewords by their feedback when compared to
+/// a given guess.
+///
+/// The codewords in the list are re-ordered in-place, such that codewords
+/// with the same feedback when compared to @c guess are stored 
+/// consecutively.
+///
+/// The feedback frequency table is returned as a by-product.
 void partition(
-	CodewordIterator first, 
-	CodewordIterator last,
+	CodewordList::iterator first, 
+	CodewordList::iterator last,
 	const CodewordRules &rules,
 	const Codeword &guess, 
 	FeedbackFrequencyTable &freq);

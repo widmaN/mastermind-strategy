@@ -30,7 +30,7 @@ namespace Mastermind
 	class StrategyTreeNode;
 	typedef Utilities::PoolMemoryManager<StrategyTreeNode, 16> StrategyTreeMemoryManager;
 
-	/// Represents a guessing strategy for the code breaker.
+	/// Represents a guessing strategy of the code breaker.
 	///
 	/// The strategy is internally represented by a tree. Each node in the 
 	/// tree represents a <i>state</i> of the game. Some attributes 
