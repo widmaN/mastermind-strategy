@@ -5,7 +5,7 @@
 #include <limits>
 
 template <class T, size_t Alignment>
-struct aligned_allocator 
+struct aligned_allocator // : public std::allocator<T>
 {
 	typedef size_t    size_type;
 	typedef ptrdiff_t difference_type;
@@ -17,7 +17,7 @@ struct aligned_allocator
 
 	template <class U>
 	struct rebind { 	typedef aligned_allocator<U,Alignment> other; };
-   
+
 	aligned_allocator() throw() { }
 	aligned_allocator(const aligned_allocator&) throw() { }
 	template <class U>
@@ -29,15 +29,25 @@ struct aligned_allocator
 
 	pointer allocate(size_type n, const_pointer hint = 0)
 	{
-		pointer p = static_cast<pointer>(_aligned_malloc(n*sizeof(T), Alignment));
+		void *p;
+#ifndef _WIN32
+		if (posix_memalign(&p, Alignment, n*sizeof(T)) != 0)
+			p = NULL;
+#else
+		p = _aligned_malloc(n*sizeof(T), Alignment);
+#endif
 		if (!p)
 			throw std::bad_alloc();
-		return p;
+		return static_cast<pointer>(p);
 	}
 
-	void deallocate(pointer p, size_type n) 
+	void deallocate(pointer p, size_type n)
 	{
-		_aligned_free(static_cast<void*>(p));
+#ifndef _WIN32
+		free(p);
+#else
+		_aligned_free(p);
+#endif
 	}
 
 	size_type max_size () const throw()
@@ -45,13 +55,18 @@ struct aligned_allocator
 		return std::numeric_limits<size_type>::max();
 	}
 
-	void construct(pointer p, const T &value) 
+	void construct(pointer p)
+	{
+		new (static_cast<void*>(p)) T;
+	}
+
+	void construct(pointer p, const T &value)
 	{
 		new (static_cast<void*>(p)) T(value);
 	}
-   
-	void destroy(pointer p) 
-	{       
+
+	void destroy(pointer p)
+	{
 		p->~T();
 	}
 };

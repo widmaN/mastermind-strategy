@@ -22,7 +22,7 @@ using namespace Utilities;
 #if 0
 // Compare Enumeration Algorithms
 // Test: Generate whole enumeration of 10 digits, 4 places, no repetition.
-//       Total 5040 items in each run. 
+//       Total 5040 items in each run.
 // Results: (100,000 runs, Release mode)
 // LexOrder: 4.43 s
 // CombPerm: 8.54 s
@@ -85,7 +85,7 @@ int TestEnumeration(CodewordRules rules, long times)
 	printf("Enumeration 1: %6.3f\n", t1);
 	printf("Enumeration 2: %6.3f\n", t2);
 	printf("Count: %d\n", list.GetCount());
-	
+
 	system("PAUSE");
 	return 0;
 }
@@ -95,7 +95,7 @@ int TestEnumeration(CodewordRules rules, long times)
 #ifndef _WIN64
 // Compare Enumeration Algorithms
 // Test: Generate whole enumeration of 10 digits, 4 places, no repetition.
-//       Total 5040 items in each run. 
+//       Total 5040 items in each run.
 // Results: (200,000 runs, Release mode)
 // Enumerate_16bit_norep_v1: 1.28 s
 // Enumerate_16bit_norep_v2: 0.75 s
@@ -139,7 +139,7 @@ int TestEnumerationDirect(long times)
 	}
 	printf("Enumeration 1: %6.3f, count=%d\n", t1, count1);
 	printf("Enumeration 2: %6.3f, count=%d\n", t2, count2);
-	
+
 	system("PAUSE");
 	return 0;
 }
@@ -180,7 +180,11 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 		//0,3,2,5, 4,7,6,9, 8,1,10,11, 12,13,14,15 }; // 1,3,5,7,9 same
 		//1,2,3,4, 5,6,7,8, 9,0,10,11, 12,13,14,15 }; // all same
 		0,3,2,5, 4,1,6,7, 8,9,10,11, 12,13,14,15 }; // 1,3,5 same
-	__m128i *output = (__m128i*)_aligned_malloc(16*total, 16);
+
+	//__m128i *output = (__m128i*)_aligned_malloc(16*total, 16);
+	aligned_allocator<__m128i,16> alloc;
+	__m128i* output = alloc.allocate(total);
+
 	int count;
 
 	if (times == 0) {
@@ -188,12 +192,13 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 		count = FilterByEquivalenceClass_rep_v1(
 			(codeword_t*)list.data(), total, eqclass, (codeword_t *)output);
 		if (1) {
-			for (int i = 0; i < count; i++) 
+			for (int i = 0; i < count; i++)
 			{
 				std::cout << Codeword(output[i]) << " ";
 			}
 		}
-		_aligned_free(output);
+		alloc.deallocate(output,total);
+		//_aligned_free(output);
 		printf("\nCount: %d\n", count);
 		system("PAUSE");
 		return 0;
@@ -223,8 +228,9 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 	printf("Equivalence 1: %6.3f\n", t1);
 	printf("Equivalence 2: %6.3f\n", t2);
 	printf("Count: %d\n", count);
-	
-	_aligned_free(output);
+
+	alloc.deallocate(output,total);
+	//_aligned_free(output);
 	system("PAUSE");
 	return 0;
 }
@@ -277,7 +283,7 @@ int TestEquivalenceFilter(CodewordRules rules, long times)
 	printf("Equivalence 1: %6.3f\n", t1);
 	printf("Equivalence 2: %6.3f\n", t2);
 	printf("Count: %d\n", count);
-	
+
 	system("PAUSE");
 	return 0;
 }
@@ -297,10 +303,10 @@ int TestEquivalenceFilter(CodewordRules rules, long times)
 /// ScanDigitMask_v5 (32-bit ASM):     2.09 s
 /// ScanDigitMask_v6 (v5 improved):    1.10 s
 /// ScanDigitMask_v7 (v6 generalized): 1.10 s</pre>
-/// 
+///
 /// Conclusion:
 ///   - ASM with parallel execution and loop unrolling performs the best.
-///   - There is little performance difference between 16-bit ASM and 32-bit ASM. 
+///   - There is little performance difference between 16-bit ASM and 32-bit ASM.
 ///   - Loop unrolling has limited effect. Seems 1.10s is the lower bound
 ///     the current algorithm can improve to.
 int TestScan(CodewordRules rules, long times)
@@ -340,7 +346,7 @@ int TestScan(CodewordRules rules, long times)
 	printf("Scan 1: %6.3f s, mask=%x\n", t1, mask1);
 	printf("Scan 2: %6.3f s, mask=%x\n", t2, mask2);
 	printf("Count: %d\n", list.GetCount());
-	
+
 	system("PAUSE");
 	return 0;
 }
@@ -349,7 +355,7 @@ int TestScan(CodewordRules rules, long times)
 #ifndef NTEST
 /// Compares frequency counting algorithms.
 ///
-/// Test: Compute the frequency table of 5040 feedbacks. 
+/// Test: Compute the frequency table of 5040 feedbacks.
 /// Run the test for 500,000 times.
 ///
 /// Results:
@@ -381,7 +387,7 @@ int TestFrequencyCounting(const CodewordRules &rules, long times)
 		//count = 11;
 		func2(fbl, count, freq, maxfb);
 		for (int i = 0; i <= maxfb; i++) {
-			if (freq[i] > 0) 
+			if (freq[i] > 0)
 			{
 				std::cout << Feedback(i) << " = " << freq[i] << std::endl;
 				total += freq[i];
@@ -439,7 +445,7 @@ int TestCompare(const CodewordRules &rules, const char *routine1, const char *ro
 	func1(secret, data, count, results1);
 	func2(secret, data, count, results2);
 	for (unsigned int i = 0; i < count; i++) {
-		if (results1[i] != results2[i]) 
+		if (results1[i] != results2[i])
 		{
 			std::cout << "**** ERROR: Inconsistent [" << i << "]: "
 				<< "Compare(" << Codeword(secret) << ", " << Codeword(data[i])
@@ -448,7 +454,7 @@ int TestCompare(const CodewordRules &rules, const char *routine1, const char *ro
 		}
 	}
 
-	int k = 0;
+	//int k = 0;
 	if (times == 0) {
 		if (1) {
 			FeedbackList fbl(results1, count, rules.pegs());
@@ -461,7 +467,7 @@ int TestCompare(const CodewordRules &rules, const char *routine1, const char *ro
 			std::cout << freq;
 		}
 		if (0) {
-			for (unsigned int i = 0; i < count*0+25; i++) 
+			for (unsigned int i = 0; i < count*0+25; i++)
 			{
 				std::cout << Codeword(secret) << ' ' << Codeword(data[i])
 					<< " = " << Feedback(results1[i]) << std::endl;
@@ -567,13 +573,13 @@ int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const cha
 
 	// Verify results
 	ss1 = func1(freq.GetData(), maxfb);
-	ss2 = func2(freq.GetData(), maxfb);	
+	ss2 = func2(freq.GetData(), maxfb);
 	if (ss1 != ss2) {
 		printf("**** ERROR: Result mismatch: %u v %u\n", ss1, ss2);
 		system("PAUSE");
 		return 0;
 	}
-		
+
 	// Print result if in debug mode
 	if (times == 0) {
 		printf("SS1 = %x\n", ss1);

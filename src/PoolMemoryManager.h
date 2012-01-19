@@ -34,7 +34,7 @@ namespace Utilities
 		/// Destructor.
 		~PoolMemoryManager()
 		{
-			for (int i = 0; i < m_napges; i++) {
+			for (int i = 0; i < m_npages; i++) {
 				free(m_pages[i]);
 			}
 			free(m_pages);
@@ -43,7 +43,7 @@ namespace Utilities
 		}
 
 	public:
-		
+
 		/// Allocates one element.
 		elem_t* Alloc()
 		{

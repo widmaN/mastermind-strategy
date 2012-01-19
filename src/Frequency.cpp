@@ -2,8 +2,12 @@
 #include <memory.h>
 #include <emmintrin.h>
 #include <stdio.h>
+#ifdef _WIN32
 #include <intrin.h>
-#include <smmintrin.h>
+#else
+#include <x86intrin.h>
+#endif
+//#include <smmintrin.h>
 
 #include "CpuInfo.h"
 #include "MMConfig.h"
@@ -129,8 +133,8 @@ static void count_freq_v9(
 	// We use the second approach, because it is much faster when adding
 	// up the four tables to get the final result.
 
-	// Note: we need to allocate more memory in case there are 
-	// feedback >= 0x80. However, doing so degrades performance 
+	// Note: we need to allocate more memory in case there are
+	// feedback >= 0x80. However, doing so degrades performance
 	// significantly (like 10%). So we need to figure out a better way,
 	// probably mapping them to smaller memory further!
 
@@ -486,7 +490,7 @@ static FrequencyCountingRoutineSelector::RoutineEntry CountFrequencies_Entries[]
 	{ NULL, NULL, NULL },
 };
 
-FrequencyCountingRoutineSelector *CountFrequenciesImpl = 
+FrequencyCountingRoutineSelector *CountFrequenciesImpl =
 	new FrequencyCountingRoutineSelector(CountFrequencies_Entries, "c");
 
 static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[] = {
@@ -497,6 +501,6 @@ static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[
 };
 
 FrequencySumSquaresRoutineSelector *GetSumOfSquaresImpl =
-	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries, 
+	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries,
 	//(Utilities::CpuInfo::Features.WithSSE41)? "sse4" : "c");
 	"c_p4");
