@@ -140,7 +140,6 @@
     <ClCompile Include="src\Enumerate.cpp" />
     <ClCompile Include="src\Feedback.cpp" />
     <ClCompile Include="src\Frequency.cpp" />
-    <ClCompile Include="src\HRTimer.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MMConfig.cpp" />
     <ClCompile Include="src\Scan.cpp" />

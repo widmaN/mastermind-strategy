@@ -51,9 +51,6 @@
     <ClCompile Include="src\Scan.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\HRTimer.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="src\StrategyTree.cpp">
       <Filter>Types</Filter>
     </ClCompile>
