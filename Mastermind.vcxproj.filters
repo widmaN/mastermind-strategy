@@ -36,9 +36,6 @@
     <ClCompile Include="src\CodewordList.cpp">
       <Filter>Types</Filter>
     </ClCompile>
-    <ClCompile Include="src\CpuInfo.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="src\Enumerate.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
@@ -92,9 +89,6 @@
     <ClInclude Include="src\CallCounter.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="src\CpuInfo.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Enumerate.h">
       <Filter>Algorithms</Filter>
     </ClInclude>
@@ -124,5 +118,8 @@
     </ClInclude>
     <ClInclude Include="src\MMConfig.h" />
     <ClInclude Include="src\Test.h" />
+    <ClInclude Include="src\PoolAllocator.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

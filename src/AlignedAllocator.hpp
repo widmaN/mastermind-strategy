@@ -4,8 +4,10 @@
 #include <malloc.h>
 #include <limits>
 
+namespace Utilities {
+
 template <class T, size_t Alignment>
-struct aligned_allocator // : public std::allocator<T>
+struct aligned_allocator
 {
 	typedef size_t    size_type;
 	typedef ptrdiff_t difference_type;
@@ -82,5 +84,7 @@ bool operator != (const aligned_allocator<T1,A1> &, const aligned_allocator<T2,A
 {
 	return false;
 }
+
+} // namespace Utilities
 
 #endif // MASTERMIND_ALIGNED_ALLOCATOR_HPP

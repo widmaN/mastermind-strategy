@@ -20,6 +20,29 @@ Feedback compare(
 	return Feedback(fb);
 }
 
+FeedbackList compare(
+	const CodewordRules &rules, 
+	const Codeword &guess, 
+	CodewordList::const_iterator first,
+	CodewordList::const_iterator last)
+{
+	size_t count = last - first;
+	FeedbackList feedbacks(count);
+
+	// Perform the actual comparison
+	if (rules.repeatable()) 
+	{
+		CompareRepImpl->Run(
+			guess.value(), (const __m128i*)&(*first), count, (unsigned char *)feedbacks.data());
+	} 
+	else 
+	{
+		CompareNoRepImpl->Run(
+			guess.value(), (const __m128i*)&(*first), count, (unsigned char *)feedbacks.data());
+	}
+	return feedbacks;
+}
+
 unsigned short getDigitMask(const Codeword &c)
 {
 	__m128i v = c.value();
@@ -48,11 +71,12 @@ CodewordList filterByFeedback(
 	const Codeword &guess, 
 	Feedback feedback)
 {
-	unsigned char fb = feedback.GetValue();
-	FeedbackList fblist(rules, guess, list.cbegin(), list.cend());
+	unsigned char fb = feedback.value();
+	FeedbackList fblist = compare(rules, guess, list.cbegin(), list.cend());
 
 	// Count feedbacks equal to feedback.
-	size_t count = 0;
+	size_t count = std::count(fblist.cbegin(), fblist.cend(), fb);
+#if 0
 	if (1) 
 	{
 		const unsigned char *pfb = fblist.GetData();
@@ -62,11 +86,12 @@ CodewordList filterByFeedback(
 				count++;
 		}
 	}
+#endif
 
 	// Copy elements whose feedback are equal to fb.
 	CodewordList result(count);
 	int j = 0;
-	for (int i = 0; i < fblist.GetCount(); i++) {
+	for (size_t i = 0; i < fblist.size(); i++) {
 		if (fblist[i] == fb) 
 			result[j++] = list[i];
 	}
@@ -85,8 +110,9 @@ void partition(
 		return;
 
 	// Compare guess to each codeword in the list.
-	FeedbackList fbl(rules, guess, first, last);
-	freq.CountFrequencies(fbl);
+	FeedbackList fbl = compare(rules, guess, first, last);
+	countFrequencies(rules, fbl.cbegin(), fbl.cend(), freq);
+	// freq.CountFrequencies(fbl);
 
 	// Build a table to store the range of each partition.
 	struct partition_location
@@ -116,7 +142,7 @@ void partition(
 	size_t count = last - first;
 	for (size_t i = 0; i < count; )
 	{
-		int fbv = fbl[i].GetValue();
+		int fbv = fbl[i].value();
 		if (fbv == k) 
 		{
 			// Codeword[i] is in the correct partition.
@@ -162,5 +188,17 @@ void partition(
 	}
 #endif
 }
+
+void countFrequencies(
+	const CodewordRules &rules,
+	FeedbackList::const_iterator first,
+	FeedbackList::const_iterator last,
+	FeedbackFrequencyTable &freq)
+{
+	int maxfb = Feedback::maxValue(rules);
+	CountFrequenciesImpl->Run(
+		(const unsigned char *)&(*first), (last - first), freq.data(), maxfb);
+}
+
 
 } // namespace Mastermind

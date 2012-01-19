@@ -60,7 +60,12 @@ void partition(
 	const Codeword &guess, 
 	FeedbackFrequencyTable &freq);
 
-
+/// Counts the frequencies of each feedback in a feedback list.
+void countFrequencies(
+	const CodewordRules &rules,
+	FeedbackList::const_iterator first,
+	FeedbackList::const_iterator last,
+	FeedbackFrequencyTable &freq);
 
 } // namespace
 
