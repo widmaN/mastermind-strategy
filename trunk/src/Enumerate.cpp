@@ -2,14 +2,10 @@
 #include <malloc.h>
 #include <emmintrin.h>
 #include <memory.h>
-#ifdef _WIN32
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#endif
 
 #include "MMConfig.h"
 #include "Enumerate.h"
+#include "Intrinsic.hpp"
 
 // Returns n!/r!
 int NPermute(int n, int r)
@@ -234,7 +230,7 @@ int FilterByEquivalenceClass_norep_v1(
 		unsigned char chain[16];
 		memcpy(chain, head, 16);
 		for (int j = 0; j < 8; j++) {
-			cw = _rotl(cw, 4);
+			cw = Utilities::Intrinsic::rotateLeft(cw, 4);
 			unsigned char k = (cw & 0x0f);
 			unsigned char k_remapped = chain[head[k]];
 			chain[head[k]] = eqclass[k_remapped];

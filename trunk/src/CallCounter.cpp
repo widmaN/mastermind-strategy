@@ -1,15 +1,9 @@
-//#include <stdio.h>
-//#include <memory.h>
-//#include <string.h>
-//#include <emmintrin.h>
 #include <iostream>
 #include <iomanip>
 #include <cstring>
-#ifdef _WIN32
-#include <intrin.h>
-#endif
 
 #include "CallCounter.h"
+#include "Intrinsic.hpp"
 
 using namespace Utilities;
 
@@ -86,12 +80,7 @@ void CallCounter::AddCall(unsigned int comp)
 {
 	if (m_enabled && comp)
 	{
-		unsigned long pos;
-#ifdef _WIN32
-		_BitScanReverse(&pos, comp);
-#else
-		pos = 31 - __builtin_clz(comp);
-#endif
+		int pos = Intrinsic::bitScanReverse(comp);
 		m_callstat[pos]++;
 		m_compstat[pos] += comp;
 		m_calls++;

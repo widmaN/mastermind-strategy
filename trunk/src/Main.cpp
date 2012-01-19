@@ -152,71 +152,7 @@ static void TestGuessing(CodewordRules rules, CodeBreaker *breakers[], int nb)
 
 }
 
-static void TestGuessingByTree(
-	CodewordRules rules, 
-	CodeBreaker *breakers[], 
-	int nb,
-	const Codeword& first_guess)
-{
-	CodewordList all = CodewordList::Enumerate(rules);
-	Feedback target(rules.length, 0);
-	Utilities::HRTimer timer;
 
-	printf("Game Settings\n");
-	printf("---------------\n");
-	printf("  Codeword length:     %d\n", rules.length);
-	printf("  Number of digits:    %d\n", rules.ndigits);
-	printf("  Allow repetition:    %s\n", (rules.allow_repetition? "yes":"no"));
-	printf("  Number of codewords: %d\n", all.GetCount());
-
-	//printf("\n");
-	//printf("Algorithm Descriptions\n");
-	//printf("------------------------\n");
-	//for (int i = 0; i < nb; i++) {
-	//	printf("  A%d: %s\n", (i + 1), breakers[i]->GetDescription().c_str());
-	//}
-
-	printf("\n");
-	printf("Frequency Table\n");
-	printf("-----------------\n");
-	printf("Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time\n");
-
-	for (int ib = 0; ib < nb; ib++) {
-		CodeBreaker *breaker = breakers[ib];
-
-		// Build a strategy tree of this code breaker
-		timer.Start();
-		StrategyTree *tree = breaker->BuildStrategyTree(first_guess);
-		double t = timer.Stop();
-
-		// Count the steps used to get the answers
-		const int max_rounds = 10;
-		int freq[max_rounds+1];
-		int sum_rounds = tree->GetDepthInfo(freq, max_rounds);
-		int count = all.GetCount();
-
-//			if (i*100/count > pct) {
-//				pct = i*100/count;
-//				printf("\r  A%d: running... %2d%%", ib + 1, pct);
-//				fflush(stdout);
-//			}
-
-		// Display statistics
-		printf("\r%8s:%6d %5.3f ", breaker->GetName(), 
-			sum_rounds, (double)sum_rounds / count);
-		for (int i = 1; i <= max_rounds; i++) {
-			if (freq[i] > 0) 
-				printf("%4d ", freq[i]);
-			else
-				printf("   - ");
-		}
-		printf("%6.1f\n", t);
-
-		// delete tree;
-		// TODO: garbage collection!
-	}
-
-}
 
 int TestOutputStrategyTree(CodewordRules rules)
 {
