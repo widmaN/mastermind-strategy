@@ -137,5 +137,8 @@
     <ClInclude Include="src\MMConfig.h">
       <Filter>Program</Filter>
     </ClInclude>
+    <ClInclude Include="src\Intrinsic.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

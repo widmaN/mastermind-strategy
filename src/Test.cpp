@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <malloc.h>
+#include <iomanip>
 
 #include "Compare.h"
 #include "CodewordList.hpp"
@@ -623,6 +624,93 @@ int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const cha
 	return 0;
 }
 
+#if 0
+class AlgorithmEngine
+{
+	CodewordRules _rules;
+public:
+
+	FeedbackList compare(
+		// const CodewordRules &rules, 
+		const Codeword &guess, 
+		CodewordList::const_iterator first,
+		CodewordList::const_iterator last);
+};
+
+class Flexible : public AlgorithmEngine
+{
+};
+#endif
+
+static void TestGuessingByTree(
+	CodewordRules rules, 
+	CodeBreaker *breakers[], 
+	int nb,
+	const Codeword& first_guess)
+{
+	CodewordList all = generateCodewords(rules);
+	Feedback target = Feedback::perfectValue(rules);
+	Utilities::HRTimer timer;
+
+	std::cout 
+		<< "Game Settings" << std::endl
+		<< "---------------" << std::endl
+		<< "  Number of pegs:      " << rules.pegs() << std::endl
+		<< "  Number of colors:    " << rules.colors() << std::endl
+		<< "  Color repeatable:    " << rules.repeatable() << std::endl
+		<< "  Number of codewords: " << all.size() << std::endl;
+
+	//printf("\n");
+	//printf("Algorithm Descriptions\n");
+	//printf("------------------------\n");
+	//for (int i = 0; i < nb; i++) {
+	//	printf("  A%d: %s\n", (i + 1), breakers[i]->GetDescription().c_str());
+	//}
+
+	std::cout << std::endl
+		<< "Frequency Table" << std::endl
+		<< "-----------------" << std::endl
+		<< "Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time" << std::endl;
+
+	for (int ib = 0; ib < nb; ib++) {
+		CodeBreaker *breaker = breakers[ib];
+
+		// Build a strategy tree of this code breaker
+		timer.start();
+		StrategyTree *tree = breaker->BuildStrategyTree(first_guess);
+		double t = timer.stop();
+
+		// Count the steps used to get the answers
+		const int max_rounds = 10;
+		int freq[max_rounds+1];
+		int sum_rounds = tree->GetDepthInfo(freq, max_rounds);
+		int count = all.size();
+
+//			if (i*100/count > pct) {
+//				pct = i*100/count;
+//				printf("\r  A%d: running... %2d%%", ib + 1, pct);
+//				fflush(stdout);
+//			}
+
+		// Display statistics
+		std::cout << "\r" << std::setw(8) << breaker->name() << ":"
+			<< std::setw(6) << sum_rounds << " "
+			<< std::setw(5) << std::setprecision(3) 
+			<< (double)sum_rounds / count;
+
+		for (int i = 1; i <= max_rounds; i++) {
+			if (freq[i] > 0) 
+				std::cout << std::setw(4) << freq[i] << ' ';
+			else
+				std::cout << "   - ";
+		}
+		std::cout << std::setw(6) << std::setprecision(1) << t << std::endl;
+
+		// delete tree;
+		// TODO: garbage collection!
+	}
+}
+
 /// Runs regression and benchmark tests.
 int test(const CodewordRules &rules)
 {
@@ -632,9 +720,9 @@ int test(const CodewordRules &rules)
 #define LOOP_FLAG 0
 #endif
 	//1829320017
-	return TestCompare(rules, "r_p1a", "r_p1a_omp1", 100000*LOOP_FLAG);
+	//return TestCompare(rules, "r_p1a", "r_p1a_omp1", 10000*LOOP_FLAG);
+	
 	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
-
 	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
@@ -659,12 +747,11 @@ int test(const CodewordRules &rules)
 		//new OptimalCodeBreaker(rules),
 	};
 
-#if 0
-
 	// CountFrequenciesImpl->SelectRoutine("c");
 	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
 	printf("\n");
 
+#if 0
 	if (0) {
 		printf("\nRun again:\n");
 		CountFrequenciesImpl->SelectRoutine("c_p8_il_os");
