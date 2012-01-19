@@ -20,7 +20,8 @@ Codeword SimpleCodeBreaker::MakeGuess(CodewordList &possibilities)
 StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, const Codeword &first_guess)
 {
 	Codeword guess = first_guess.empty()? MakeGuess(possibilities) : first_guess;
-	FeedbackFrequencyTable freq(FeedbackList(m_rules, guess, possibilities));
+	FeedbackFrequencyTable freq(FeedbackList(m_rules, guess,
+		possibilities.cbegin(), possibilities.cend()));
 	StrategyTreeMemoryManager *mm = default_strat_mm;
 
 	StrategyTreeNode *node = StrategyTreeNode::Create(mm);

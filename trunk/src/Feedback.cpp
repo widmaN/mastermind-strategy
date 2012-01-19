@@ -160,8 +160,8 @@ FeedbackList::FeedbackList(const CodewordRules &rules, const Codeword &guess, co
 FeedbackList::FeedbackList(
 	const CodewordRules &rules, 
 	const Codeword &guess, 
-	CodewordIterator first,
-	CodewordIterator last)
+	CodewordList::const_iterator first,
+	CodewordList::const_iterator last)
 	: m_count(last - first), m_maxfb(Feedback(guess.pegs(), 0).GetValue())
 {
 	// Allocate memory

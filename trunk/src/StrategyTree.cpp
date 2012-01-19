@@ -178,6 +178,7 @@ StrategyTreeNode* StrategyTreeNode::Single(StrategyTreeMemoryManager *mm, const 
 	node->State.NPossibilities = 1;
 	node->State.NCandidates = 1;
 	node->State.Guess = possibility;
-	node->AddChild(compare(possibility, possibility), StrategyTreeNode::Done());
+	// TBD
+	node->AddChild(compare(CodewordRules(), possibility, possibility), StrategyTreeNode::Done());
 	return node;
 }

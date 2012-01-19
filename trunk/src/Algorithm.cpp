@@ -4,11 +4,19 @@
 
 namespace Mastermind {
 
-Feedback compare(const Codeword& secret, const Codeword& guess)
+Feedback compare(
+	const CodewordRules &rules,
+	const Codeword& secret, 
+	const Codeword& guess)
 {
 	unsigned char fb;
 	__m128i guess_value = guess.value();
-	CompareRepImpl->Run(secret.value(), &guess_value, 1, &fb);
+
+	if (rules.repeatable()) 
+		CompareRepImpl->Run(secret.value(), &guess_value, 1, &fb);
+	else 
+		CompareNoRepImpl->Run(secret.value(), &guess_value, 1, &fb);
+
 	return Feedback(fb);
 }
 
@@ -18,10 +26,12 @@ unsigned short getDigitMask(const Codeword &c)
 	return ScanDigitMask(&v, 1);
 }
 
+#if 0
 unsigned short getDigitMask(const CodewordList &list)
 {
 	return ScanDigitMask((const __m128i*)list.data(), list.size());
 }
+#endif
 
 unsigned short getDigitMask(
 	CodewordList::const_iterator first, 
@@ -39,7 +49,7 @@ CodewordList filterByFeedback(
 	Feedback feedback)
 {
 	unsigned char fb = feedback.GetValue();
-	FeedbackList fblist(rules, guess, list);
+	FeedbackList fblist(rules, guess, list.cbegin(), list.cend());
 
 	// Count feedbacks equal to feedback.
 	size_t count = 0;
@@ -64,29 +74,68 @@ CodewordList filterByFeedback(
 }
 
 void partition(
-	CodewordIterator first, 
-	CodewordIterator last,
+	CodewordList::iterator first,
+	CodewordList::iterator last,
 	const CodewordRules &rules,
-	const Codeword &guess, 
+	const Codeword &guess,
 	FeedbackFrequencyTable &freq)
 {
+	// If there's no element in the list, do nothing.
+	if (first == last)
+		return;
+
+	// Compare guess to each codeword in the list.
 	FeedbackList fbl(rules, guess, first, last);
 	freq.CountFrequencies(fbl);
 
-	// Build a table of the start index of each feedback.
-	int start_index[256];
-	int k = 0;
-	start_index[0] = 0;
-	for (int i = 0; i <= freq.maxFeedback(); i++) 
+	// Build a table to store the range of each partition.
+	struct partition_location
 	{
-		start_index[i] = k;
-		k += freq[Feedback(i)];
+		//size_t begin; // begin of the partition
+		size_t end;     // end of the partition
+		size_t current; // next location to insert
+	} part[256+1];
+
+	size_t i = 0;
+	part[0].current = 0;
+	for (int k = 0; k <= freq.maxFeedback(); k++)
+	{
+		i += freq[Feedback(k)];
+		part[k].end = i;
+		part[k+1].current = i;
 	}
+	part[freq.maxFeedback()+1].end = std::numeric_limits<size_t>::max();
 
 #if 1
+	// Find the first non-empty partition.
+	int k = 0; // current partition
+	while (freq[k] == 0)
+		++k;
+
 	// Perform a in-place partitioning.
-	extern void TBD();
-	TBD();
+	size_t count = last - first;
+	for (size_t i = 0; i < count; )
+	{
+		int fbv = fbl[i].GetValue();
+		if (fbv == k) 
+		{
+			// Codeword[i] is in the correct partition.
+			// Advance the current partition pointer.
+			// If it's reached the end, move to the next partition.
+			if (++part[k].current >= part[k].end)
+			{
+				for (++k; part[k].current >= part[k].end; ++k);
+			}
+			i = part[k].current;
+		}
+		else 
+		{
+			// Codeword[i] is NOT in the correct partition.
+			// Swap it into the correct partition, and increment
+			// the pointer of that partition.
+			std::swap(first[i], first[part[fbv].current++]);
+		}
+	}
 
 #else
 	// Create a spare list to store temporary result

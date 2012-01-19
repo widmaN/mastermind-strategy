@@ -11,7 +11,7 @@ namespace Mastermind {
 
 /// Represents a codeword.
 /// For performance reason, a codeword is interchangable with __m128i.
-// __declspec(align(16)) 
+/* __declspec(align(16)) */
 class Codeword
 {
 	// The internal representation of the codeword value.
@@ -61,7 +61,8 @@ public:
 	/// Tests whether two codewords are equal.
 	static friend bool operator == (const Codeword &a, const Codeword &b)
 	{
-		return memcmp(&a, &b, sizeof(Codeword)) == 0;
+		return a.value() == b.value();
+		//return memcmp(&a, &b, sizeof(Codeword)) == 0;
 	}
 
 #if 0

@@ -17,7 +17,7 @@ namespace Mastermind
 	
 typedef 	std::vector<Codeword,aligned_allocator<Codeword,16>> CodewordList;
 
-typedef CodewordList::iterator CodewordIterator;
+//typedef CodewordList::iterator CodewordIterator;
 
 /// Generates all codewords that conforms to the given set of rules.
 CodewordList generateCodewords(const CodewordRules &rules);
