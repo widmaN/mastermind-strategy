@@ -206,16 +206,18 @@ class FeedbackFrequencyTable
 {
 private:
 	unsigned int m_freq[256];
-	unsigned char m_maxfb;
+	int m_maxfb;
 
 public:
 
+#if 0
 	FeedbackFrequencyTable(unsigned char maxfb)
 	{
 		m_maxfb = maxfb;
 	}
+#endif
 
-	FeedbackFrequencyTable()
+	FeedbackFrequencyTable() : m_maxfb(0)
 	{
 	}
 
@@ -223,9 +225,8 @@ public:
 	FeedbackFrequencyTable(const FeedbackList &fblist);
 #endif
 
-	//void CountFrequencies(const FeedbackList &fblist);
-
-	unsigned char maxFeedback() const { return m_maxfb; }
+	int maxFeedback() const { return m_maxfb; }
+	void setMaxFeedback(int m) { m_maxfb = m; }
 
 	unsigned int * GetData() { return m_freq; }
 	unsigned int *data() { return m_freq; }

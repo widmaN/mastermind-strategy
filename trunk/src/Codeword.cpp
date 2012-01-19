@@ -1,52 +1,46 @@
 #include <iostream>
+
 #include "MMConfig.h"
 #include "Codeword.hpp"
-#include "Scan.h"
 
 namespace Mastermind {
 
-#if 1
-#else
-Codeword Codeword::Parse(const char *s, const CodewordRules &rules)
+std::istream& operator >> (std::istream &is, Codeword &codeword)
 {
-#if MM_MAX_COLORS > 10
-# error Codeword::Parse() only handles MM_MAX_COLORS <= 9
-#endif
+	Codeword ret = Codeword::emptyValue();
 
-	int length = rules.pegs();
-	int ndigits = rules.colors();
-	bool allow_repetition = rules.repeatable();
+	// Skip leading whitespaces.
+	char c = 0;
+	for (int i = 0; is >> c; ++i)
+	{
+		unsigned char d = 0xff;
+		if (c >= '0' && c <= '9')
+			d = c - '0';
+		else if (c >= 'A' && c <= 'Z')
+			d = 10 + (c - 'A');
+		else if (c >= 'a' && c <= 'z')
+			d = 10 + (c = 'a');
 
-	assert(s != NULL);
-	assert(length > 0 && length <= MM_MAX_PEGS);
-	assert(ndigits > 0 && ndigits <= MM_MAX_COLORS);
-
-	Codeword ret;
-	int k = 0;
-	for (; k < length; k++) {
-		if (s[k] >= '0' && s[k] <= '9') {
-			unsigned char d = s[k] - '0';
-			if (d > MM_MAX_COLORS) {
-				return Codeword::Empty();
-			}
-			// BUG: WRONG ORDER
-			if (!allow_repetition && ret.m_value.counter[d] > 0)
-				return Codeword::Empty();
-			ret.m_value.counter[d]++;
-			ret.m_value.digit[k] = d;
-		} else {
-			return Codeword::Empty();
+		if (d == 0xff) // not a digit
+		{
+			break;
 		}
+		if (i >= MM_MAX_PEGS || d > MM_MAX_COLORS)
+		{
+			ret = Codeword::emptyValue();
+			break;
+		}
+		ret.set(i, d);
 	}
-	if (s[k] != '\0') {
-		return Codeword::Empty();
+
+	// Return result and set stream status.
+	codeword = ret;
+	if (ret.empty())
+	{
+		is.setstate(std::ios_base::failbit);
 	}
-	for (; k < MM_MAX_PEGS; k++) {
-		ret.m_value.digit[k] = 0xFF;
-	}
-	return ret;
+	return is;
 }
-#endif
 
 std::ostream& operator << (std::ostream &os, const Codeword &c)
 {
@@ -59,34 +53,6 @@ std::ostream& operator << (std::ostream &os, const Codeword &c)
 	}
 	return os;
 }
-
-/*
-void Codeword::CompareTo(const CodewordList& list, FeedbackList& fbl) const
-{
-	assert(list.GetCount() == fbl.GetCount());
-
-	int count = list.GetCount();
-	unsigned char *results = fbl.GetData();
-
-	if (list.GetRules().allow_repetition) {
-		CompareRepImpl->Run(m_value.value, (const __m128i*)list.GetData(), count, results);
-	} else {
-		CompareNoRepImpl->Run(m_value.value, (const __m128i*)list.GetData(), count, results);
-	}
-}
-*/
-
-#if 0
-/// Compares this codeword to another codeword. 
-/// \return The feedback of the comparison.
-Feedback Codeword::CompareTo(const Codeword& guess) const
-{
-	unsigned char fb;
-	codeword_t guess_value = guess.GetValue();
-	CompareRepImpl->Run(m_value.value, (const __m128i*)&guess_value, 1, &fb);
-	return Feedback(fb);
-}
-#endif
 
 int Codeword::pegs() const
 {

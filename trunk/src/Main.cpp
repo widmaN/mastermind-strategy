@@ -5,10 +5,6 @@
 #include "Test.h"
 #include "Enumerate.h"
 
-#if 0
-#include "HRTimer.h"
-#endif
-
 #include <iostream>
 #include "CodewordRules.hpp"
 #include "CodewordList.hpp"
@@ -377,6 +373,31 @@ static int TestBound(CodewordRules rules)
 }
 #endif
 
+static void usage()
+{
+	std::cerr << 
+		"Mastermind [options] [rules] [-s strategy] [action]\n"
+		"Actions:\n"
+		"    (none)     interactive mode\n"
+		"    strat      build and output strategy tree\n"
+		"    test name  run regression or benchmark tests\n"
+		"Rules:\n"
+		"    -p pegs    set the number of pegs [default=4]\n"
+		"    -c colors  set the number of colors [default=10]\n"
+		"    -n         do not allow colors to repeat [default]\n"
+		"    -r         allow colors to repeat\n"
+		"Strategies: (only relevant in strat mode)\n"
+		"    simple     simple strategy\n"
+		"    heuristic  heuristic strategy\n"
+		"    optimal    optimal strategy\n"
+		"Tests:\n"
+		"    comp       (benchmark) comparison routines\n"
+		"Options:\n"
+		"    -h         display this help screen\n"
+		"    -v         verbose\n"
+		"";
+}
+
 // Latest profiling results:
 // compare_long_codeword_v4():          28%
 // FilterByEquivalenceClass_norep_v2(): 22%
@@ -384,12 +405,6 @@ static int TestBound(CodewordRules rules)
 // count_freq_v6:                       16%
 // GetSumOfSquares:                      5%
 // __VEC_memzero:                        5%
-
-// options
-// -p4, --pegs=4       specify the number of pegs
-// -c10, --colors=10   specify the number of colors
-// -r, --rep           allow repetition
-// -nr, --norep        don't allow repetition
 
 // TODO: Test whether ordinal feedback or direct feedback performs better.
 // TODO: Improve strategy tree to save memory (pointer) and be thread-safe
@@ -400,16 +415,119 @@ static int TestBound(CodewordRules rules)
 // TODO: Output strategy tree after finishing a run
 // TODO: Refactor StrategyTree() to speed up Destroy() and clean up memory
 
-// Step 2: change feedback list to a std::vector.
+extern int interactive(const CodewordRules &rules);
+extern int test(const CodewordRules &rules);
+
+
+// Step 3: build a strategy tree using simple code breaker.
 int main(int argc, char* argv[])
 {
 	using namespace Mastermind;
 
-#if 1
+	// Default argument values.
+	int pegs = 4;
+	int colors = 10;
+	bool repeatable = false;
+	bool verbose = false;
+	enum class Mode
+	{
+		Interactive = 0,
+		Strategy = 1,
+		Test = 2,
+	};
+	Mode mode = Mode::Interactive;
+
+	// Parse command line arguments.
+	for (int i = 1; i < argc; i++)
+	{
+		const char *s = argv[i];
+		if (*s == '-') // option
+		{
+			switch (s[1])
+			{
+			case 'p':
+				pegs = atoi(s+2);
+				break;
+			case 'c':
+				colors = atoi(s+2);
+				break;
+			case 'r':
+				repeatable = true;
+				break;
+			case 'n':
+				repeatable = false;
+				break;
+			case 'h':
+				usage();
+				system("PAUSE");
+				return 0;
+				break;
+			case 'v':
+				verbose = true;
+				break;
+			default:
+				std::cerr << "Unknown option: " << s[1] << std::endl;
+				usage();
+				system("PAUSE");
+				break;
+			}
+		}
+		else // mode
+		{
+			if (strcmp(s, "strat") == 0)
+				mode = Mode::Strategy;
+			else if (strcmp(s, "test") == 0)
+				mode = Mode::Test;
+			else
+			{
+				usage();
+				system("PAUSE");
+				break;
+			}
+		}
+	}
+
+	// Check if the rule specified is valid.
+	if (!(pegs > 0 && colors > 0 && (repeatable || colors >= pegs)))
+	{
+		std::cerr << "Error: Invalid rules: pegs=" << pegs 
+			<< ", colors=" << colors << ", repeatable="
+			<< std::boolalpha << repeatable << std::endl;
+		return 2;
+	}
+	if (pegs > MM_MAX_PEGS)
+	{
+		std::cerr << "Error: Too many pegs: max=" << MM_MAX_PEGS 
+			<< ", supplied=" << pegs << std::endl;
+		return 2;
+	}
+	if (colors > MM_MAX_COLORS)
+	{
+		std::cerr << "Error: Too many colors: max=" << MM_MAX_COLORS
+			<< ", supplied=" << pegs << std::endl;
+		return 2;
+	}
+
+	// Construct the rules.
+	CodewordRules rules(pegs, colors, repeatable);
+
+	// Execute the selected action.
+	switch (mode)
+	{
+	case Mode::Interactive:
+		return interactive(rules);
+	case Mode::Strategy:
+		break;
+	case Mode::Test:
+		return test(rules);
+	default:
+		break;
+	}
+	return 0;
+
+#if 0
 	CodewordRules rules(4, 10, false); // Guess Number rules
-#elif 1
 	CodewordRules rules(4, 6, true);   // Mastermind rules
-#else
 	CodewordRules rules(5, 8, false);
 #endif
 
@@ -473,126 +591,4 @@ int main(int argc, char* argv[])
 	//return TestOutputStrategyTree(rules);
 
 #endif
-
-#ifdef NDEBUG
-#define LOOP_FLAG 1
-#else
-#define LOOP_FLAG 0
-#endif
-	//1829320017
-	//return TestCompare(rules, "r_p1a", "r_p1a_omp1", 100000*LOOP_FLAG);
-	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
-
-	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
-	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
-	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
-	//return TestSumOfSquares(rules, "c", "c_p2", 15000000*LOOP_FLAG);
-	//return TestSumOfSquares(rules, "c", "c_p2", 300000*LOOP_FLAG);
-	//return TestNewScan(rules, 100000*1);
-	//return BuildLookupTableForLongComparison();
-	//return TestEnumerationDirect(200000*1);
-	//return TestScan(rules, 100000*1);
-	//return TestEnumeration(rules, 200000*1);
-
-	Codeword first_guess = Codeword::Empty();
-	//Codeword first_guess = Codeword::Parse("0011", rules);
-	bool posonly = false; // only guess from remaining possibilities
-	CodeBreaker* breakers[] = {
-		new SimpleCodeBreaker(rules),
-		//new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(rules, posonly),
-		//new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
-		//new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),
-		//new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(rules, posonly),
-		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
-		//new OptimalCodeBreaker(rules),
-	};
-
-#if 0
-
-	// CountFrequenciesImpl->SelectRoutine("c");
-	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
-	printf("\n");
-
-	if (0) {
-		printf("\nRun again:\n");
-		CountFrequenciesImpl->SelectRoutine("c_p8_il_os");
-		TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
-		printf("\n");
-	}
-
-	void PrintFrequencyStatistics();
-	//PrintFrequencyStatistics();
-
-	void PrintCompareStatistics();
-	//PrintCompareStatistics();
-
-	void PrintMakeGuessStatistics();
-	//PrintMakeGuessStatistics();
-
-	void OCB_PrintStatistics();
-	OCB_PrintStatistics();
-
-#endif
-
-	system("PAUSE");
-	return 0;
-
-#if 0
-	printf("Enumerating all codewords...");
-	CodewordList all = CodewordList::Enumerate(rules);
-	printf(" total %d\n", all.GetCount());
-	// DumpCodewordList(list);
-
-	// Generate a secret codeword.
-	Codeword secret; // = Codeword::GetRandom(rules);
-	printf("Generated secret: %s\n", secret.ToString().c_str());
-
-	// Let's guess!
-	Feedback target(rules.length, 0);
-	CodewordList list = all;
-	for (int k = 1; k <= 9; k++) {
-		// Which codeword to guess? The first one.
-		Codeword guess = list[0];
-
-		Feedback fb = secret.CompareTo(guess);
-		printf("[%d] Guess: %s, feedback: %s... ",
-			k, guess.ToString().c_str(), fb.ToString().c_str());
-		if (fb == target) {
-			printf("That's it!\n");
-			break;
-		}
-
-		CodewordList possibilities = list.FilterByFeedback(guess, fb);
-		printf("possibilities: %d\n", possibilities.GetCount());
-		list = possibilities;
-	}
-
-	system("PAUSE");
-	return 0;
-
-	// Generate a secret codeword.
-	// Codeword secret = Codeword::GetRandom(rules);
-	cout << "Fyi, the secret is " << secret.ToString() << endl;
-
-	// Let user guess, and provide feedback.
-	while (1) {
-		cout << "Input guess (q to exit): ";
-		cin >> s;
-		if (s == "q") {
-			break;
-		}
-
-		Codeword guess = Codeword::Parse(s.c_str(), rules);
-		if (guess.IsEmpty()) {
-			cout << "Invalid input!" << endl;
-		} else {
-			Feedback feedback = secret.CompareTo(guess);
-			cout << feedback.ToString() << endl;
-		}
-	}
-
-#endif
-
-	system("PAUSE");
-	return 0;
 }
