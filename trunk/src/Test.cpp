@@ -204,21 +204,21 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 
 	t1 = t2 = 0;
 	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
+		timer.start();
 		for (int k = 0; k < times / 10; k++) {
 //			count = FilterByEquivalenceClass_norep_v1(
 //				(__m128i*)list.GetData(), list.GetCount(), eqclass, output);
 			count = FilterByEquivalenceClass_norep_v2(
 				(codeword_t*)list.data(), list.size(), eqclass, (codeword_t *)output);
 		}
-		t1 += timer.Stop();
+		t1 += timer.stop();
 
-		timer.Start();
+		timer.start();
 		for (int k = 0; k < times / 10; k++) {
 			count = FilterByEquivalenceClass_norep_v3(
 				(codeword_t*)list.data(), list.size(), eqclass, (codeword_t *)output);
 		}
-		t2 += timer.Stop();
+		t2 += timer.stop();
 	}
 	printf("Equivalence 1: %6.3f\n", t1);
 	printf("Equivalence 2: %6.3f\n", t2);
@@ -398,17 +398,17 @@ int TestFrequencyCounting(const CodewordRules &rules, long times)
 	t1 = t2 = 0;
 
 	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
+		timer.start();
 		for (int j = 0; j < times / 10; j++) {
 			func1(fbl, count, freq, maxfb);
 		}
-		t1 += timer.Stop();
+		t1 += timer.stop();
 
-		timer.Start();
+		timer.start();
 		for (int j = 0; j < times / 10; j++) {
 			func2(fbl, count, freq, maxfb);
 		}
-		t2 += timer.Stop();
+		t2 += timer.stop();
 	}
 
 	printf("Algorithm 1: %6.3f\n", t1);
@@ -478,17 +478,17 @@ int TestCompare(const CodewordRules &rules, const char *routine1, const char *ro
 	t1 = t2 = 0;
 
 	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
+		timer.start();
 		for (int j = 0; j < times / 10; j++) {
 			func1(secret, data, count, results1);
 		}
-		t1 += timer.Stop();
+		t1 += timer.stop();
 
-		timer.Start();
+		timer.start();
 		for (int j = 0; j < times / 10; j++) {
 			func2(secret, data, count, results2);
 		}
-		t2 += timer.Stop();
+		t2 += timer.stop();
 	}
 
 	printf("Algorithm 1: %6.3f\n", t1);
