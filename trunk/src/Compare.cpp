@@ -4,7 +4,7 @@
 
 #include <assert.h>
 #include <memory.h>
-#include <intrin.h>
+// #include <intrin.h>
 #include <emmintrin.h>
 #include <omp.h>
 
@@ -48,7 +48,7 @@ static void compare_codeword_rep_p1(
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
-	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
 	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
 	__m128i zero = _mm_setzero_si128();
 
@@ -59,7 +59,7 @@ static void compare_codeword_rep_p1(
 		__m128i tA = _mm_cmpeq_epi8(secret, guess);
 		tA = _mm_and_si128(tA, mask_high6);
 		tA = _mm_sad_epu8(tA, zero);
-		
+
 		// count nB
 		__m128i tB = _mm_min_epu8(secret, guess);
 		tB = _mm_and_si128(tB, mask_low10);
@@ -90,7 +90,7 @@ static void compare_codeword_rep_p1a(
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
-	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
 	__m128i zero = _mm_setzero_si128();
 
 	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
@@ -104,7 +104,7 @@ static void compare_codeword_rep_p1a(
 		__m128i tA = _mm_cmpeq_epi8(secret, guess);
 		tA = _mm_and_si128(tA, mask_high6);
 		tA = _mm_sad_epu8(tA, zero);
-		
+
 		// count nB
 		__m128i tB = _mm_min_epu8(secret_low10, guess);
 		tB = _mm_sad_epu8(tB, zero);
@@ -134,7 +134,7 @@ static void compare_codeword_rep_p1a_omp1(
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
-	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
 	__m128i zero = _mm_setzero_si128();
 
 	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
@@ -149,7 +149,7 @@ static void compare_codeword_rep_p1a_omp1(
 		__m128i tA = _mm_cmpeq_epi8(secret, guess);
 		tA = _mm_and_si128(tA, mask_high6);
 		tA = _mm_sad_epu8(tA, zero);
-		
+
 		// count nB
 		__m128i tB = _mm_min_epu8(secret_low10, guess);
 		tB = _mm_sad_epu8(tB, zero);
@@ -177,11 +177,11 @@ static void compare_codeword_block_rep(
 	assert(count >= 0);
 	assert(count % 8 == 0);
 
-	
+
 	// Change 0xff in secret to 0x0f
 	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
 
-	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
 	__m128i zero = _mm_setzero_si128();
 
 	// Keep low 10-bytes of secret, while setting high 6 bytes to zero
@@ -196,7 +196,7 @@ static void compare_codeword_block_rep(
 		__m128i tA = _mm_cmpeq_epi8(secret, guess);
 		tA = _mm_and_si128(tA, mask_high6);
 		tA = _mm_sad_epu8(tA, zero);
-		
+
 		// count nB
 		__m128i tB = _mm_min_epu8(secret_low10, guess);
 		tB = _mm_sad_epu8(tB, zero);
@@ -223,7 +223,7 @@ static void cross_compare_codewords_rep_omp1(
 {
 	// UpdateCallCounter(count);
 
-	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);	
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
 	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
 	__m128i zero = _mm_setzero_si128();
 
@@ -244,7 +244,7 @@ static void cross_compare_codewords_rep_omp1(
 			__m128i tA = _mm_cmpeq_epi8(secret, guess);
 			tA = _mm_and_si128(tA, mask_high6);
 			tA = _mm_sad_epu8(tA, zero);
-		
+
 			// count nB
 			__m128i tB = _mm_min_epu8(guess_low10, secret);
 			tB = _mm_sad_epu8(tB, zero);
@@ -355,7 +355,7 @@ static int count_bits(unsigned short a)
 }
 
 
-// This is the benchmark routine for "long" codeword comparasion 
+// This is the benchmark routine for "long" codeword comparasion
 // that assumes NO REPETITION!!!
 // It illustrate the algorithm used.
 // It uses a memory table to lookup.
@@ -376,8 +376,8 @@ static void compare_long_codeword_nr1(
 	__m128i t1 = _mm_cmpeq_epi8(secret, _mm_setzero_si128());
 	t1 = _mm_slli_si128(t1, 6);
 	t1 = _mm_srli_si128(t1, 6);
-	secret = _mm_or_si128(secret, t1);	
-	
+	secret = _mm_or_si128(secret, t1);
+
 	// Define a static mapping from bitmask to nAnB
 	static unsigned char counter[0x10000];
 	static bool counter_ready = false;
@@ -423,8 +423,8 @@ static void compare_long_codeword_nr2(
 	__m128i t1 = _mm_cmpeq_epi8(secret, _mm_setzero_si128());
 	t1 = _mm_slli_si128(t1, MM_MAX_PEGS);
 	t1 = _mm_srli_si128(t1, MM_MAX_PEGS);
-	secret = _mm_or_si128(secret, t1);	
-	
+	secret = _mm_or_si128(secret, t1);
+
 	// Define a static mapping from bitmask to nAnB
 	static unsigned char counter[0x10000];
 	static bool counter_ready = false;
@@ -501,12 +501,12 @@ static ComparisonRoutineSelector::RoutineEntry CompareNoRep_Entries[] = {
 	{ NULL, NULL, NULL },
 };
 
-ComparisonRoutineSelector *CompareRepImpl = 
-	new ComparisonRoutineSelector(CompareRep_Entries, 
+ComparisonRoutineSelector *CompareRepImpl =
+	new ComparisonRoutineSelector(CompareRep_Entries,
 	"r_p8");
 	//"r_p1a_omp");
 
-ComparisonRoutineSelector *CompareNoRepImpl = 
+ComparisonRoutineSelector *CompareNoRepImpl =
 	new ComparisonRoutineSelector(CompareNoRep_Entries, "nr_p4");
 
 
@@ -515,5 +515,5 @@ static CrossComparisonRoutineSelector::RoutineEntry CrossCompareRep_Entries[] = 
 	{ NULL, NULL, NULL },
 };
 
-CrossComparisonRoutineSelector *CrossCompareRepImpl = 
+CrossComparisonRoutineSelector *CrossCompareRepImpl =
 	new CrossComparisonRoutineSelector(CrossCompareRep_Entries, "cr_omp1");

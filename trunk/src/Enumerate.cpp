@@ -1,8 +1,12 @@
 #include <assert.h>
 #include <malloc.h>
-#include <intrin.h>
 #include <emmintrin.h>
 #include <memory.h>
+#ifdef _WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
 
 #include "MMConfig.h"
 #include "Enumerate.h"
@@ -34,9 +38,9 @@ int NPower(int n, int r)
 }
 
 // Returns n!/r!/(n-r)!
-int NComb(int n, int r) 
-{ 
-	return NPermute(n,r)/NPermute(r,r); 
+int NComb(int n, int r)
+{
+	return NPermute(n,r)/NPermute(r,r);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -70,7 +74,7 @@ static __m128i dword_to_codeword(unsigned long from)
 	// byte 15,14,13,12,11,10: the code word
 	__m128i ret;
 	unsigned char *result = (unsigned char *)&ret;
-		
+
 	memset(result, 0, MM_MAX_COLORS);
 	for (int j = 0; j < MM_MAX_PEGS; j++) {
 		unsigned char d = (from & 0xf);
@@ -119,7 +123,7 @@ int EnumerateCodewords(int length, int ndigits, bool allow_rep, codeword_t* resu
 	codeword_t cw;
 	memset(cw.counter, 0, sizeof(cw.counter));
 	memset(cw.digit, 0xFF, sizeof(cw.digit));
-	
+
 	int k;
 	if (allow_rep) {
 		for (k = 0; k < length - 1; k++) {
@@ -187,9 +191,9 @@ int Enumerate_NoRep(int length, int ndigits, codeword_t* results)
 
 // Filters the codeword list _src_ by removing duplicate elements according
 // to equivalence class _eqclass_. Returns the number of elements remaining.
-// 
-// _eqclass_ is a 16-byte array where each element specifies the next digit 
-// in the same equivalent class. Hence, each equivalence class is chained 
+//
+// _eqclass_ is a 16-byte array where each element specifies the next digit
+// in the same equivalent class. Hence, each equivalence class is chained
 // through a loop. For example: (assume only 10 digits)
 //                  0  1  2  3  4  5  6  7  8  9
 //  all-different:  0  1  2  3  4  5  6  7  8  9
@@ -213,7 +217,7 @@ int FilterByEquivalenceClass_norep_v1(
 	unsigned char head[16];
 	memset(head, -1, 16);
 	for (int i = 0; i < 16; i++) {
-		if (i < head[i]) 
+		if (i < head[i])
 			head[i] = i;
 		for (int p = eqclass[i], c = 0; (p != i) && (c <= 16); p=eqclass[p], c++) {
 			if (i < head[p])
@@ -261,7 +265,7 @@ int FilterByEquivalenceClass_norep_v2(
 	unsigned char head[16];
 	memset(head, -1, 16);
 	for (int i = 0; i < 16; i++) {
-		if (i < head[i]) 
+		if (i < head[i])
 			head[i] = i;
 		int c = 0; // counter to avoid dead loop in case _eqclass_ is malformed.
 		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++) {
@@ -313,7 +317,7 @@ int FilterByEquivalenceClass_norep_v3(
 	unsigned char head[16];
 	memset(head, -1, 16);
 	for (int i = 0; i < 16; i++) {
-		if (i < head[i]) 
+		if (i < head[i])
 			head[i] = i;
 		int c = 0; // counter to avoid dead loop in case _eqclass_ is malformed.
 		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++) {
@@ -366,7 +370,7 @@ int FilterByEquivalenceClass_rep_v1(
 	unsigned char head[16];
 	memset(head, -1, 16);
 	for (int i = 0; i < 16; i++) {
-		if (i < head[i]) 
+		if (i < head[i])
 			head[i] = i;
 		int c = 0; // counter to avoid dead loop in case _eqclass_ is malformed.
 		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++) {
@@ -443,7 +447,7 @@ int FilterByEquivalenceClass_rep_v2(
 	unsigned char head[16];
 	memset(head, -1, 16);
 	for (int i = 0; i < 16; i++) {
-		if (i < head[i]) 
+		if (i < head[i])
 			head[i] = i;
 		int c = 0; // counter to avoid dead loop in case _eqclass_ is malformed.
 		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++) {

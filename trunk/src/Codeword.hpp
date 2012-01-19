@@ -2,7 +2,7 @@
 #define MASTERMIND_CODEWORD_HPP
 
 #include <iostream>
-#include <memory>
+#include <cstring>
 #include <emmintrin.h>
 #include <algorithm>
 #include "MMConfig.h"
@@ -15,10 +15,10 @@ namespace Mastermind {
 class Codeword
 {
 	// The internal representation of the codeword value.
-	union 
+	union
 	{
 		__m128i _value;
-		struct 
+		struct
 		{
 			unsigned char _counter[MM_MAX_COLORS];
 			unsigned char _digit[MM_MAX_PEGS];
@@ -27,13 +27,13 @@ class Codeword
 
 public:
 
-	/// Creates an empty codeword. An empty codeword contains no pegs. 
-	/// It can be used as a special value to indicate, for example, 
+	/// Creates an empty codeword. An empty codeword contains no pegs.
+	/// It can be used as a special value to indicate, for example,
 	/// an error.
 	Codeword()
 	{
-		memset(_counter, 0, sizeof(_counter));
-		memset(_digit, -1, sizeof(_digit));
+		std::memset(_counter, 0, sizeof(_counter));
+		std::memset(_digit, -1, sizeof(_digit));
 	}
 
 	/// Creates a codeword from its internal representation.
@@ -51,7 +51,7 @@ public:
 	/// Tests whether the codeword contains any color more than once.
 	bool repeated() const
 	{
-		return std::any_of(&_counter[0], &_counter[MM_MAX_COLORS], 
+		return std::any_of(&_counter[0], &_counter[MM_MAX_COLORS],
 			[](unsigned char c) -> bool { return c > 1; });
 	}
 
@@ -59,26 +59,26 @@ public:
 	int pegs() const;
 
 	/// Tests whether two codewords are equal.
-	static friend bool operator == (const Codeword &a, const Codeword &b)
+	bool operator == (const Codeword &c) const
 	{
-		return a.value() == b.value();
-		//return memcmp(&a, &b, sizeof(Codeword)) == 0;
+		//return a.value() == b.value();
+		return memcmp(this, &c, sizeof(Codeword)) == 0;
 	}
 
 #if 0
 	/// Converts the codeword to a string.
 	std::string ToString() const;
 
-	/// Compares this codeword to another codeword. 
+	/// Compares this codeword to another codeword.
 	/// Returns the feedback.
 	Feedback CompareTo(const Codeword& guess) const;
 
-	// Compares this codeword to a codeword list. 
+	// Compares this codeword to a codeword list.
 	// @return A list of feedbacks.
 	//void CompareTo(const CodewordList& list, FeedbackList& fbl) const;
 
 	/// Returns a 16-bit mask of digits present in the codeword.
-	unsigned short GetDigitMask() const;	
+	unsigned short GetDigitMask() const;
 #endif
 
 	/// Returns an empty codeword. This function has the same effect as

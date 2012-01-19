@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Mastermind" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="Types/;Algorithms/;Strategies/;Utilities/;Program/;" />
+		<Build>
+			<Target title="Debug">
+				<Option output="build/Debug/Mastermind" prefix_auto="1" extension_auto="1" />
+				<Option object_output="build/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="build/Release/Mastermind" prefix_auto="1" extension_auto="1" />
+				<Option object_output="build/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=c++0x" />
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="src/Algorithm.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Algorithm.hpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/AlignedAllocator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/CallCounter.cpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/CallCounter.h">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/CodeBreaker.cpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/CodeBreaker.h">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Codeword.cpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Codeword.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/CodewordList.cpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/CodewordList.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/CodewordRules.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Compare.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Compare.h">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Enumerate.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Enumerate.h">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Feedback.cpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Feedback.h">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/FifoMemoryManager.h">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/Frequency.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Frequency.h">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/HRTimer.h">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/MMConfig.cpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/MMConfig.h">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/Main.cpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/PoolMemoryManager.h">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/RoutineSelector.h">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/Scan.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Scan.h">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/SimpleCodeBreaker.cpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/SimpleCodeBreaker.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/StrategyTree.cpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/StrategyTree.h">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Test.cpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/Test.h">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
