@@ -140,5 +140,8 @@
     <ClInclude Include="src\Intrinsic.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\Registry.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

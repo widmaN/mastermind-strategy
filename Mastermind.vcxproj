@@ -168,6 +168,7 @@
     <ClInclude Include="src\OptimalCodeBreaker.hpp" />
     <ClInclude Include="src\PoolAllocator.hpp" />
     <ClInclude Include="src\PoolMemoryManager.h" />
+    <ClInclude Include="src\Registry.hpp" />
     <ClInclude Include="src\RoutineSelector.h" />
     <ClInclude Include="src\Scan.h" />
     <ClInclude Include="src\SimpleCodeBreaker.hpp" />
