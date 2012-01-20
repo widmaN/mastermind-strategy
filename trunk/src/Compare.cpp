@@ -11,6 +11,9 @@
 #include "MMConfig.h"
 #include "Compare.h"
 #include "CallCounter.h"
+#include "Registry.hpp"
+#include "Algorithm.hpp"
+#include "Codeword.hpp"
 
 #if ENABLE_CALL_COUNTER
 static Utilities::CallCounter _call_counter("CompareCodewords", true);
@@ -33,6 +36,8 @@ void PrintCompareStatistics()
 ///////////////////////////////////////////////////////////////////////////
 // Codeword comparison routines
 //
+
+using namespace Mastermind;
 
 // This is the benchmark routine for codeword comparison
 // which ALLOWS REPETITION.
@@ -517,3 +522,54 @@ static CrossComparisonRoutineSelector::RoutineEntry CrossCompareRep_Entries[] = 
 
 CrossComparisonRoutineSelector *CrossCompareRepImpl =
 	new CrossComparisonRoutineSelector(CrossCompareRep_Entries, "cr_omp1");
+
+//////////////////////////////////////////////////////////////////////
+// New interface
+
+// SSE2-enabled generic routine for comparing codewords.
+// Repeated colors are allowed.
+static void compare_long_codeword_default(
+	const CodewordRules &rules,
+	const Codeword& _secret,
+	const Codeword *first,
+	const Codeword *last,
+	Feedback result[])
+{
+	// UpdateCallCounter(count);
+	__m128i secret = _secret.value();
+
+	// Change 0xff in secret to 0x0f
+	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
+
+	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
+	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
+	__m128i zero = _mm_setzero_si128();
+
+	for (const __m128i *guesses = (const __m128i *)first;
+		guesses != (const __m128i *)last;
+		guesses++)
+	{
+		__m128i guess = *guesses;
+
+		// count nA
+		__m128i tA = _mm_cmpeq_epi8(secret, guess);
+		tA = _mm_and_si128(tA, mask_high6);
+		tA = _mm_sad_epu8(tA, zero);
+
+		// count nB
+		__m128i tB = _mm_min_epu8(secret, guess);
+		tB = _mm_and_si128(tB, mask_low10);
+		tB = _mm_sad_epu8(tB, zero);
+
+		int nA = _mm_extract_epi16(tA, 4);
+		int nB = _mm_extract_epi16(tB, 0) + _mm_extract_epi16(tB, 4);
+#if MM_FEEDBACK_COMPACT
+		unsigned char nAnB = (nB*nB+nB)/2+nA;
+#else
+		unsigned char nAnB = (unsigned char)((nA << (MM_FEEDBACK_BITS / 2)) | (nB - nA));
+#endif
+		*(result++) = nAnB;
+	}
+}
+
+REGISTER_ITEM(ComparisonRoutine, "default", compare_long_codeword_default)

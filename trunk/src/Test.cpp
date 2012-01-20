@@ -624,24 +624,6 @@ int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const cha
 	return 0;
 }
 
-#if 0
-class AlgorithmEngine
-{
-	CodewordRules _rules;
-public:
-
-	FeedbackList compare(
-		// const CodewordRules &rules, 
-		const Codeword &guess, 
-		CodewordList::const_iterator first,
-		CodewordList::const_iterator last);
-};
-
-class Flexible : public AlgorithmEngine
-{
-};
-#endif
-
 static void TestGuessingByTree(
 	CodewordRules rules, 
 	CodeBreaker *breakers[], 
