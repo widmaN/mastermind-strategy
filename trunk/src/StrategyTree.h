@@ -72,7 +72,7 @@ namespace Mastermind
 
 	public:
 		static StrategyTreeNode* Done() { return (StrategyTreeNode*)(-1); }
-		static StrategyTreeNode* Single(StrategyTreeMemoryManager *mm, const Codeword& possibility);
+		//static StrategyTreeNode* Single(StrategyTreeMemoryManager *mm, const Codeword& possibility);
 
 		/// Defines the file format of the strategy output.
 		enum FileFormat

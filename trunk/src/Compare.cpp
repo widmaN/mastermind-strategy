@@ -3,20 +3,22 @@
 ///
 
 // Note: define NTEST to exclude non-essential routines from compilation.
+#define NTEST
 
 #include <assert.h>
 #include <memory.h>
 #include <emmintrin.h>
 #include <omp.h>
 
+#include "util/simd.hpp"
 #include "Intrinsic.hpp"
-#include "MMConfig.h"
-#include "Compare.h"
 #include "CallCounter.h"
 #include "Registry.hpp"
+
+#include "MMConfig.h"
+#include "Compare.h"
 #include "Algorithm.hpp"
 #include "Codeword.hpp"
-#include "util/simd.hpp"
 
 #if ENABLE_CALL_COUNTER
 static Utilities::CallCounter _call_counter("CompareCodewords", true);
@@ -41,6 +43,8 @@ void PrintCompareStatistics()
 //
 
 using namespace Mastermind;
+
+#if 0
 
 // This is the benchmark routine for codeword comparison
 // which ALLOWS REPETITION.
@@ -529,48 +533,83 @@ CrossComparisonRoutineSelector *CrossCompareRepImpl =
 //////////////////////////////////////////////////////////////////////
 // New interface
 
+#endif
+
+// Precompute a conversion table that converts (nA<<4|nAB) -> feedback.
+// Both nA and nAB must be >= 0 and <= 15.
+struct generic_feedback_mapping_t
+{
+	unsigned char table[0x100];
+
+	generic_feedback_mapping_t()
+	{
+		for (int i = 0; i < 0x100; i++) 
+		{
+			int nA = i >> 4;
+			int nAB = i & 0xF;
+#if MM_FEEDBACK_COMPACT
+			table[i] = nAB*(nAB+1)/2+nA;
+#else
+			table[i] = (nA << MM_FEEDBACK_ASHIFT) | (nAB - nA);
+#endif
+		}
+	}
+};
+
+static const generic_feedback_mapping_t generic_feedback_mapping;
+
 // SSE2-based routine for comparing generic codewords.
 // Repeated colors are allowed.
 static void compare_long_codeword_generic(
 	const CodewordRules &rules,
-	const Codeword& _secret,
-	const Codeword *first,
-	const Codeword *last,
+	const Codeword &_secret,
+	const Codeword *_first,
+	const Codeword *_last,
 	Feedback result[])
 {
 	// UpdateCallCounter(count);
-	__m128i secret = _secret.value();
+	using namespace util::simd;
+	typedef util::simd::simd_t<uint8_t,16> simd_t;
 
-	// Change 0xff in secret to 0x0f
-	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
+	simd_t secret = _secret.value();
 
-	__m128i mask_high6 = _mm_slli_si128(_mm_set1_epi8((char)0x01), 10);
-	__m128i mask_low10 = _mm_srli_si128(_mm_set1_epi8((char)0xff), 6);
-	__m128i zero = _mm_setzero_si128();
+	// Change 0xff in secret to 0x0f.
+	secret &= (uint8_t)0x0f;
 
-	for (const __m128i *guesses = (const __m128i *)first;
-		guesses != (const __m128i *)last;
-		guesses++)
+	// Create mask for use later.
+	const simd_t mask_pegs = fill_left<MM_MAX_PEGS>((uint8_t)0x01);
+	const simd_t mask_colors = fill_right<MM_MAX_COLORS>((uint8_t)0xff);
+
+	// Note: we write an explicit loop since std::transform() is too 
+	// slow, because VC++ does not inline the lambda expression, thus
+	// making each iteration a CALL with arguments passed on the stack.
+	const simd_t *first = reinterpret_cast<const simd_t *>(_first);
+	const simd_t *last = reinterpret_cast<const simd_t *>(_last);
+	for (const simd_t *guesses = first; guesses != last; ++guesses)
 	{
-		__m128i guess = *guesses;
+		const simd_t &guess = *guesses;
 
-		// count nA
-		__m128i tA = _mm_cmpeq_epi8(secret, guess);
-		tA = _mm_and_si128(tA, mask_high6);
-		tA = _mm_sad_epu8(tA, zero);
-
-		// count nB
-		__m128i tB = _mm_min_epu8(secret, guess);
-		tB = _mm_and_si128(tB, mask_low10);
-		tB = _mm_sad_epu8(tB, zero);
-
-		int nA = _mm_extract_epi16(tA, 4);
-		int nB = _mm_extract_epi16(tB, 0) + _mm_extract_epi16(tB, 4);
-#if MM_FEEDBACK_COMPACT
-		unsigned char nAnB = (nB*nB+nB)/2+nA;
+		// Compute nA.
+		// It turns out that there's a significant (20%) performance
+		// hit if <code>nA = sum_high(...)</code> is changed to 
+		// <code>nA = sum(...)</code>. In the latter case, VC++
+		// VC++ generates an extra (redundant) memory read.
+		// The reason is unclear. (Obviously there are still free
+		// XMM registers.)
+#if MM_MAX_PEGS <= 8
+		int nA = sum_high((secret == guess) & mask_pegs);
 #else
-		unsigned char nAnB = (unsigned char)((nA << (MM_FEEDBACK_BITS / 2)) | (nB - nA));
+		int nA = sum((secret == guess) & mask_pegs);
 #endif
+
+		// Compute nAB.
+#if MM_MAX_COLORS <= 8
+		int nAB = sum_low(min(secret, guess) & mask_colors);
+#else
+		int nAB = sum(min(secret, guess) & mask_colors);
+#endif
+
+		unsigned char nAnB = generic_feedback_mapping.table[(nA<<4)|nAB];
 		*(result++) = nAnB;
 	}
 }
@@ -587,11 +626,11 @@ static void compare_long_codeword_generic(
 //
 // Hence, the best we can do is to compile under 32-bit, and access 
 // the table directly.
-struct nonrepeatable_feedback_mapping
+struct norepeat_feedback_mapping_t
 {
 	unsigned char table[0x10000];
 
-	nonrepeatable_feedback_mapping()
+	norepeat_feedback_mapping_t()
 	{
 		for (int i = 0; i < 0x10000; i++) 
 		{
@@ -606,49 +645,14 @@ struct nonrepeatable_feedback_mapping
 	}
 };
 
-static const nonrepeatable_feedback_mapping precomputed_feedbacks;
+static const norepeat_feedback_mapping_t norepeat_feedback_mapping;
 
 // Comparison routine for <i>non-repeatable</i> codewords.
 // We build a cache that pre-computes feedback from bitmask.
 // This is much (3x) faster than counting the bits each time.
 static void compare_long_codeword_norepeat(
 	const CodewordRules &rules,
-	const Codeword& _secret,
-	const Codeword *first,
-	const Codeword *last,
-	Feedback result[])
-{
-	//UpdateCallCounter(count);
-	__m128i secret = _secret.value();
-
-	// Change 0xFF in secret to 0x0F
-	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
-
-	// Set 0 counter in secret to 0xFF
-	__m128i t1 = _mm_cmpeq_epi8(secret, _mm_setzero_si128());
-	t1 = _mm_slli_si128(t1, MM_MAX_PEGS);
-	t1 = _mm_srli_si128(t1, MM_MAX_PEGS);
-	secret = _mm_or_si128(secret, t1);
-
-	// Scan codeword array
-	const __m128i *guesses = (const __m128i *)first;
-	size_t count = last - first;
-	for (; count > 0; --count)
-	{
-		__m128i guess = *(guesses++);
-		__m128i cmp = _mm_cmpeq_epi8(guess, secret);
-		int mask = _mm_movemask_epi8(cmp);
-		unsigned char nAnB = precomputed_feedbacks.table[mask];
-		*(result++) = nAnB;
-	}
-}
-
-// Comparison routine for <i>non-repeatable</i> codewords.
-// We build a cache that pre-computes feedback from bitmask.
-// This is much (3x) faster than counting the bits each time.
-static void compare_long_codeword_norepeat_wrapped(
-	const CodewordRules &rules,
-	const Codeword& _secret,
+	const Codeword &_secret,
 	const Codeword *first,
 	const Codeword *last,
 	Feedback result[])
@@ -658,20 +662,13 @@ static void compare_long_codeword_norepeat_wrapped(
 	simd_t secret = _secret.value();
 
 	// Change 0xFF in secret to 0x0F
-	secret &= 0x0f;
+	secret &= (char)0x0f;
 
 	// Set zero counters in secret to 0xFF, so that if a counter in the
 	// guess and secret are both zero, they won't compare equal.
-#if 0
-	simd_t t1 = (secret == simd_t::zero());
-	t1 = _mm_slli_si128(t1, MM_MAX_PEGS);
-	t1 = _mm_srli_si128(t1, MM_MAX_PEGS);
-	secret |= t1;
-#else
 	secret |= util::simd::keep_right<MM_MAX_COLORS>(secret == simd_t::zero());
-#endif
 
-	// Scan codeword array
+	// Scan codeword array.
 	const simd_t *guesses = (const simd_t *)first;
 	size_t count = last - first;
 	for (; count > 0; --count)
@@ -680,11 +677,11 @@ static void compare_long_codeword_norepeat_wrapped(
 		const simd_t &guess = *guesses;
 		const simd_t &cmp = (guess == secret);
 		int mask = util::simd::byte_mask(cmp);
-		unsigned char nAnB = precomputed_feedbacks.table[mask];
+		unsigned char nAnB = norepeat_feedback_mapping.table[mask];
 		*(result++) = nAnB;
 		++guesses;
 #else
-		*(result++) = precomputed_feedbacks.table
+		*(result++) = norepeat_feedback_mapping.table
 			[ util::simd::byte_mask(*(guesses++) == secret) ];
 #endif
 	}
@@ -775,7 +772,6 @@ static void compare_long_codeword_norepeat_p4(
 
 REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_long_codeword_generic)
 REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_long_codeword_norepeat)
-REGISTER_ROUTINE(ComparisonRoutine, "norepeat2", compare_long_codeword_norepeat_wrapped)
 #ifndef NTEST
 REGISTER_ROUTINE(ComparisonRoutine, "norepeat_p4", compare_long_codeword_norepeat_p4)
 #endif

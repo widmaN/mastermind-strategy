@@ -172,6 +172,7 @@ void StrategyTreeNode::WriteToFile(
 	}
 }
 
+#if 0
 StrategyTreeNode* StrategyTreeNode::Single(StrategyTreeMemoryManager *mm, const Codeword& possibility)
 {
 	StrategyTreeNode *node = Create(mm);
@@ -182,3 +183,4 @@ StrategyTreeNode* StrategyTreeNode::Single(StrategyTreeMemoryManager *mm, const 
 	node->AddChild(compare(CodewordRules(), possibility, possibility), StrategyTreeNode::Done());
 	return node;
 }
+#endif

@@ -66,6 +66,9 @@
     <ClCompile Include="src\Interactive.cpp">
       <Filter>Program</Filter>
     </ClCompile>
+    <ClCompile Include="src\Environment.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\SimpleCodeBreaker.hpp">

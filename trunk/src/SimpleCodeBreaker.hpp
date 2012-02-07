@@ -14,8 +14,7 @@ class SimpleCodeBreaker : public CodeBreaker
 
 public:
 	/// Creates a simple code breaker.
-	SimpleCodeBreaker(const CodewordRules &rules) 
-		: CodeBreaker(rules) 
+	SimpleCodeBreaker(Environment &env)	: CodeBreaker(env)
 	{ 
 	}
 

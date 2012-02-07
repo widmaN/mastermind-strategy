@@ -8,6 +8,7 @@
 #include "CodewordRules.hpp"
 #include "CodewordList.hpp"
 #include "StrategyTree.h"
+#include "Environment.hpp"
 
 namespace Mastermind
 {
@@ -20,6 +21,9 @@ class CodeBreaker
 	void *m_fp;
 
 protected:
+
+	/// Environment containing settings, engines, etc.
+	Environment &_env;
 
 	/// Rules of the game that this code breaker works on.
 	CodewordRules m_rules;
@@ -46,11 +50,20 @@ protected:
 	unsigned short m_impossible;
 
 public:
+
+#if 0
 	/// Creates a code breaker for the given rules.
 	/// The base implementation initializes all members. In particular,
 	/// it fills codeword list <code>m_all</code> with all codewords 
 	/// conforming to the rules.
 	CodeBreaker(const CodewordRules &rules);
+#endif
+
+	/// Creates a code breaker for the given environment.
+	/// The base implementation initializes all members. In particular,
+	/// it fills codeword list <code>m_all</code> with all codewords 
+	/// conforming to the rules.
+	CodeBreaker(Environment &env);
 
 	/// Destructor.
 	/// The base implementation cleans up member variables.

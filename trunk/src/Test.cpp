@@ -434,6 +434,7 @@ int TestScan(CodewordRules rules, long times)
 }
 #endif
 
+#if 0
 #ifndef NTEST
 /// Compares frequency counting algorithms.
 ///
@@ -507,6 +508,7 @@ int TestFrequencyCounting(const CodewordRules &rules, long times)
 	return 0;
 }
 #endif
+#endif
 
 #if 0
 int TestNewScan(CodewordRules rules, long times)
@@ -561,6 +563,7 @@ int TestNewScan(CodewordRules rules, long times)
 }
 #endif
 
+#if 0
 int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
 {
 	CodewordList list = generateCodewords(rules);
@@ -616,6 +619,7 @@ int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const cha
 	// system("PAUSE");
 	return 0;
 }
+#endif
 
 static void TestGuessingByTree(
 	CodewordRules rules, 
@@ -694,8 +698,12 @@ int test(const CodewordRules &rules)
 #else
 #define LOOP_FLAG 0
 #endif
+
+	// Set up a standard environment.
+	Environment e(rules);
+
 	std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
-	testComparison(rules, "norepeat", "norepeat2", 200000*LOOP_FLAG);
+	testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
 	system("PAUSE");
 	return 0;
 	
@@ -715,7 +723,7 @@ int test(const CodewordRules &rules)
 	//Codeword first_guess = Codeword::Parse("0011", rules);
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
-		new SimpleCodeBreaker(rules),
+		new SimpleCodeBreaker(e),
 		//new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(rules, posonly),
 		//new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
 		//new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),

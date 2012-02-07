@@ -24,7 +24,7 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 	// @todo: use rvalue reference to reduce copying of feedback list.
 	FeedbackFrequencyTable freq;
 	{
-		FeedbackList feedbacks = compare(m_rules, guess, 
+		FeedbackList feedbacks = _env.compare(guess, 
 			possibilities.cbegin(), possibilities.cend());
 		countFrequencies(m_rules, feedbacks.begin(), feedbacks.end(), freq);
 	}
@@ -46,7 +46,8 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 			else 
 			{
 				Codeword t = Codeword::emptyValue();
-				StrategyTreeNode *child = FillStrategy(filterByFeedback(possibilities, m_rules, guess, fb), t);
+				StrategyTreeNode *child = FillStrategy(
+					_env.filterByFeedback(possibilities, guess, fb), t);
 				node->AddChild(fb, child);
 			}
 		}

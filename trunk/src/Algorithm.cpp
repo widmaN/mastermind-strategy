@@ -4,6 +4,7 @@
 
 namespace Mastermind {
 
+#if 0
 Feedback compare(
 	const CodewordRules &rules,
 	const Codeword& secret, 
@@ -42,6 +43,7 @@ FeedbackList compare(
 	}
 	return feedbacks;
 }
+#endif
 
 unsigned short getDigitMask(const Codeword &c)
 {
@@ -63,9 +65,10 @@ unsigned short getDigitMask(
 	return ScanDigitMask((const __m128i*)&(*first), last - first);
 }
 
-
+#if 0
 // TODO: Does this function take a lot of time?
 CodewordList filterByFeedback(
+	const Environment &e,
 	const CodewordList &list,
 	const CodewordRules &rules, 
 	const Codeword &guess, 
@@ -97,97 +100,7 @@ CodewordList filterByFeedback(
 	}
 	return result;
 }
-
-void partition(
-	CodewordList::iterator first,
-	CodewordList::iterator last,
-	const CodewordRules &rules,
-	const Codeword &guess,
-	FeedbackFrequencyTable &freq)
-{
-	// If there's no element in the list, do nothing.
-	if (first == last)
-		return;
-
-	// Compare guess to each codeword in the list.
-	FeedbackList fbl = compare(rules, guess, first, last);
-	countFrequencies(rules, fbl.cbegin(), fbl.cend(), freq);
-	// freq.CountFrequencies(fbl);
-
-	// Build a table to store the range of each partition.
-	struct partition_location
-	{
-		//size_t begin; // begin of the partition
-		size_t end;     // end of the partition
-		size_t current; // next location to insert
-	} part[256+1];
-
-	size_t i = 0;
-	part[0].current = 0;
-	for (int k = 0; k <= freq.maxFeedback(); k++)
-	{
-		i += freq[Feedback(k)];
-		part[k].end = i;
-		part[k+1].current = i;
-	}
-	part[freq.maxFeedback()+1].end = std::numeric_limits<size_t>::max();
-
-#if 1
-	// Find the first non-empty partition.
-	int k = 0; // current partition
-	while (freq[k] == 0)
-		++k;
-
-	// Perform a in-place partitioning.
-	size_t count = last - first;
-	for (size_t i = 0; i < count; )
-	{
-		int fbv = fbl[i].value();
-		if (fbv == k) 
-		{
-			// Codeword[i] is in the correct partition.
-			// Advance the current partition pointer.
-			// If it's reached the end, move to the next partition.
-			if (++part[k].current >= part[k].end)
-			{
-				for (++k; part[k].current >= part[k].end; ++k);
-			}
-			i = part[k].current;
-		}
-		else 
-		{
-			// Codeword[i] is NOT in the correct partition.
-			// Swap it into the correct partition, and increment
-			// the pointer of that partition.
-			std::swap(first[i], first[part[fbv].current++]);
-		}
-	}
-
-#else
-	// Create a spare list to store temporary result
-	// TODO: Modify code to enable MT
-	static __m128i* tmp_list = NULL;
-	static int tmp_size = 0;
-	if (tmp_size < m_count) 
-	{
-		_aligned_free(tmp_list);
-		tmp_list = (__m128i *)_aligned_malloc(sizeof(codeword_t)*m_count, sizeof(codeword_t));
-		tmp_size = m_count;
-	}
-
-	// Re-order codewords to the temporary list
-	const unsigned char *fblist = fbl.GetData();
-	for (int i = 0; i < m_count; i++) {
-		tmp_list[start_index[fblist[i]]++] = m_data[i];
-	}
-
-	// Copy temporary list back
-	for (int i = 0; i < m_count; i++) 
-	{
-		m_data[i] = tmp_list[i];
-	}
 #endif
-}
 
 void countFrequencies(
 	const CodewordRules &rules,

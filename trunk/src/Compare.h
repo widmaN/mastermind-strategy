@@ -1,6 +1,8 @@
 /// \file Compare.h
 /// Declaration of codeword comparison routines.
 
+#if 0
+
 #pragma once
 
 #include <emmintrin.h>
@@ -48,3 +50,4 @@ typedef Utilities::RoutineSelector<CROSS_COMPARISON_ROUTINE> CrossComparisonRout
 /// Routine table for codeword cross comparison (allowing repetition).
 extern CrossComparisonRoutineSelector *CrossCompareRepImpl;
 
+#endif
