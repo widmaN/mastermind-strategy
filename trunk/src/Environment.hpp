@@ -14,11 +14,13 @@ class Environment
 {
 	CodewordRules _rules;
 	ComparisonRoutine _compare;
+	FrequencyRoutine _freq;
 
 public:
 
 	Environment(const CodewordRules &rules)	: _rules(rules),
-		_compare(RoutineRegistry<ComparisonRoutine>::get("generic"))
+		_compare(RoutineRegistry<ComparisonRoutine>::get("generic")),
+		_freq(RoutineRegistry<FrequencyRoutine>::get("generic"))
 	{
 	}
 
@@ -37,7 +39,10 @@ public:
 	{
 		size_t count = last - first;
 		FeedbackList feedbacks(count);
-		_compare(_rules, guess, &(*first), &(*last), feedbacks.data());
+		if (count > 0)
+		{
+			_compare(_rules, guess, &(*first), &(*first)+count, feedbacks.data());
+		}
 		return feedbacks;
 	}
 
@@ -73,6 +78,12 @@ public:
 		CodewordList::iterator first,
 		CodewordList::iterator last,
 		const Codeword &guess,
+		FeedbackFrequencyTable &freq) const;
+
+	/// Counts the frequencies of each feedback in a feedback list.
+	void countFrequencies(
+		FeedbackList::const_iterator first,
+		FeedbackList::const_iterator last,
 		FeedbackFrequencyTable &freq) const;
 };
 

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 
-#include "Compare.h"
 #include "Test.h"
 #include "Enumerate.h"
 

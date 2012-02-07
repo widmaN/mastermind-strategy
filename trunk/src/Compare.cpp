@@ -1,7 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////
 // Codeword comparison routines.
 
-
 #include "util/simd.hpp"
 #include "util/intrinsic.hpp"
 #include "MMConfig.h"

@@ -6,7 +6,6 @@
 #include <malloc.h>
 #include <iomanip>
 
-#include "Compare.h"
 #include "CodewordList.hpp"
 #include "HRTimer.h"
 #include "Enumerate.h"
@@ -58,16 +57,17 @@ static bool testComparison(
 	// Display frequency table in Debug mode.
 	if (times == 0) 
 	{
+		Environment e(rules);
 		if (1) 
 		{
 			FeedbackFrequencyTable freq;
-			countFrequencies(rules, results1.begin(), results1.end(), freq);
+			e.countFrequencies(results1.begin(), results1.end(), freq);
 			std::cout << freq;
 		}
 		if (1) 
 		{
 			FeedbackFrequencyTable freq;
-			countFrequencies(rules, results2.begin(), results2.end(), freq);
+			e.countFrequencies(results2.begin(), results2.end(), freq);
 			std::cout << freq;
 		}
 		return true;
@@ -563,53 +563,59 @@ int TestNewScan(CodewordRules rules, long times)
 }
 #endif
 
-#if 0
-int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
+static bool testSumSquares(
+	const CodewordRules &rules, 
+	const char *routine1, 
+	const char *routine2, 
+	long times)
 {
+	Environment e(rules);
 	CodewordList list = generateCodewords(rules);
-	FeedbackList fbl = compare(rules, list[0], list.cbegin(), list.cend());
+	FeedbackList fbl = e.compare(list[0], list.begin(), list.end());
 	FeedbackFrequencyTable freq;
-	countFrequencies(rules, fbl.begin(), fbl.end(), freq);
+	e.countFrequencies(fbl.begin(), fbl.end(), freq);
 	unsigned char maxfb = Feedback::maxValue(rules); // fbl.GetMaxFeedbackValue();
+	size_t count = maxfb + 1;
 
-	FREQUENCY_SUMSQUARES_ROUTINE *func1 = GetSumOfSquaresImpl->GetRoutine(routine1);
-	FREQUENCY_SUMSQUARES_ROUTINE *func2 = GetSumOfSquaresImpl->GetRoutine(routine2);
-	unsigned int ss1, ss2;
+	SumSquaresRoutine func1 = RoutineRegistry<SumSquaresRoutine>::get(routine1);
+	SumSquaresRoutine func2 = RoutineRegistry<SumSquaresRoutine>::get(routine2);
 
-	// Verify results
-	ss1 = func1(freq.GetData(), maxfb);
-	ss2 = func2(freq.GetData(), maxfb);
-	if (ss1 != ss2) {
-		printf("**** ERROR: Result mismatch: %u v %u\n", ss1, ss2);
-		system("PAUSE");
-		return 0;
+	// Verify results.
+	unsigned int ss1 = func1(freq.data(), freq.data() + count);
+	unsigned int ss2 = func2(freq.data(), freq.data() + count);
+	if (ss1 != ss2) 
+	{
+		std::cout << "**** ERROR: Result mismatch: " << ss1 
+			<< " v " << ss2 << std::endl;
+		return false;
 	}
 
 	// Print result if in debug mode
-	if (times == 0) {
-		printf("SS1 = %x\n", ss1);
-		printf("SS2 = %x\n", ss2);
-		system("PAUSE");
-		return 0;
+	if (times == 0) 
+	{
+		std::cout << "SS1 = " << ss1 << std::endl;
+		std::cout << "SS2 = " << ss2 << std::endl;
+		return true;
 	}
 
 	HRTimer timer;
-	double t1, t2;
-	t1 = t2 = 0;
+	double t1 = 0, t2 = 0;
 
-	maxfb=127;
-	for (int pass = 0; pass < 10; pass++) {
-		//timer.Start();
-		for (int j = 0; j < times / 10; j++) {
-			ss1 = func1(freq.GetData(), maxfb);
+	for (int pass = 0; pass < 10; pass++) 
+	{
+		timer.start();
+		for (int j = 0; j < times / 10; j++) 
+		{
+			ss1 = func1(freq.data(), freq.data() + count);
 		}
-		//t1 += timer.Stop();
+		t1 += timer.stop();
 
-		//timer.Start();
-		for (int j = 0; j < times / 10; j++) {
-			ss2 = func2(freq.GetData(), maxfb);
+		timer.start();
+		for (int j = 0; j < times / 10; j++) 
+		{
+			ss2 = func2(freq.data(), freq.data() + count);
 		}
-		//t2 += timer.Stop();
+		t2 += timer.stop();
 	}
 
 	printf("Algorithm 1: %6.3f\n", t1);
@@ -619,7 +625,6 @@ int TestSumOfSquares(const CodewordRules &rules, const char *routine1, const cha
 	// system("PAUSE");
 	return 0;
 }
-#endif
 
 static void TestGuessingByTree(
 	CodewordRules rules, 
@@ -702,17 +707,15 @@ int test(const CodewordRules &rules)
 	// Set up a standard environment.
 	Environment e(rules);
 
-	std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
-	testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
+	//std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
+	//testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
+	testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
+
 	system("PAUSE");
 	return 0;
 	
-	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
-	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
-	//return TestSumOfSquares(rules, "c", "c_p2", 15000000*LOOP_FLAG);
-	//return TestSumOfSquares(rules, "c", "c_p2", 300000*LOOP_FLAG);
 	//return TestNewScan(rules, 100000*1);
 	//return BuildLookupTableForLongComparison();
 	//return TestEnumerationDirect(200000*1);

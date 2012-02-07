@@ -26,7 +26,7 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 	{
 		FeedbackList feedbacks = _env.compare(guess, 
 			possibilities.cbegin(), possibilities.cend());
-		countFrequencies(m_rules, feedbacks.begin(), feedbacks.end(), freq);
+		_env.countFrequencies(feedbacks.begin(), feedbacks.end(), freq);
 	}
 	StrategyTreeMemoryManager *mm = default_strat_mm;
 
