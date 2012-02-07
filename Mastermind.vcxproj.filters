@@ -143,5 +143,11 @@
     <ClInclude Include="src\Registry.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\Environment.hpp">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\simd.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -85,44 +85,7 @@ struct RoutineRegistry : public Utilities::Registry<std::string, Routine>
 {
 };
 
-class AlgorithmEngine
-{
-	CodewordRules _rules;
-	ComparisonRoutine _compare;
-
-public:
-
-	AlgorithmEngine(const CodewordRules &rules)	: _rules(rules),
-		_compare(RoutineRegistry<ComparisonRoutine>::get("default"))
-	{
-	}
-
-	const CodewordRules& rules() const { return _rules; }
-
-	void select(ComparisonRoutine f) { _compare = f; }
-
-	FeedbackList compare(
-		const Codeword &guess, 
-		CodewordList::const_iterator first,
-		CodewordList::const_iterator last)
-	{
-		size_t count = last - first;
-		FeedbackList feedbacks(count);
-		_compare(_rules, guess, &(*first), &(*last), &feedbacks[0]);
-		return feedbacks;
-	}
-
-	Feedback compare(
-		const Codeword& guess, 
-		const Codeword& secret)
-	{
-		Feedback feedback;
-		__m128i guess_value = guess.value();
-		_compare(_rules, guess, &secret, &secret + 1, &feedback);
-		return feedback;
-	}
-
-};
+#define REGISTER_ROUTINE(type,id,item) REGISTER_ITEM(type,id,item)
 
 } // namespace Mastermind
 

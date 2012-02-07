@@ -25,7 +25,7 @@ struct Registry
 
 	 static const TValue& get(const TKey &key)
 	 {
-		 return registry()[key];
+		 return registry().at(key);
 	 }
 
 	 static void registerItem(const TKey &key, const TValue &value)
