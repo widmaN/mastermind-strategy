@@ -48,7 +48,7 @@ void Environment::partition(
 
 	// Compare guess to each codeword in the list.
 	FeedbackList fbl = compare(guess, first, last);
-	countFrequencies(_rules, fbl.cbegin(), fbl.cend(), freq);
+	countFrequencies(fbl.cbegin(), fbl.cend(), freq);
 	// freq.CountFrequencies(fbl);
 
 	// Build a table to store the range of each partition.
@@ -99,5 +99,27 @@ void Environment::partition(
 		}
 	}
 }
+
+void Environment::countFrequencies(
+	FeedbackList::const_iterator first,
+	FeedbackList::const_iterator last,
+	FeedbackFrequencyTable &freq) const
+{
+	if (first != last)
+	{
+		int maxfb = Feedback::maxValue(_rules);
+		const unsigned char *buffer = (const unsigned char *)&(*first);
+		size_t count = last - first;
+		_freq(buffer, buffer + count, freq.data(), maxfb);
+		freq.setMaxFeedback(maxfb);
+	}
+	else
+	{
+		freq.setMaxFeedback(0);
+	}
+}
+
+
+
 
 } // namespace Mastermind

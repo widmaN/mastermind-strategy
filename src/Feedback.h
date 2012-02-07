@@ -244,8 +244,10 @@ public:
 	/// Gets the maximum frequency value.
 	unsigned int GetMaximum() const;
 
+#if 0
 	/// Computes the sum of squares of the frequency values.
 	unsigned int GetSumOfSquares() const;
+#endif
 
 	/// Computes the entropy of the feedback frequencies.
 	double GetModifiedEntropy() const;

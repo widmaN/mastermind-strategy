@@ -5,7 +5,7 @@
 
 #include "MMConfig.h"
 #include "Enumerate.h"
-#include "Intrinsic.hpp"
+#include "util/intrinsic.hpp"
 
 // Returns n!/r!
 int NPermute(int n, int r)
@@ -230,7 +230,7 @@ int FilterByEquivalenceClass_norep_v1(
 		unsigned char chain[16];
 		memcpy(chain, head, 16);
 		for (int j = 0; j < 8; j++) {
-			cw = Utilities::Intrinsic::rotateLeft(cw, 4);
+			cw = util::intrinsic::rotate_left(cw, 4);
 			unsigned char k = (cw & 0x0f);
 			unsigned char k_remapped = chain[head[k]];
 			chain[head[k]] = eqclass[k_remapped];

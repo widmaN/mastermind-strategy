@@ -5,8 +5,7 @@
 #include "MMConfig.h"
 #include "Feedback.h"
 #include "CodewordList.hpp"
-#include "Frequency.h"
-#include "Compare.h"
+//#include "Frequency.h"
 
 // using namespace Mastermind;
 
@@ -192,6 +191,7 @@ void FeedbackFrequencyTable::CountFrequencies(const FeedbackList &fblist)
 }
 #endif
 
+#if 0
 unsigned int FeedbackFrequencyTable::GetSumOfSquares() const
 {
 	//unsigned int ret = 0;
@@ -201,6 +201,7 @@ unsigned int FeedbackFrequencyTable::GetSumOfSquares() const
 	//return ret;
 	return GetSumOfSquaresImpl->Run(m_freq, m_maxfb);
 }
+#endif
 
 double FeedbackFrequencyTable::GetModifiedEntropy() const 
 {
