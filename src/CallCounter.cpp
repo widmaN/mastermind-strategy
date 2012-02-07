@@ -3,7 +3,7 @@
 #include <cstring>
 
 #include "CallCounter.h"
-#include "Intrinsic.hpp"
+#include "util/intrinsic.hpp"
 
 using namespace Utilities;
 
@@ -80,7 +80,7 @@ void CallCounter::AddCall(unsigned int comp)
 {
 	if (m_enabled && comp)
 	{
-		int pos = Intrinsic::bitScanReverse(comp);
+		int pos = util::intrinsic::bit_scan_reverse(comp);
 		m_callstat[pos]++;
 		m_compstat[pos] += comp;
 		m_calls++;

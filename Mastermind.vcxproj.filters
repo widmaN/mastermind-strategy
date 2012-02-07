@@ -86,9 +86,6 @@
     <ClInclude Include="src\Algorithm.hpp">
       <Filter>Algorithms</Filter>
     </ClInclude>
-    <ClInclude Include="src\Compare.h">
-      <Filter>Algorithms</Filter>
-    </ClInclude>
     <ClInclude Include="src\AlignedAllocator.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -140,9 +137,6 @@
     <ClInclude Include="src\MMConfig.h">
       <Filter>Program</Filter>
     </ClInclude>
-    <ClInclude Include="src\Intrinsic.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Registry.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -150,6 +144,9 @@
       <Filter>Algorithms</Filter>
     </ClInclude>
     <ClInclude Include="src\util\simd.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\intrinsic.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>

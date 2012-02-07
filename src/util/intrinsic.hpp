@@ -1,5 +1,5 @@
-#ifndef UTILITIES_INTRINSIC_H
-#define UTILITIES_INTRINSIC_H
+#ifndef MASTERMIND_UTIL_INTRINSIC_HPP
+#define MASTERMIND_UTIL_INTRINSIC_HPP
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -7,15 +7,14 @@
 #include <x86intrin.h>
 #endif
 
-namespace Utilities { 
-namespace Intrinsic {
+namespace util { namespace intrinsic {
 
-inline unsigned int rotateLeft(unsigned int value, int shift)
+inline unsigned int rotate_left(unsigned int value, int shift)
 {
 	return _rotl(value, 4);
 }
 
-inline int bitScanReverse(unsigned int value)
+inline int bit_scan_reverse(unsigned int value)
 {
 	unsigned long pos = 0;
 #ifdef _WIN32
@@ -26,7 +25,7 @@ inline int bitScanReverse(unsigned int value)
 	return pos;
 }
 
-static int popCount(unsigned short a)
+static int pop_count(unsigned short a)
 {
 #ifdef _WIN32
 #if ENABLE_SSE2
@@ -48,4 +47,4 @@ static int popCount(unsigned short a)
 } // namespace Intrinsic
 } // namespace Utilities
 
-#endif // UTILITIES_INTRINSIC_H
+#endif // MASTERMIND_UTIL_INTRINSIC_HPP
