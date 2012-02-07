@@ -157,6 +157,7 @@
     <ClInclude Include="src\CodewordList.hpp" />
     <ClInclude Include="src\CodewordRules.hpp" />
     <ClInclude Include="src\Compare.h" />
+    <ClInclude Include="src\Environment.hpp" />
     <ClInclude Include="src\Enumerate.h" />
     <ClInclude Include="src\Feedback.h" />
     <ClInclude Include="src\FifoMemoryManager.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="src\SimpleCodeBreaker.hpp" />
     <ClInclude Include="src\StrategyTree.h" />
     <ClInclude Include="src\Test.h" />
+    <ClInclude Include="src\util\simd.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

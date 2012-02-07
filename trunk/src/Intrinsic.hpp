@@ -26,6 +26,25 @@ inline int bitScanReverse(unsigned int value)
 	return pos;
 }
 
+static int popCount(unsigned short a)
+{
+#ifdef _WIN32
+#if ENABLE_SSE2
+	return __popcnt16(a);
+#else /* ENABLE_SSE2 */
+	int n = 0;
+	for (; a; a >>= 1) 
+	{
+		n += (a & 1);
+	}
+	return n;
+#endif
+#else /* _WIN32 */
+	return  __builtin_popcount(a);
+#endif
+	
+}
+
 } // namespace Intrinsic
 } // namespace Utilities
 

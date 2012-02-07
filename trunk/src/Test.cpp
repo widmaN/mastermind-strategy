@@ -19,9 +19,87 @@
 #include "Algorithm.hpp"
 #include "CodeBreaker.h"
 #include "SimpleCodeBreaker.hpp"
+#include "Environment.hpp"
 
 using namespace Mastermind;
 using namespace Utilities;
+
+// Test comparison routines.
+static bool testComparison(
+	const CodewordRules &rules,
+	const char *routine1, const char *routine2, long times)
+{
+	CodewordList list = generateCodewords(rules);
+	size_t count = list.size();
+	Codeword secret = list[count / 2];
+	FeedbackList results1(count), results2(count);
+
+	ComparisonRoutine func1 = RoutineRegistry<ComparisonRoutine>::get(routine1);
+	ComparisonRoutine func2 = RoutineRegistry<ComparisonRoutine>::get(routine2);
+
+	// Verify computation results.
+	if (times == 0)
+	{
+		func1(rules, secret, &list.front(), &list.back()+1, results1.data());
+		func2(rules, secret, &list.front(), &list.back()+1, results2.data());
+		for (size_t i = 0; i < count; i++) 
+		{
+			if (results1[i] != results2[i])
+			{
+				std::cout << "**** ERROR: Inconsistent [" << i << "]: "
+					<< "Compare(" << secret << ", " << list[i] << ") = " 
+					<< results1[i] << " v " << results2[i] << std::endl;
+				return false;
+			}
+		}
+	}
+
+#if 1
+	// Display frequency table in Debug mode.
+	if (times == 0) 
+	{
+		if (1) 
+		{
+			FeedbackFrequencyTable freq;
+			countFrequencies(rules, results1.begin(), results1.end(), freq);
+			std::cout << freq;
+		}
+		if (1) 
+		{
+			FeedbackFrequencyTable freq;
+			countFrequencies(rules, results2.begin(), results2.end(), freq);
+			std::cout << freq;
+		}
+		return true;
+	}
+#endif
+
+	HRTimer timer;
+	double t1 = 0, t2 = 0;
+
+	// Run performance test.
+	for (int pass = 0; pass < 10; pass++) 
+	{
+		timer.start();
+		for (int j = 0; j < times / 10; j++) 
+		{
+			func1(rules, secret, &list.front(), &list.back()+1, results1.data());
+		}
+		t1 += timer.stop();
+
+		timer.start();
+		for (int j = 0; j < times / 10; j++) 
+		{
+			func2(rules, secret, &list.front(), &list.back()+1, results2.data());
+		}
+		t2 += timer.stop();
+	}
+
+	printf("Algorithm 1: %6.3f\n", t1);
+	printf("Algorithm 2: %6.3f\n", t2);
+	printf("Speed Ratio: %5.2fX\n", (t1/t2));
+	return true;
+}
 
 #if 0
 // Compare Enumeration Algorithms
@@ -430,91 +508,6 @@ int TestFrequencyCounting(const CodewordRules &rules, long times)
 }
 #endif
 
-int TestCompare(const CodewordRules &rules, const char *routine1, const char *routine2, long times)
-{
-	CodewordList list = generateCodewords(rules);
-	size_t count = list.size();
-	const __m128i *data = (const __m128i *)list.data();
-	__m128i secret = data[count / 2];
-	unsigned char *results1 = new unsigned char [count];
-	unsigned char *results2 = new unsigned char [count];
-
-	COMPARISON_ROUTINE *func1 = CompareRepImpl->GetRoutine(routine1);
-	COMPARISON_ROUTINE *func2 = CompareRepImpl->GetRoutine(routine2);
-
-	//count = 7;
-	//count--;
-
-	// Verify computation results
-	func1(secret, data, count, results1);
-	func2(secret, data, count, results2);
-	for (unsigned int i = 0; i < count; i++) {
-		if (results1[i] != results2[i])
-		{
-			std::cout << "**** ERROR: Inconsistent [" << i << "]: "
-				<< "Compare(" << Codeword(secret) << ", " << Codeword(data[i])
-				<< ") = " << Feedback(results1[i]) << " v "
-				<< Feedback(results2[i]) << std::endl;
-		}
-	}
-
-	//int k = 0;
-	if (times == 0) {
-		if (1) {
-			//FeedbackList fbl(results1, count, rules.pegs());
-			FeedbackList fbl(&results1[0], &results1[count]);
-			FeedbackFrequencyTable freq;
-			countFrequencies(rules, fbl.cbegin(), fbl.cend(), freq);
-			std::cout << freq;
-		}
-		if (1) {
-			//FeedbackList fbl(results2, count, rules.pegs());
-			FeedbackList fbl(&results2[0], &results2[count]);
-			FeedbackFrequencyTable freq;
-			countFrequencies(rules, fbl.cbegin(), fbl.cend(), freq);
-			std::cout << freq;
-		}
-		if (0) {
-			for (unsigned int i = 0; i < count*0+25; i++)
-			{
-				std::cout << Codeword(secret) << ' ' << Codeword(data[i])
-					<< " = " << Feedback(results1[i]) << std::endl;
-			}
-		}
-		//delete [] results1; // already deleted in fbl destructor
-		//delete [] results2;
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-	t1 = t2 = 0;
-
-	for (int pass = 0; pass < 10; pass++) {
-		timer.start();
-		for (int j = 0; j < times / 10; j++) {
-			func1(secret, data, count, results1);
-		}
-		t1 += timer.stop();
-
-		timer.start();
-		for (int j = 0; j < times / 10; j++) {
-			func2(secret, data, count, results2);
-		}
-		t2 += timer.stop();
-	}
-
-	printf("Algorithm 1: %6.3f\n", t1);
-	printf("Algorithm 2: %6.3f\n", t2);
-	printf("Speed Ratio: %5.2fX\n", (t1/t2));
-
-	delete [] results1;
-	delete [] results2;
-	system("PAUSE");
-	return 0;
-}
-
 #if 0
 int TestNewScan(CodewordRules rules, long times)
 {
@@ -701,8 +694,10 @@ int test(const CodewordRules &rules)
 #else
 #define LOOP_FLAG 0
 #endif
-	//1829320017
-	//return TestCompare(rules, "r_p1a", "r_p1a_omp1", 10000*LOOP_FLAG);
+	std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
+	testComparison(rules, "norepeat", "norepeat2", 200000*LOOP_FLAG);
+	system("PAUSE");
+	return 0;
 	
 	//return TestCompare(rules, "r_p1a", "r_p1a_omp2", 10000*LOOP_FLAG);
 	//return TestCompare(rules, "r_p1a", "r_p8", 10000000*LOOP_FLAG);
