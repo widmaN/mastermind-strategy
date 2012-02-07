@@ -16,7 +16,7 @@ namespace Mastermind {
 /// @param[out]	results	An array to store feedbacks
 typedef void (*ComparisonRoutine)(
 	const CodewordRules &rules,
-	const Codeword& secret,
+	const Codeword &secret,
 	const Codeword *first,
 	const Codeword *last,
 	Feedback result[]);
@@ -36,6 +36,7 @@ unsigned short getDigitMask(
 unsigned short getDigitMask(const CodewordList &list);
 #endif
 
+#if 0
 /// Compares two codewords.
 /// @returns The feedback.
 Feedback compare(
@@ -50,14 +51,18 @@ FeedbackList compare(
 	const Codeword& guess,
 	CodewordList::const_iterator first,
 	CodewordList::const_iterator last);
+#endif
 
+#if 0
 /// ???
 CodewordList filterByFeedback(
 	const CodewordList &list,
 	const CodewordRules &rules, 
 	const Codeword &guess, 
 	Feedback feedback);
+#endif
 
+#if 0
 /// Partitions a list of codewords by their feedback when compared to
 /// a given guess.
 ///
@@ -72,6 +77,7 @@ void partition(
 	const CodewordRules &rules,
 	const Codeword &guess, 
 	FeedbackFrequencyTable &freq);
+#endif
 
 /// Counts the frequencies of each feedback in a feedback list.
 void countFrequencies(

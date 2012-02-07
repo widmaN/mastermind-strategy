@@ -143,6 +143,7 @@
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MMConfig.cpp" />
+    <ClCompile Include="src\Environment.cpp" />
     <ClCompile Include="src\Scan.cpp" />
     <ClCompile Include="src\SimpleCodeBreaker.cpp" />
     <ClCompile Include="src\StrategyTree.cpp" />

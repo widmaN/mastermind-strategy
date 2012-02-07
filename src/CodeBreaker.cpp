@@ -11,10 +11,10 @@ namespace Mastermind {
 
 StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManager();
 
-CodeBreaker::CodeBreaker(const CodewordRules &rules)
-	: m_rules(rules), m_all(generateCodewords(rules))
+CodeBreaker::CodeBreaker(Environment &env)
+	: _env(env), m_rules(env.rules()), m_all(generateCodewords(m_rules))
 {
-	assert(rules.valid());
+	assert(m_rules.valid());
 
 	// m_fp = fopen("E:/mastermind_stat.txt", "w");
 	m_fp = NULL;
@@ -53,7 +53,7 @@ static int count_bits(unsigned short a)
 
 void CodeBreaker::AddFeedback(const Codeword &guess, Feedback fb)
 {
-	m_possibilities = filterByFeedback(m_possibilities, m_rules, guess, fb);
+	m_possibilities = _env.filterByFeedback(m_possibilities, guess, fb);
 	assert(m_possibilities.size() > 0);
 
 	unsigned short allmask = ((unsigned short)1 << m_rules.colors()) - 1;
