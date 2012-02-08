@@ -59,16 +59,16 @@ static void count_freq_c(
 	const unsigned char *first,
 	const unsigned char *last,
 	unsigned int freq[],
-	unsigned char max_fb)
+	size_t size)
 {
 #if ENABLE_CALL_COUNTER
 	UpdateCallCounter(count);
 #endif
 
-	memset(freq, 0, sizeof(unsigned int)*((int)max_fb+1));
+	memset(freq, 0, sizeof(unsigned int)*size);
 	for (const unsigned char *feedback = first; feedback != last; ++feedback)
 	{
-		assert(*feedback <= max_fb);
+		assert(*feedback < size);
 		++freq[*feedback];
 	}
 }
@@ -179,18 +179,3 @@ REGISTER_ROUTINE(FrequencyRoutine, "generic", count_freq_c)
 
 REGISTER_ROUTINE(SumSquaresRoutine, "generic", sum_squares_v1)
 //REGISTER_ROUTINE(SumSquaresRoutine, "generic_p4", sum_squares_v2)
-
-
-#if 0
-static FrequencySumSquaresRoutineSelector::RoutineEntry GetSumOfSquares_Entries[] = {
-	{ "c", "Simple implementation", ComputeSumOfSquares_v1 },
-	{ "c_p4", "Simple implementation with 2-parallel", ComputeSumOfSquares_v2 },
-	//{ "sse4", "SIMD implementation (requires SSE4 instruction set)", ComputeSumOfSquares_v3 },
-	{ NULL, NULL, NULL },
-};
-
-FrequencySumSquaresRoutineSelector *GetSumOfSquaresImpl =
-	new FrequencySumSquaresRoutineSelector(GetSumOfSquares_Entries,
-	//(Utilities::CpuInfo::Features.WithSSE41)? "sse4" : "c");
-	"c_p4");
-#endif

@@ -33,8 +33,6 @@ struct pool_allocator
 	template <class U>
 	struct rebind
 	{
-		//typedef typename Alloc::template rebind<U>::other tmp_type;
-		//typedef pool_allocator<U, tmp_type> other;
 		typedef pool_allocator<U, typename Alloc::template rebind<U>::other> other;
 	};
 

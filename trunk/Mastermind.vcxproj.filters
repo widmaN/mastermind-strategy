@@ -24,9 +24,6 @@
     <ClCompile Include="src\SimpleCodeBreaker.cpp">
       <Filter>Strategies</Filter>
     </ClCompile>
-    <ClCompile Include="src\Algorithm.cpp">
-      <Filter>Algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="src\Compare.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
@@ -37,9 +34,6 @@
       <Filter>Types</Filter>
     </ClCompile>
     <ClCompile Include="src\Frequency.cpp">
-      <Filter>Algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scan.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
     <ClCompile Include="src\StrategyTree.cpp">
@@ -61,6 +55,9 @@
       <Filter>Algorithms</Filter>
     </ClCompile>
     <ClCompile Include="src\Equivalence.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mask.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,26 +83,14 @@
     <ClInclude Include="src\CallCounter.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="src\FifoMemoryManager.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\HRTimer.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="src\PoolMemoryManager.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="src\RoutineSelector.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scan.h">
-      <Filter>Algorithms</Filter>
-    </ClInclude>
     <ClInclude Include="src\StrategyTree.h">
       <Filter>Types</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Test.h">
-      <Filter>Program</Filter>
     </ClInclude>
     <ClInclude Include="src\Registry.hpp">
       <Filter>Utilities</Filter>

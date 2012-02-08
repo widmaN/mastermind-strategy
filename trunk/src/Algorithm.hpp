@@ -20,17 +20,18 @@ typedef void (*ComparisonRoutine)(
 	const Codeword *last,
 	Feedback result[]);
 
-/// Counts the frequencies of each feedback in a feedback list.
-/// Counts the frequencies that each feedback occurs in a feedback list.
-/// @param[in]	feedbacks	A list of feedbacks to count frequencies on
-/// @param[in]	count		Number of feedbacks in the list
-/// @param[out]	freq		The frequency table
-/// @param[in]	max_fb		The maximum feedback value allowed
+/**
+ * Counts the frequencies of each feedback in a feedback list.
+ * @param first Begin of the feedback list.
+ * @param last  End of the feedback list.
+ * @param freq  Feedback frequency table.
+ * @param size  Size of the frequency table.
+ */
 typedef void (*FrequencyRoutine)(
 	const unsigned char *first,
 	const unsigned char *last,
 	unsigned int freq[],
-	unsigned char max_fb);
+	size_t size);
 
 /// Computes the sum of squares of a frequency table.
 /// @param[in]	freq	The frequency table to compute statistic on
@@ -69,20 +70,29 @@ typedef size_t (*EquivalenceRoutine)(
 	const unsigned char eqclass[16],
 	Codeword *filtered);
 
-/// Returns a bit-mask of the colors that are present in the codeword.
-unsigned short getDigitMask(const Codeword &c);
-
-/// Returns a bit-mask of all the colors that are present in a list 
-/// of codewords.
-unsigned short getDigitMask(
-	CodewordList::const_iterator first, 
-	CodewordList::const_iterator last);
-
-#if 0
-/// Returns a bit-mask of all the colors that are present in a list 
-/// of codewords.
-unsigned short getDigitMask(const CodewordList &list);
-#endif
+/**
+ * Scans an array of codewords and returns a 16-bit mask of present 
+ * colors.
+ *
+ * In the bit-mask returned, a bit is set if the corresponding color
+ * is present in at least one of the codewords. A bit is cleared if 
+ * the corresponding color never appears in any of the codewords. 
+ * The bits are numbered from LSB to MSB. 
+ *
+ * For example, if the codeword is <code>4169</code>, then bits 1, 4, 
+ * 6, and 9 are set, and the rest are unset. The mask returned will  
+ * be <code>0000-0010-0101-0010</code>, or <code>0x0252</code>.
+ *
+ * Note that the highest bit (corresponding to color 0xF) is never set
+ * in the returned mask, even if it exists in the codeword, because
+ * <code>0xF</code> is reserved for special use.
+ *
+ * @param first Begin of the codeword list.
+ * @param last  End of the codeword list.
+ */
+typedef unsigned short (*MaskRoutine)(
+	const Codeword *first,
+	const Codeword *last);
 
 #if 0
 FeedbackFrequencyTable frequency(const FeedbackList &feedbacks);

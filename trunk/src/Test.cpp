@@ -7,11 +7,9 @@
 #include <iomanip>
 
 #include "HRTimer.h"
-#include "Test.h"
-#include "Scan.h"
-#include "Feedback.hpp"
 
 #include "Codeword.hpp"
+#include "Feedback.hpp"
 #include "Algorithm.hpp"
 #include "CodeBreaker.h"
 #include "SimpleCodeBreaker.hpp"
@@ -83,8 +81,7 @@ bool compareRoutines(
 	return true;
 }
 
-#ifndef NTEST
-// Benchmark codeword generation algorithms.
+// Codeword generation benchmark.
 // Test: Generate all codewords of 4 pegs, 10 colors, and no repeats.
 //       Total 5040 items in each run.
 // Results: (100,000 runs, Release mode)
@@ -92,8 +89,7 @@ bool compareRoutines(
 // CombPerm: 8.54 s [legacy]
 // CombPermParallel:  0.96 s [ASM][legacy]
 // CombPermParallel2: 0.68 s [ASM][legacy]
-template <>
-class TestDriver<GenerationRoutine> 
+template <> class TestDriver<GenerationRoutine> 
 {
 	Environment &e;
 	GenerationRoutine f;
@@ -120,16 +116,13 @@ public:
 		return os;
 	}
 };
-#endif
 
-#ifndef NTEST
-// Benchmark codeword comparison algorithms.
+// Codeword comparison benchmark.
 // Test:     Compare a given codeword to 5040 non-repeatable codewords.
 // Results:  (100,000 runs, Win32, VC++ 2011)
 // generic:  1.68 s
 // norepeat: 0.62 s
-template <>
-class TestDriver<ComparisonRoutine> 
+template <> class TestDriver<ComparisonRoutine> 
 {
 	Environment &e;
 	ComparisonRoutine f;
@@ -177,7 +170,70 @@ public:
 		return os << freq;
 	}
 };
-#endif
+
+// Color-mask scanning benchmark.
+// Test: Scan 5040 codewords for 100,000 times.
+//
+// **** Old Results ****
+// These results are for "short" codewords.
+//
+// ScanDigitMask_v1 (C):              5.35 s
+// ScanDigitMask_v2 (16-bit ASM):     2.08 s
+// ScanDigitMask_v3 (v2 improved):    1.43 s
+// ScanDigitMask_v4 (v3 improved):    1.12 s
+// ScanDigitMask_v5 (32-bit ASM):     2.09 s
+// ScanDigitMask_v6 (v5 improved):    1.10 s
+// ScanDigitMask_v7 (v6 generalized): 1.10 s
+//
+// Observations:
+//   - ASM with parallel execution and loop unrolling performs the best.
+//   - There is little performance difference between 16-bit ASM and 32-bit ASM.
+//   - Loop unrolling has limited effect. Seems 1.10s is the lower bound
+//     the current algorithm can improve to.
+//
+// **** New Results ****
+// These results are for "long" codewords.
+// ScanDigitMask_v1 (SSE2): 0.40 s
+template <> class TestDriver<MaskRoutine> 
+{
+	Environment &e;
+	MaskRoutine f;
+	CodewordList list;
+	unsigned short mask;
+
+public:
+	TestDriver(Environment &env, MaskRoutine func)
+		: e(env), f(func), list(e.generateCodewords()), mask(0) { }
+
+	void operator()() 
+	{
+		mask = list.empty()? 0 : f(&list.front(), &list.back() + 1);
+	}
+
+	bool operator == (const TestDriver &r) const 
+	{
+		if (mask != r.mask)
+		{
+			std::cout << "**** Inconsistent color mask ****" << std::endl;
+			return false;
+		}
+		return true;
+	}
+
+	friend std::ostream& operator << (std::ostream &os, const TestDriver &r)
+	{
+		os << "Present digits:";
+		unsigned short t = r.mask;
+		for (int i = 0; i < 16; i++)
+		{
+			if (t & 1)
+				os << " " << i;
+			t >>= 1;
+		}
+		return os << std::endl;
+	}
+};
+
 
 #if 0
 int TestEquivalenceFilter(const CodewordRules &rules, long times)
@@ -301,69 +357,6 @@ int TestEquivalenceFilter(CodewordRules rules, long times)
 #endif
 
 #if 0
-/// Compares ScanDigitMask algorithms.
-///
-/// Test: scan 5040 codewords for 100,000 times.
-///
-/// Results:
-/// <pre>
-/// ScanDigitMask_v1 (C):              5.35 s
-/// ScanDigitMask_v2 (16-bit ASM):     2.08 s
-/// ScanDigitMask_v3 (v2 improved):    1.43 s
-/// ScanDigitMask_v4 (v3 improved):    1.12 s
-/// ScanDigitMask_v5 (32-bit ASM):     2.09 s
-/// ScanDigitMask_v6 (v5 improved):    1.10 s
-/// ScanDigitMask_v7 (v6 generalized): 1.10 s</pre>
-///
-/// Conclusion:
-///   - ASM with parallel execution and loop unrolling performs the best.
-///   - There is little performance difference between 16-bit ASM and 32-bit ASM.
-///   - Loop unrolling has limited effect. Seems 1.10s is the lower bound
-///     the current algorithm can improve to.
-int TestScan(CodewordRules rules, long times)
-{
-	CodewordList list = CodewordList::Enumerate(rules);
-	unsigned short mask1, mask2;
-
-	if (times == 0) {
-		unsigned char data[] = { 0x3f, 0x44, 0x18, 0x28, 0x35, 0x55 };
-		// mask2 = ScanDigitMask_v7(list.GetData16(), 2*list.GetCount());
-		//mask2 = ScanDigitMask_v7(data, sizeof(data));
-		mask2 = ScanDigitMask_v1((unsigned short *)data, sizeof(data) / 2);
-		printf("%x\n", mask2);
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-
-	t1 = t2 = 0;
-	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			mask1 = ScanDigitMask_v1(list.GetData(), list.GetCount());
-		}
-		t1 += timer.Stop();
-
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			//mask2 = ScanDigitMask_v6(list.GetData16(), list.GetCount());
-			//mask2 = ScanDigitMask_v7(list.GetData16(), 2*list.GetCount());
-			mask2 = ScanDigitMask_v1(list.GetData(), 2*list.GetCount());
-		}
-		t2 += timer.Stop();
-	}
-	printf("Scan 1: %6.3f s, mask=%x\n", t1, mask1);
-	printf("Scan 2: %6.3f s, mask=%x\n", t2, mask2);
-	printf("Count: %d\n", list.GetCount());
-
-	system("PAUSE");
-	return 0;
-}
-#endif
-
-#if 0
 #ifndef NTEST
 /// Compares frequency counting algorithms.
 ///
@@ -437,59 +430,6 @@ int TestFrequencyCounting(const CodewordRules &rules, long times)
 	return 0;
 }
 #endif
-#endif
-
-#if 0
-int TestNewScan(CodewordRules rules, long times)
-{
-	CodewordList list = CodewordList::Enumerate(rules);
-	int count = list.GetCount();
-	const unsigned short *data = list.GetData();
-
-	__m128i big[5040];
-	convert_codeword_to_long_format(data, count, big);
-	unsigned short mask;
-
-	if (times == 0) {
-		mask = ScanDigitMask_long_v2(big, 4);
-		if (1) {
-			printf("Present digits: ");
-			for (int i = 0; i < 10; i++) {
-				if (mask & 1) {
-					printf("%d ", i);
-				}
-				mask >>= 1;
-			}
-			printf("\n");
-		}
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-	t1 = t2 = 0;
-
-	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
-		for (int j = 0; j < times / 10; j++) {
-			mask = ScanDigitMask_v7(data, count*2); // number of bytes
-		}
-		t1 += timer.Stop();
-
-		timer.Start();
-		for (int j = 0; j < times / 10; j++) {
-			mask = ScanDigitMask_long_v1(big, count);
-		}
-		t2 += timer.Stop();
-	}
-
-	printf("Algorithm 1 (Usual): %6.3f\n", t1);
-	printf("Algorithm 2 (Big):   %6.3f\n", t2);
-
-	system("PAUSE");
-	return 0;
-}
 #endif
 
 static bool testSumSquares(
@@ -638,7 +578,9 @@ int test(const CodewordRules &rules)
 
 #if 1
 	//compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
-	compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
+	//compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
+	compareRoutines<MaskRoutine>(e, "generic", "unrolled", 100000*LOOP_FLAG);
+
 	//testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
 
 	system("PAUSE");
@@ -647,11 +589,8 @@ int test(const CodewordRules &rules)
 
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
-	//return TestNewScan(rules, 100000*1);
 	//return BuildLookupTableForLongComparison();
 	//return TestEnumerationDirect(200000*1);
-	//return TestScan(rules, 100000*1);
-	//return TestEnumeration(rules, 200000*1);
 
 	Codeword first_guess = Codeword::emptyValue();
 	//Codeword first_guess = Codeword::Parse("0011", rules);

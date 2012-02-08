@@ -14,13 +14,15 @@ class Environment
 	ComparisonRoutine _compare;
 	FrequencyRoutine _freq;
 	GenerationRoutine _generate;
+	MaskRoutine _mask;
 
 public:
 
 	Environment(const CodewordRules &rules)	: _rules(rules),
 		_compare(RoutineRegistry<ComparisonRoutine>::get("generic")),
 		_freq(RoutineRegistry<FrequencyRoutine>::get("generic")),
-		_generate(RoutineRegistry<GenerationRoutine>::get("generic"))
+		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
+		_mask(RoutineRegistry<MaskRoutine>::get("generic"))
 	{
 	}
 
@@ -100,6 +102,26 @@ public:
 		FeedbackList::const_iterator first,
 		FeedbackList::const_iterator last,
 		FeedbackFrequencyTable &freq) const;
+
+	/// Returns a bit-mask of the colors that are present in the codeword.
+	unsigned short getDigitMask(const Codeword &c) const
+	{
+		return _mask(&c, &c + 1);
+	}
+
+	/// Returns a bit-mask of the colors that are present in a list of
+	/// codewords.
+	unsigned short getDigitMask(
+		CodewordList::const_iterator first, 
+		CodewordList::const_iterator last) const
+	{
+		size_t count = last - first;
+		if (count == 0)
+			return 0;
+		else
+			return _mask(&(*first), &(*first) + count);
+	}
+
 };
 
 } // namespace Mastermind
