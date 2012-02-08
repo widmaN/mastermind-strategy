@@ -34,12 +34,12 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 	node->State.Guess = guess;
 	node->State.NPossibilities = possibilities.size();
 	node->State.NCandidates = 1;
-	for (int fbv = 0; fbv <= freq.maxFeedback(); fbv++) 
+	for (size_t i = 0; i < freq.size(); i++)
 	{
-		Feedback fb(fbv);
-		if (freq[fb] > 0) 
+		Feedback fb(i);
+		if (freq[i] > 0) 
 		{
-			if (fb == Feedback(m_rules.pegs(), 0)) 
+			if (fb == Feedback::perfectValue(_env.rules())) 
 			{
 				node->AddChild(fb, StrategyTreeNode::Done());
 			} 
