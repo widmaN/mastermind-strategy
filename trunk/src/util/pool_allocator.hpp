@@ -31,9 +31,11 @@ struct pool_allocator
 	typedef typename Alloc::value_type      value_type;
 
 	template <class U>
-	struct rebind 
-	{ 	
-		typedef pool_allocator<U,typename Alloc::rebind<U>::other> other; 
+	struct rebind
+	{
+		//typedef typename Alloc::template rebind<U>::other tmp_type;
+		//typedef pool_allocator<U, tmp_type> other;
+		typedef pool_allocator<U, typename Alloc::template rebind<U>::other> other;
 	};
 
 	pool_allocator() throw() { }
@@ -42,17 +44,17 @@ struct pool_allocator
 	pool_allocator(const pool_allocator<U,Alloc2>&) throw() { }
 	~pool_allocator() throw() { }
 
-	pointer address(reference value) const 
+	pointer address(reference value) const
 	{
 		return alloc.address(value);
 	}
 
-	const_pointer address(const_reference value) const 
+	const_pointer address(const_reference value) const
 	{
 		return alloc.address(value);
 	}
 
-	// Allocates n elements. If the pool is free, return the chunk 
+	// Allocates n elements. If the pool is free, return the chunk
 	// in the pool. Otherwise, return a new chunk.
 	pointer allocate(size_type n, const_pointer hint = 0)
 	{
@@ -66,8 +68,8 @@ struct pool_allocator
 			}
 			chunk_in_use = true;
 			return chunk_ptr;
-		} 
-		else 
+		}
+		else
 		{
 			return alloc.allocate(n, hint);
 		}
@@ -108,19 +110,19 @@ struct pool_allocator
 public:
 
 	Alloc alloc;
-	
+
 	static pointer chunk_ptr; // = 0;
 	static size_t chunk_size; // = 0;
 	static bool chunk_in_use; // = false;
 };
 
-template <class T, class A> 
+template <class T, class A>
 typename pool_allocator<T,A>::pointer pool_allocator<T,A>::chunk_ptr = 0;
 
-template <class T, class A> 
+template <class T, class A>
 size_t pool_allocator<T,A>::chunk_size = 0;
 
-template <class T, class A> 
+template <class T, class A>
 bool pool_allocator<T,A>::chunk_in_use = false;
 
 template <class T, class A1, class A2>

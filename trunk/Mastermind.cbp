@@ -12,6 +12,7 @@
 				<Option object_output="build/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="test" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -21,8 +22,11 @@
 				<Option object_output="build/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="test" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-g" />
+					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -38,9 +42,6 @@
 		</Unit>
 		<Unit filename="src/Algorithm.hpp">
 			<Option virtualFolder="Algorithms/" />
-		</Unit>
-		<Unit filename="src/AlignedAllocator.hpp">
-			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/CallCounter.cpp">
 			<Option virtualFolder="Utilities/" />
@@ -60,49 +61,31 @@
 		<Unit filename="src/Codeword.hpp">
 			<Option virtualFolder="Types/" />
 		</Unit>
-		<Unit filename="src/CodewordList.cpp">
-			<Option virtualFolder="Types/" />
-		</Unit>
-		<Unit filename="src/CodewordList.hpp">
-			<Option virtualFolder="Types/" />
-		</Unit>
-		<Unit filename="src/CodewordRules.hpp">
-			<Option virtualFolder="Types/" />
-		</Unit>
 		<Unit filename="src/Compare.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/Compare.h">
+		<Unit filename="src/Environment.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/Enumerate.cpp">
+		<Unit filename="src/Environment.hpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/Enumerate.h">
+		<Unit filename="src/Equivalence.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/Feedback.cpp">
+		<Unit filename="src/Feedback.hpp">
 			<Option virtualFolder="Types/" />
-		</Unit>
-		<Unit filename="src/Feedback.h">
-			<Option virtualFolder="Types/" />
-		</Unit>
-		<Unit filename="src/FifoMemoryManager.h">
-			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/Frequency.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/Frequency.h">
+		<Unit filename="src/Generation.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
 		<Unit filename="src/HRTimer.h">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
-		<Unit filename="src/MMConfig.cpp">
-			<Option virtualFolder="Program/" />
-		</Unit>
-		<Unit filename="src/MMConfig.h">
+		<Unit filename="src/Interactive.cpp">
 			<Option virtualFolder="Program/" />
 		</Unit>
 		<Unit filename="src/Main.cpp">
@@ -111,8 +94,14 @@
 		<Unit filename="src/PoolMemoryManager.h">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
+		<Unit filename="src/Registry.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
 		<Unit filename="src/RoutineSelector.h">
 			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/Rules.hpp">
+			<Option virtualFolder="Types/" />
 		</Unit>
 		<Unit filename="src/Scan.cpp">
 			<Option virtualFolder="Algorithms/" />
@@ -137,6 +126,21 @@
 		</Unit>
 		<Unit filename="src/Test.h">
 			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/util/aligned_allocator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/frequency_table.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/intrinsic.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/pool_allocator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/simd.hpp">
+			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Extensions>
 			<code_completion />
