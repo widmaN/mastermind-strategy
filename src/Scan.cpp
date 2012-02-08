@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <emmintrin.h>
 
-#include "MMConfig.h"
+#include "Rules.hpp"
 #include "Scan.h"
 
 ////////////////////////////////////////////////////////////////////////////

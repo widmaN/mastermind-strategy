@@ -1,9 +1,9 @@
-#ifndef MASTERMIND_POOL_ALLOCATOR_HPP
-#define MASTERMIND_POOL_ALLOCATOR_HPP
+#ifndef UTILITIES_POOL_ALLOCATOR_HPP
+#define UTILITIES_POOL_ALLOCATOR_HPP
 
 #include <memory>
 
-namespace Utilities {
+namespace util {
 
 /**
  * Simplistic pool allocator that only maintains one chunk in the pool.
@@ -141,6 +141,6 @@ bool operator != (const pool_allocator<T1,A1> &a, const pool_allocator<T2,A2> &b
 	return ! operator == (a, b);
 }
 
-} // namespace Utilities
+} // namespace util
 
-#endif // MASTERMIND_POOL_ALLOCATOR_HPP
+#endif // UTILITIES_POOL_ALLOCATOR_HPP

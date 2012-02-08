@@ -2,17 +2,18 @@
 #define MASTERMIND_FEEDBACK_HPP
 
 #include <cassert>
-#include <string>
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <numeric>
-#include "PoolAllocator.hpp"
 #include <utility>
 
-#include "MMConfig.h"
-#include "CodewordList.hpp"
+#include "Rules.hpp"
+#include "util/pool_allocator.hpp"
 #include "util/frequency_table.hpp"
+
+// Whether to store feedback in compact format
+#ifndef MM_FEEDBACK_COMPACT
+#define MM_FEEDBACK_COMPACT 1
+#endif
 
 namespace Mastermind 
 {
@@ -71,7 +72,7 @@ namespace Mastermind
  * The compact format has better cache performance in certain operations,
  * but is not chosen as the default format because of its complexity. 
  * To choose it, define the <code>MM_FEEDBACK_COMPACT</code> macro in
- * <code>MMConfig.h</code>.
+ * this file or in the compiler option.
  */
 class Feedback
 {
@@ -177,12 +178,6 @@ public:
 	/// in the wrong pegs.
 	int nB() const { return unpack(m_value).second; }
 
-#if 0
-	/// Converts the feedback to a string.
-	/// The format is "1A2B".
-	std::string ToString() const;
-#endif
-
 	/// Tests whether this feedback is equal to another.
 	///
 	/// If both feedbacks are non-empty, then they are equal if they 
@@ -237,86 +232,17 @@ inline std::ostream& operator << (std::ostream &os, const Feedback &feedback)
 		return os << feedback.nA() << 'A' << feedback.nB() << 'B';
 }
 
+///////////////////////////////////////////////////////////////////////////
+// Definition of FeedbackList.
+
+typedef std::vector<Feedback,util::pool_allocator<Feedback>> FeedbackList;
+
+
+///////////////////////////////////////////////////////////////////////////
+// Definition of FeedbackFrequencyTable.
+
 typedef util::frequency_table<Feedback,unsigned int,256> FeedbackFrequencyTable;
 
-#if 0
-class FeedbackFrequencyTable
-{
-private:
-	unsigned int m_freq[256];
-	//int m_maxfb;
-	size_t m_count;
-
-public:
-
-#if 0
-	FeedbackFrequencyTable(unsigned char maxfb)
-	{
-		m_maxfb = maxfb;
-	}
-#endif
-
-	FeedbackFrequencyTable() : m_count(0) { }
-
-#if 0
-	FeedbackFrequencyTable(const FeedbackList &fblist);
-#endif
-
-	//int maxFeedback() const { return m_maxfb; }
-	size_t size() const { return m_count; }
-	void resize(size_t n) { m_count = n; }
-	// void setMaxFeedback(int m) { m_maxfb = m; }
-
-	// unsigned int * GetData() { return m_freq; }
-	unsigned int *data() { return m_freq; }
-	const unsigned int *data() const { return m_freq; }
-	const unsigned int * begin() const { return m_freq + 0; }
-	const unsigned int * end() const { return m_freq + m_count; }
-
-	unsigned int operator [] (Feedback fb) const
-	{
-		size_t k = (unsigned char)fb.value();
-		assert(k < m_count);
-		return m_freq[k]; 
-	}
-
-	/// Gets the number of feedbacks with frequency greater than zero.
-	int getPartitionCount() const
-	{
-		return (int)std::count_if(begin(), end(), [](unsigned char f) -> bool {
-			return f != 0; 
-		});
-	}
-
-	/// Gets the maximum frequency value.
-	unsigned int getMaximum() const
-	{
-		return m_count == 0? 0 : *std::max_element(begin(), end());
-	}
-
-#if 1
-	/// Computes the sum of squares of the frequency values.
-	unsigned int getSumSquares() const
-	{
-		return RoutineRegistry<SumSquaresRoutine>::get("generic")(begin(), end());
-	}
-#endif
-
-	/// Computes the entropy of the feedback frequencies.
-	double getModifiedEntropy() const
-	{
-		double s = 0.0;
-		for (size_t i = 0; i < m_count; ++i)
-		{
-			unsigned int f = m_freq[i];
-			if (f > 0)
-				s += std::log((double)f) * (double)f;
-		}
-	}
-};
-#endif
-
-typedef std::vector<Feedback,Utilities::pool_allocator<Feedback>> FeedbackList;
 
 #if 0
 FeedbackFrequencyTable frequency(const FeedbackList &feedbacks)

@@ -36,12 +36,6 @@
     <ClCompile Include="src\Codeword.cpp">
       <Filter>Types</Filter>
     </ClCompile>
-    <ClCompile Include="src\CodewordList.cpp">
-      <Filter>Types</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Enumerate.cpp">
-      <Filter>Algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="src\Frequency.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
@@ -54,9 +48,6 @@
     <ClCompile Include="src\Main.cpp">
       <Filter>Program</Filter>
     </ClCompile>
-    <ClCompile Include="src\MMConfig.cpp">
-      <Filter>Program</Filter>
-    </ClCompile>
     <ClCompile Include="src\Test.cpp">
       <Filter>Program</Filter>
     </ClCompile>
@@ -64,6 +55,12 @@
       <Filter>Program</Filter>
     </ClCompile>
     <ClCompile Include="src\Environment.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Generation.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Equivalence.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,29 +80,14 @@
     <ClInclude Include="src\Algorithm.hpp">
       <Filter>Algorithms</Filter>
     </ClInclude>
-    <ClInclude Include="src\AlignedAllocator.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Codeword.hpp">
-      <Filter>Types</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CodewordList.hpp">
-      <Filter>Types</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CodewordRules.hpp">
       <Filter>Types</Filter>
     </ClInclude>
     <ClInclude Include="src\CallCounter.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="src\Enumerate.h">
-      <Filter>Algorithms</Filter>
-    </ClInclude>
     <ClInclude Include="src\FifoMemoryManager.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Feedback.h">
-      <Filter>Types</Filter>
     </ClInclude>
     <ClInclude Include="src\HRTimer.h">
       <Filter>Utilities</Filter>
@@ -122,13 +104,7 @@
     <ClInclude Include="src\StrategyTree.h">
       <Filter>Types</Filter>
     </ClInclude>
-    <ClInclude Include="src\PoolAllocator.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Test.h">
-      <Filter>Program</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MMConfig.h">
       <Filter>Program</Filter>
     </ClInclude>
     <ClInclude Include="src\Registry.hpp">
@@ -140,11 +116,23 @@
     <ClInclude Include="src\util\simd.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="src\Compare.h" />
-    <ClInclude Include="src\Frequency.h" />
-    <ClInclude Include="src\Intrinsic.hpp" />
     <ClInclude Include="src\util\frequency_table.hpp">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\aligned_allocator.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\intrinsic.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Feedback.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\pool_allocator.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rules.hpp">
+      <Filter>Types</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

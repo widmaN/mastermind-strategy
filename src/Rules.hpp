@@ -1,5 +1,32 @@
-#ifndef MASTERMIND_CODEWORD_RULES_HPP
-#define MASTERMIND_CODEWORD_RULES_HPP
+#ifndef MASTERMIND_RULES_HPP
+#define MASTERMIND_RULES_HPP
+
+#ifndef MM_MAX_PEGS
+/// The maximum number of pegs supported by the program.
+/// For performance reasons, certain data structures or algorithms 
+/// pose a limit on the maximum number of pegs allowed in a codeword. 
+/// If this constant is defined higher than the limit, the program 
+/// will produce a compile-time error.
+#define MM_MAX_PEGS 6
+#endif
+
+#ifndef MM_MAX_COLORS
+/// The maximum number of colors supported by the program.
+/// For performance reasons, certain data structures or algorithms 
+/// pose a limit on the maximum number of colors allowed in a codeword. 
+/// If this constant is defined higher than the limit, the program 
+/// will produce a compile-time error.
+#define MM_MAX_COLORS 10
+#endif
+
+#if (MM_MAX_PEGS + MM_MAX_COLORS) != 16
+# error MM_MAX_PEGS and MM_MAX_COLORS must add to 16.
+#endif
+
+// Whether to compile call counter.
+// Note that this option should not be here. Instead, it should
+// go into the -D compiler option. It is here only temporarily.
+#define ENABLE_CALL_COUNTER 0
 
 namespace Mastermind {
 
@@ -48,6 +75,6 @@ public:
 #endif
 };
 
-} // namespace mastermind
+} // namespace Mastermind
 
-#endif // MASTERMIND_CODEWORD_RULES_HPP
+#endif // MASTERMIND_RULES_HPP

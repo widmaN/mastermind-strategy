@@ -1,10 +1,9 @@
 #ifndef MASTERMIND_ALGORITHM_HPP
 #define MASTERMIND_ALGORITHM_HPP
 
+#include <string>
 #include "Codeword.hpp"
-#include "CodewordRules.hpp"
-#include "CodewordList.hpp"
-#include "Feedback.h"
+#include "Feedback.hpp"
 #include "Registry.hpp"
 
 namespace Mastermind {
@@ -39,6 +38,36 @@ typedef void (*FrequencyRoutine)(
 typedef unsigned int (*SumSquaresRoutine)(
 	const unsigned int *first,
 	const unsigned int *last);
+
+/// Generates all codewords that conforms to the given set of rules.
+typedef size_t (*GenerationRoutine)(
+	const CodewordRules &rules,
+	Codeword *results);
+
+/**
+ * Filters a list of codewords <code>[first,last)</code> by removing
+ * duplicate elements according
+ * to equivalence class <code>eqclass</code>.
+ * Returns the number of (canonical) elements remaining.
+ *
+ * _eqclass_ is a 16-byte array where each element specifies the next digit
+ * in the same equivalent class. Hence, each equivalence class is chained
+ * through a loop. For example: (assume only 10 digits)
+ *                  0  1  2  3  4  5  6  7  8  9
+ *  all-different:  0  1  2  3  4  5  6  7  8  9
+ *  all-same:       1  2  3  4  5  6  7  8  9  0
+ *  1,3,5 same:     0  3  2  5  4  1  6  7  8  9
+ *
+ * This function keeps the lexicographical-minimum codeword of each
+ * equivalence class. This process is known as "canonical labeling". 
+ * Note that the minimum codeword for each equivalence class must exist 
+ * in the list in order for the function to work correctly.
+ */
+typedef size_t (*EquivalenceRoutine)(
+	const Codeword *first,
+	const Codeword *last,
+	const unsigned char eqclass[16],
+	Codeword *filtered);
 
 /// Returns a bit-mask of the colors that are present in the codeword.
 unsigned short getDigitMask(const Codeword &c);

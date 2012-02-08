@@ -5,8 +5,7 @@
 //#include <cassert>
 //#include <emmintrin.h>
 
-#include "CodewordRules.hpp"
-#include "CodewordList.hpp"
+#include "Codeword.hpp"
 #include "StrategyTree.h"
 #include "Environment.hpp"
 

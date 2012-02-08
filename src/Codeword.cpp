@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "MMConfig.h"
 #include "Codeword.hpp"
 
 namespace Mastermind {
