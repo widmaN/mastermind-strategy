@@ -8,7 +8,7 @@
 
 namespace util {
 
-	
+
 template <class TKey, class TVal, size_t Capacity>
 class frequency_table
 {
@@ -17,13 +17,13 @@ class frequency_table
 
 public:
 	frequency_table() : _count(0) { }
-	
+
 	size_t size() const { return _count; }
 
-	void resize(size_t n) 
+	void resize(size_t n)
 	{
 		assert(n <= Capacity);
-		_count = n; 
+		_count = n;
 	}
 
 	TVal* data() { return _freq; }
@@ -35,7 +35,7 @@ public:
 	TVal operator [] (size_t k) const
 	{
 		assert(k < _count);
-		return _freq[k]; 
+		return _freq[k];
 	}
 
 	/// Returns the maximum frequency value.
@@ -48,7 +48,7 @@ public:
 	size_t nonzero_count() const
 	{
 		return std::count_if(begin(), end(), [](TVal f) -> bool {
-			return f > 0; 
+			return f > 0;
 		});
 	}
 
@@ -62,6 +62,7 @@ public:
 			if (f > 0)
 				s += std::log((double)f) * (double)f;
 		}
+		return s;
 	}
 
 };
@@ -72,11 +73,11 @@ public:
  * @spacecomplexity Constant.
  */
 template <class TKey, class TVal, size_t Capacity>
-std::ostream& 
+std::ostream&
 operator << (std::ostream& os, const frequency_table<TKey,TVal,Capacity> &f)
 {
 	size_t total = 0;
-	for (size_t i = 0; i < f.size(); i++) 
+	for (size_t i = 0; i < f.size(); i++)
 	{
 		if (f[i] != 0)
 		{

@@ -40,11 +40,11 @@ protected:
 
 	/// Bit-mask of digits guessed so far, excluding impossible digits.
 	unsigned short m_guessed;
-		
+
 	/// Bit-mask of digits that have not been guessed so far.
 	unsigned short m_unguessed;
-		
-	/// Bit-mask of digits that are impossible to be in the secret, 
+
+	/// Bit-mask of digits that are impossible to be in the secret,
 	/// based on the feedback so far.
 	unsigned short m_impossible;
 
@@ -53,14 +53,14 @@ public:
 #if 0
 	/// Creates a code breaker for the given rules.
 	/// The base implementation initializes all members. In particular,
-	/// it fills codeword list <code>m_all</code> with all codewords 
+	/// it fills codeword list <code>m_all</code> with all codewords
 	/// conforming to the rules.
 	CodeBreaker(const CodewordRules &rules);
 #endif
 
 	/// Creates a code breaker for the given environment.
 	/// The base implementation initializes all members. In particular,
-	/// it fills codeword list <code>m_all</code> with all codewords 
+	/// it fills codeword list <code>m_all</code> with all codewords
 	/// conforming to the rules.
 	CodeBreaker(Environment &env);
 
@@ -76,10 +76,10 @@ public:
 	 * possibilities. Returns such a guess if one is found, or the end
 	 * iterator if not found.
 	 *
-	 * An obviously-optimal guess is an element from the remaining 
+	 * An obviously-optimal guess is an element from the remaining
 	 * possibilities such that it partitions the possibility set into
 	 * discrete cells, i.e. every cell contains exactly one element.
-	 * If such a guess exists, then all the remaining possibilities 
+	 * If such a guess exists, then all the remaining possibilities
 	 * can be cleared in two steps, including the guessed element
 	 * which is cleared in the immediate step. It is easy to see that
 	 * there is no better guess than this one because we need at least
@@ -87,8 +87,8 @@ public:
 	 * possibilities.
 	 *
 	 * A necessary condition for such obviously-optimal guess to exist
-	 * is that the number of remaining possibilities is no more than 
-	 * the number of distinct feedbacks. For a game with @c p pegs, 
+	 * is that the number of remaining possibilities is no more than
+	 * the number of distinct feedbacks. For a game with @c p pegs,
 	 * the number of distinct feedbacks is <code>p*(p+3)/2</code>.
 	 *
 	 * @param first First possibility
@@ -97,12 +97,12 @@ public:
 	 *      otherwise, returns <code>last</code>.
 	 * @timecomplexity No more than <code>K=p*(p+3)/2</code> passes.
 	 *      In each pass, a candidate guess is compared to all N codewords
-	 *      between <code>[first, last)</code> and the frequencies of 
+	 *      between <code>[first, last)</code> and the frequencies of
 	 *      the feedbacks are checked. The overall complexity is
 	 *      <code>O(KN)</code>.
 	 * @spacecomplexity Constant.
 	 */
-	CodewordList::const_iterator CodeBreaker::makeObviousGuess(
+	CodewordList::const_iterator makeObviousGuess(
 		CodewordList::const_iterator first,
 		CodewordList::const_iterator last) const;
 
@@ -114,14 +114,14 @@ public:
 
 	/// Provides the code breaker with a piece of feedback for a given
 	/// guess.
-	/// 
-	/// The base implementation updates <code>m_possibilities</code> 
+	///
+	/// The base implementation updates <code>m_possibilities</code>
 	/// and several other digit masks based on the feedback information
 	/// provided.
 	///
-	/// Note that the guess provided here may not be the guess that the 
+	/// Note that the guess provided here may not be the guess that the
 	/// code breaker suggests previously (via <code>MakeGuess()</code>).
-	/// It might even happen that the code breaker has not been asked 
+	/// It might even happen that the code breaker has not been asked
 	/// to make a guess at all. If a particular implementation does not
 	/// support such behavior (e.g. one that makes guesses according to
 	/// a pre-built strategy tree), it must throw an exception.

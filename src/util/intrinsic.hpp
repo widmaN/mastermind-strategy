@@ -25,14 +25,14 @@ inline int bit_scan_reverse(unsigned int value)
 	return pos;
 }
 
-static int pop_count(unsigned short a)
+inline int pop_count(unsigned short a)
 {
 #ifdef _WIN32
 #if ENABLE_SSE2
 	return __popcnt16(a);
 #else /* ENABLE_SSE2 */
 	int n = 0;
-	for (; a; a >>= 1) 
+	for (; a; a >>= 1)
 	{
 		n += (a & 1);
 	}
@@ -41,7 +41,7 @@ static int pop_count(unsigned short a)
 #else /* _WIN32 */
 	return  __builtin_popcount(a);
 #endif
-	
+
 }
 
 } // namespace Intrinsic
