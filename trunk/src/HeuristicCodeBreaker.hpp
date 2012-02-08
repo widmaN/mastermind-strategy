@@ -17,7 +17,7 @@ typedef void ProgressReport(double percentage, void *tag);
 /// Then the code breaker picks the guess that gets the highest score. 
 /// If more than one guesses have the same score, the guess that is 
 /// in the possibility set is preferred. If more than one such guesses
-/// exist, it is picked in order.
+/// exist, it is picked in lexicographical order.
 ///
 /// The heuristic function used by the code breaker is supplied in
 /// the template parameter <code>Heuristic</code>. It accepts the 
@@ -76,9 +76,9 @@ public:
 
 	/// Creates a heuristic code breaker.
 	HeuristicCodeBreaker(
-		CodewordRules rules,
+		Environment &e,
 		bool posonly = false) 
-		: CodeBreaker(rules), m_posonly(posonly) 
+		: CodeBreaker(e), m_posonly(posonly) 
 	{ 
 	}
 
@@ -103,9 +103,8 @@ namespace Heuristics {
 /// The score to minimize is <code>Max{ n[i] }</code>, where 
 /// <code>n[i]</code> is the number of elements in partition 
 /// <code>i</code>.
-class MinimizeWorstCase
+struct MinimizeWorstCase
 {
-public:
 	/// Data type of the score (unsigned integer).
 	typedef unsigned int score_t;
 
@@ -113,7 +112,10 @@ public:
 	static std::string name() { return "minmax"; }
 
 	/// Computes the heuristic score - size of the largest partition.
-	static score_t compute(const FeedbackFrequencyTable &freq);
+	static score_t compute(const FeedbackFrequencyTable &freq)
+	{
+		return freq.max();
+	}
 };
 
 /// A balanced heuristic that scores a guess as the expected number 
@@ -121,9 +123,8 @@ public:
 /// is <code>Sum{ n[i] * (n[i]/N) }</code>, or equivalently 
 /// <code>Sum{ n[i]^2 }</code>, where <code>n[i]</code> is the number
 /// of elements in partition <code>i</code>.
-class MinimizeAverage
+struct MinimizeAverage
 {
-public:
 	/// Data type of the score (unsigned integer).
 	typedef unsigned int score_t;
 
@@ -132,7 +133,11 @@ public:
 
 	/// Computes the heuristic score - sum of squares of the size
 	/// of each partition.
-	static score_t compute(const FeedbackFrequencyTable &freq);
+	static score_t compute(const FeedbackFrequencyTable &freq)
+	{
+		//return freq.getSumSquares();
+		return 1;
+	}
 };
 
 /// A theoretically advanced heuristic that scores a guess as roughly
@@ -146,9 +151,8 @@ public:
 /// estimate of the expected number of further guesses needed. 
 /// As a side note, note that the base of the logrithm doesn't matter 
 /// in computing the score.
-class MaximizeEntropy
+struct MaximizeEntropy
 {
-public:
 	/// Data type of the score (double precision).
 	typedef double score_t;
 
@@ -156,15 +160,17 @@ public:
 	static std::string name() { return "	entropy"; }
 
 	/// Computes the heuristic score - negative of the entropy.
-	static score_t compute(const FeedbackFrequencyTable &freq);
+	static score_t compute(const FeedbackFrequencyTable &freq)
+	{
+		return freq.entropy();
+	}
 };
 
 /// An aggressive heuristic that scores a guess as the number of
 /// partitions it produces. The rationale is that more partitions,
 /// fewer steps.
-class MaximizePartitions
+struct MaximizePartitions
 {
-public:
 	/// Data type of the score (signed integer).
 	typedef int score_t;
 
@@ -173,9 +179,13 @@ public:
 
 	/// Computes the heuristic score - negative of the number of
 	/// partitions.
-	static score_t compute(const FeedbackFrequencyTable &freq);
+	static score_t compute(const FeedbackFrequencyTable &freq)
+	{
+		return -(int)freq.nonzero_count();
+	}
 };
 
+#if 0
 class MinimizeSteps
 {
 public:
@@ -191,6 +201,7 @@ public:
 public:
 	static int partition_score[10000];
 };
+#endif
 
 } // namespace Heuristics
 

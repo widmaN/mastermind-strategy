@@ -61,13 +61,13 @@ void Environment::partition(
 
 	size_t i = 0;
 	part[0].current = 0;
-	for (int k = 0; k <= freq.maxFeedback(); k++)
+	for (size_t k = 0; k < freq.size(); k++)
 	{
-		i += freq[Feedback(k)];
+		i += freq[k];
 		part[k].end = i;
 		part[k+1].current = i;
 	}
-	part[freq.maxFeedback()+1].end = std::numeric_limits<size_t>::max();
+	part[freq.size()].end = std::numeric_limits<size_t>::max();
 
 	// Find the first non-empty partition.
 	int k = 0; // current partition
@@ -107,15 +107,15 @@ void Environment::countFrequencies(
 {
 	if (first != last)
 	{
-		int maxfb = Feedback::maxValue(_rules);
+		size_t fb_count = (size_t)Feedback::maxValue(_rules) + 1;
 		const unsigned char *buffer = (const unsigned char *)&(*first);
 		size_t count = last - first;
-		_freq(buffer, buffer + count, freq.data(), maxfb);
-		freq.setMaxFeedback(maxfb);
+		_freq(buffer, buffer + count, freq.data(), fb_count);
+		freq.resize(fb_count);
 	}
 	else
 	{
-		freq.setMaxFeedback(0);
+		freq.resize(0);
 	}
 }
 

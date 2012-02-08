@@ -69,6 +69,44 @@ public:
 	/// The base implementation cleans up member variables.
 	virtual ~CodeBreaker();
 
+	Environment& env() { return _env; }
+	const Environment& env() const { return _env; }
+
+	/**
+	 * Tries to make an obviously-optimal guess for a list of remaining
+	 * possibilities. Returns such a guess if one is found, or the end
+	 * iterator if not found.
+	 *
+	 * An obviously-optimal guess is an element from the remaining 
+	 * possibilities such that it partitions the possibility set into
+	 * discrete cells, i.e. every cell contains exactly one element.
+	 * If such a guess exists, then all the remaining possibilities 
+	 * can be cleared in two steps, including the guessed element
+	 * which is cleared in the immediate step. It is easy to see that
+	 * there is no better guess than this one because we need at least
+	 * two guesses to clear all possibilities when there are two or more
+	 * possibilities.
+	 *
+	 * A necessary condition for such obviously-optimal guess to exist
+	 * is that the number of remaining possibilities is no more than 
+	 * the number of distinct feedbacks. For a game with @c p pegs, 
+	 * the number of distinct feedbacks is <code>p*(p+3)/2</code>.
+	 *
+	 * @param first First possibility
+	 * @param last  Last possibility
+	 * @returns If an obvious is found, returns an iterator to the guess;
+	 *      otherwise, returns <code>last</code>.
+	 * @timecomplexity No more than <code>K=p*(p+3)/2</code> passes.
+	 *      In each pass, a candidate guess is compared to all N codewords
+	 *      between <code>[first, last)</code> and the frequencies of 
+	 *      the feedbacks are checked. The overall complexity is
+	 *      <code>O(KN)</code>.
+	 * @spacecomplexity Constant.
+	 */
+	CodewordList::const_iterator CodeBreaker::makeObviousGuess(
+		CodewordList::const_iterator first,
+		CodewordList::const_iterator last) const;
+
 	/// Resets the code breaker so that it is ready to play a new game.
 	/// The base implementation resets member variables to the state
 	/// when the code breaker is newly created. In particular, codeword

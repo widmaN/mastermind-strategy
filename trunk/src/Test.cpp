@@ -9,7 +9,6 @@
 #include "CodewordList.hpp"
 #include "HRTimer.h"
 #include "Enumerate.h"
-#include "Frequency.h"
 #include "Test.h"
 #include "Scan.h"
 #include "Feedback.h"
@@ -18,6 +17,7 @@
 #include "Algorithm.hpp"
 #include "CodeBreaker.h"
 #include "SimpleCodeBreaker.hpp"
+#include "HeuristicCodeBreaker.hpp"
 #include "Environment.hpp"
 
 using namespace Mastermind;
@@ -707,13 +707,15 @@ int test(const CodewordRules &rules)
 	// Set up a standard environment.
 	Environment e(rules);
 
+#if 1
 	//std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
-	//testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
-	testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
+	testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
+	//testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
 
 	system("PAUSE");
 	return 0;
-	
+#endif
+
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	//return TestNewScan(rules, 100000*1);
@@ -727,10 +729,12 @@ int test(const CodewordRules &rules)
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new SimpleCodeBreaker(e),
-		//new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(rules, posonly),
-		//new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules, posonly),
-		//new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(rules, posonly),
-		//new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(rules, posonly),
+#if 0
+		new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(e, posonly),
+		new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(e, posonly),
+		new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(e, posonly),
+		new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(e, posonly),
+#endif
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};

@@ -4,7 +4,6 @@
 //#include <stdio.h>
 
 #include "MMConfig.h"
-#include "Frequency.h"
 #include "Algorithm.hpp"
 
 #if ENABLE_CALL_COUNTER

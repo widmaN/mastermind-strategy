@@ -66,4 +66,42 @@ void CodeBreaker::AddFeedback(const Codeword &guess, Feedback fb)
 	}
 }
 
+CodewordList::const_iterator CodeBreaker::makeObviousGuess(
+	CodewordList::const_iterator first,
+	CodewordList::const_iterator last) const
+{
+	size_t p = env().rules().pegs();
+	size_t count = last - first;
+	if (count == 0)
+		return last;
+
+	// If there are only two possibilities left, return the first one.
+	if (count <= 2) 
+		return first;
+
+	// If the number of possibilities is more than the number of distinct
+	// feedbacks, there will be no obvious guess.
+	if (count > p*(p+3)/2)
+		return last;
+
+	// Check for obviously optimal guess.
+	for (auto it = first; it != last; ++it)
+	{
+#if 1
+		const Codeword &guess = *it;
+		FeedbackFrequencyTable freq;
+		FeedbackList fbl = env().compare(guess, first, last);
+		env().countFrequencies(fbl.begin(), fbl.end(), freq);
+		if (freq.max() == 1) 
+			return it;
+#else
+		if (e.frequencies(e.compare(*it, first, last)).max() == 1)
+			return it;
+#endif
+	}
+
+	// Not found.
+	return last;
+}
+
 } // namespace Mastermind
