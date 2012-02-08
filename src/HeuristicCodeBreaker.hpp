@@ -75,10 +75,8 @@ private:
 public:
 
 	/// Creates a heuristic code breaker.
-	HeuristicCodeBreaker(
-		Environment &e,
-		bool posonly = false) 
-		: CodeBreaker(e), m_posonly(posonly) 
+	HeuristicCodeBreaker(Engine &engine, bool posonly = false) 
+		: CodeBreaker(engine), m_posonly(posonly) 
 	{ 
 	}
 

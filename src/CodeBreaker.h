@@ -7,7 +7,7 @@
 
 #include "Codeword.hpp"
 #include "StrategyTree.h"
-#include "Environment.hpp"
+#include "Engine.hpp"
 
 namespace Mastermind
 {
@@ -22,7 +22,7 @@ class CodeBreaker
 protected:
 
 	/// Environment containing settings, engines, etc.
-	Environment &_env;
+	Engine &e;
 
 	/// Rules of the game that this code breaker works on.
 	CodewordRules m_rules;
@@ -62,14 +62,14 @@ public:
 	/// The base implementation initializes all members. In particular,
 	/// it fills codeword list <code>m_all</code> with all codewords
 	/// conforming to the rules.
-	CodeBreaker(Environment &env);
+	CodeBreaker(Engine &engine);
 
 	/// Destructor.
 	/// The base implementation cleans up member variables.
 	virtual ~CodeBreaker();
 
-	Environment& env() { return _env; }
-	const Environment& env() const { return _env; }
+	//Environment& env() { return _env; }
+	//const Environment& env() const { return _env; }
 
 	/**
 	 * Tries to make an obviously-optimal guess for a list of remaining

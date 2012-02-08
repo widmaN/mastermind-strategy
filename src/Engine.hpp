@@ -1,5 +1,5 @@
-#ifndef MASTERMIND_ENVIRONMENT_HPP
-#define MASTERMIND_ENVIRONMENT_HPP
+#ifndef MASTERMIND_ENGINE_HPP
+#define MASTERMIND_ENGINE_HPP
 
 #include "Codeword.hpp"
 #include "Feedback.hpp"
@@ -8,7 +8,7 @@
 
 namespace Mastermind {
 
-class Environment
+class Engine
 {
 	CodewordRules _rules;
 	ComparisonRoutine _compare;
@@ -18,7 +18,7 @@ class Environment
 
 public:
 
-	Environment(const CodewordRules &rules)	: _rules(rules),
+	Engine(const CodewordRules &rules) : _rules(rules),
 		_compare(RoutineRegistry<ComparisonRoutine>::get("generic")),
 		_freq(RoutineRegistry<FrequencyRoutine>::get("generic")),
 		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
@@ -103,6 +103,13 @@ public:
 		FeedbackList::const_iterator last,
 		FeedbackFrequencyTable &freq) const;
 
+	FeedbackFrequencyTable frequency(const FeedbackList &feedbacks) const
+	{
+		FeedbackFrequencyTable table;
+		countFrequencies(feedbacks.begin(), feedbacks.end(), table);
+		return table;
+	}
+
 	/// Returns a bit-mask of the colors that are present in the codeword.
 	unsigned short getDigitMask(const Codeword &c) const
 	{
@@ -126,4 +133,4 @@ public:
 
 } // namespace Mastermind
 
-#endif // MASTERMIND_ENVIRONMENT_HPP
+#endif // MASTERMIND_ENGINE_HPP

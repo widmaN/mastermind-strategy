@@ -22,12 +22,17 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 	Codeword guess = first_guess.empty()? MakeGuess(possibilities) : first_guess;
 
 	// @todo: use rvalue reference to reduce copying of feedback list.
+#if 0
 	FeedbackFrequencyTable freq;
 	{
-		FeedbackList feedbacks = _env.compare(guess, 
+		FeedbackList feedbacks = e.compare(guess, 
 			possibilities.cbegin(), possibilities.cend());
-		_env.countFrequencies(feedbacks.begin(), feedbacks.end(), freq);
+		e.countFrequencies(feedbacks.begin(), feedbacks.end(), freq);
 	}
+#else
+	FeedbackFrequencyTable freq = e.frequency(e.compare(guess, 
+		possibilities.begin(), possibilities.end()));
+#endif
 	StrategyTreeMemoryManager *mm = default_strat_mm;
 
 	StrategyTreeNode *node = StrategyTreeNode::Create(mm);
@@ -39,7 +44,7 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 		Feedback fb(i);
 		if (freq[i] > 0) 
 		{
-			if (fb == Feedback::perfectValue(_env.rules())) 
+			if (fb == Feedback::perfectValue(e.rules())) 
 			{
 				node->AddChild(fb, StrategyTreeNode::Done());
 			} 
@@ -47,7 +52,7 @@ StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, co
 			{
 				Codeword t = Codeword::emptyValue();
 				StrategyTreeNode *child = FillStrategy(
-					_env.filterByFeedback(possibilities, guess, fb), t);
+					e.filterByFeedback(possibilities, guess, fb), t);
 				node->AddChild(fb, child);
 			}
 		}

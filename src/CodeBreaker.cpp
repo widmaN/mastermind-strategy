@@ -1,18 +1,20 @@
 #include <assert.h>
 #include <stdio.h>
-#include <limits>
+//#include <limits>
 
-#include "CodeBreaker.h"
 #include "CallCounter.h"
+#include "Rules.hpp"
+#include "Codeword.hpp"
 #include "Feedback.hpp"
+#include "CodeBreaker.h"
 #include "Algorithm.hpp"
 
 namespace Mastermind {
 
 StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManager();
 
-CodeBreaker::CodeBreaker(Environment &env)
-	: _env(env), m_rules(env.rules()), m_all(env.generateCodewords())
+CodeBreaker::CodeBreaker(Engine &engine)
+	: e(engine), m_rules(e.rules()), m_all(e.generateCodewords())
 {
 	assert(m_rules.valid());
 
@@ -53,12 +55,12 @@ static int count_bits(unsigned short a)
 
 void CodeBreaker::AddFeedback(const Codeword &guess, Feedback fb)
 {
-	m_possibilities = _env.filterByFeedback(m_possibilities, guess, fb);
+	m_possibilities = e.filterByFeedback(m_possibilities, guess, fb);
 	assert(m_possibilities.size() > 0);
 
 	unsigned short allmask = ((unsigned short)1 << m_rules.colors()) - 1;
-	m_unguessed &= ~_env.getDigitMask(guess);
-	m_impossible = allmask & ~_env.getDigitMask(m_possibilities.cbegin(), m_possibilities.cend());
+	m_unguessed &= ~e.getDigitMask(guess);
+	m_impossible = allmask & ~e.getDigitMask(m_possibilities.cbegin(), m_possibilities.cend());
 	m_guessed = allmask & ~m_unguessed & ~m_impossible;
 
 	if (m_fp) {
@@ -70,7 +72,7 @@ CodewordList::const_iterator CodeBreaker::makeObviousGuess(
 	CodewordList::const_iterator first,
 	CodewordList::const_iterator last) const
 {
-	size_t p = env().rules().pegs();
+	size_t p = e.rules().pegs();
 	size_t count = last - first;
 	if (count == 0)
 		return last;
@@ -90,8 +92,8 @@ CodewordList::const_iterator CodeBreaker::makeObviousGuess(
 #if 1
 		const Codeword &guess = *it;
 		FeedbackFrequencyTable freq;
-		FeedbackList fbl = env().compare(guess, first, last);
-		env().countFrequencies(fbl.begin(), fbl.end(), freq);
+		FeedbackList fbl = e.compare(guess, first, last);
+		e.countFrequencies(fbl.begin(), fbl.end(), freq);
 		if (freq.max() == 1) 
 			return it;
 #else
