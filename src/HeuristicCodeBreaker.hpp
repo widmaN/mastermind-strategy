@@ -47,6 +47,14 @@ private:
 
 private:
 
+	void MakeGuess(
+		CodewordConstRange possibilities,
+		//CodewordList::const_iterator first_possibility,
+		//CodewordList::const_iterator last_possibility,
+		unsigned short unguessed_mask,
+		unsigned short impossible_mask,
+		StrategyTreeState *state);
+
 	StrategyTreeNode* FillStrategy(
 		CodewordList::iterator first_possibility,
 		CodewordList::iterator last_possibility,
@@ -64,14 +72,6 @@ private:
 		int *progress);
 		*/
 
-	void MakeGuess(
-		//CodewordList possibilities,
-		CodewordList::const_iterator first_possibility,
-		CodewordList::const_iterator last_possibility,
-		unsigned short unguessed_mask,
-		unsigned short impossible_mask,
-		StrategyTreeState *state);
-
 public:
 
 	/// Creates a heuristic code breaker.
@@ -80,10 +80,12 @@ public:
 	{ 
 	}
 
+#if 0
 	virtual Codeword MakeGuess(
 		CodewordList possibilities,
 		unsigned short unguessed_mask,
 		unsigned short impossible_mask);
+#endif
 
 	virtual Codeword MakeGuess();
 

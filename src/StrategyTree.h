@@ -110,7 +110,7 @@ namespace Mastermind
 		int GetTotalDepth() const { return m_totaldepth; }
 
 		/// Outputs the strategy tree to a file.
-		void WriteToFile(std::ostream &os, FileFormat format, const CodewordRules &rules) const;
+		void WriteToFile(std::ostream &os, FileFormat format, const Rules &rules) const;
 	};
 
 	class StrategyTree : public StrategyTreeNode

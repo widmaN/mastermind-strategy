@@ -42,7 +42,7 @@ static void displayHelp()
 }
 
 // Interactive mode.
-int interactive(const CodewordRules &rules)
+int interactive(const Rules &rules)
 {
 	// Set up default engine for the rules.
 	Engine e(rules);

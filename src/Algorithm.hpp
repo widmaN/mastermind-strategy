@@ -2,6 +2,7 @@
 #define MASTERMIND_ALGORITHM_HPP
 
 #include <string>
+#include "Rules.hpp"
 #include "Codeword.hpp"
 #include "Feedback.hpp"
 #include "Registry.hpp"
@@ -14,7 +15,7 @@ namespace Mastermind {
 /// @param[in]	count	Number of guesses in the array
 /// @param[out]	results	An array to store feedbacks
 typedef void (*ComparisonRoutine)(
-	const CodewordRules &rules,
+	const Rules &rules,
 	const Codeword &secret,
 	const Codeword *first,
 	const Codeword *last,
@@ -42,7 +43,7 @@ typedef unsigned int (*SumSquaresRoutine)(
 
 /// Generates all codewords that conforms to the given set of rules.
 typedef size_t (*GenerationRoutine)(
-	const CodewordRules &rules,
+	const Rules &rules,
 	Codeword *results);
 
 /**

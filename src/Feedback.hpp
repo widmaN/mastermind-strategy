@@ -3,12 +3,9 @@
 
 #include <cassert>
 #include <iostream>
-#include <vector>
 #include <utility>
 
 #include "Rules.hpp"
-#include "util/pool_allocator.hpp"
-#include "util/frequency_table.hpp"
 
 // Whether to store feedback in compact format
 #ifndef MM_FEEDBACK_COMPACT
@@ -206,7 +203,7 @@ public:
 		return Feedback(npegs, 0);
 	}
 
-	static Feedback perfectValue(const CodewordRules &rules)
+	static Feedback perfectValue(const Rules &rules)
 	{
 		return Feedback(rules.pegs(), 0);
 	}
@@ -216,7 +213,7 @@ public:
 		return Feedback(npegs, 0).value();
 	}
 
-	static unsigned char maxValue(const CodewordRules &rules)
+	static unsigned char maxValue(const Rules &rules)
 	{
 		return perfectValue(rules).value();
 	}
@@ -232,26 +229,6 @@ inline std::ostream& operator << (std::ostream &os, const Feedback &feedback)
 		return os << feedback.nA() << 'A' << feedback.nB() << 'B';
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Definition of FeedbackList.
-
-typedef std::vector<Feedback,util::pool_allocator<Feedback>> FeedbackList;
-
-
-///////////////////////////////////////////////////////////////////////////
-// Definition of FeedbackFrequencyTable.
-
-typedef util::frequency_table<Feedback,unsigned int,256> FeedbackFrequencyTable;
-
-
-#if 0
-FeedbackFrequencyTable frequency(const FeedbackList &feedbacks)
-{
-	FeedbackFrequencyTable table;
-	countFrequencies(feedbacks.begin(), feedbacks.end(), table);
-	return table;
-}
-#endif
 
 } // namespace Mastermind
 

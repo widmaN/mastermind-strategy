@@ -68,42 +68,47 @@ void CodeBreaker::AddFeedback(const Codeword &guess, Feedback fb)
 	}
 }
 
-CodewordList::const_iterator CodeBreaker::makeObviousGuess(
-	CodewordList::const_iterator first,
-	CodewordList::const_iterator last) const
+CodewordList::const_iterator 
+CodeBreaker::makeObviousGuess(CodewordConstRange possibilities) const
 {
-	size_t p = e.rules().pegs();
-	size_t count = last - first;
+	size_t count = possibilities.size();
 	if (count == 0)
-		return last;
+		return possibilities.end();
 
 	// If there are only two possibilities left, return the first one.
 	if (count <= 2) 
-		return first;
+		return possibilities.begin();
 
 	// If the number of possibilities is more than the number of distinct
 	// feedbacks, there will be no obvious guess.
+	size_t p = e.rules().pegs();
 	if (count > p*(p+3)/2)
-		return last;
+		return possibilities.end();
 
-	// Check for obviously optimal guess.
-	for (auto it = first; it != last; ++it)
+	// Find the first obviously optimal guess (if any).
+#if 0
+	for (auto it = possibilities.begin(); it != possibilities.end(); ++it)
 	{
-#if 1
+#if 0
 		const Codeword &guess = *it;
 		FeedbackFrequencyTable freq;
-		FeedbackList fbl = e.compare(guess, first, last);
+		FeedbackList fbl = e.compare(guess, possibilities);
 		e.countFrequencies(fbl.begin(), fbl.end(), freq);
 		if (freq.max() == 1) 
 			return it;
 #else
-		if (e.frequencies(e.compare(*it, first, last)).max() == 1)
+		if (e.frequency(e.compare(*it, possibilities)).max() == 1)
 			return it;
 #endif
 	}
-
-	// Not found.
-	return last;
+	return possibilities.end(); // not found
+#else
+	return std::find_if(possibilities.begin(), possibilities.end(),
+		[&](const Codeword &guess) -> bool
+	{
+		return e.frequency(e.compare(guess, possibilities)).max() == 1;
+	});
+#endif
 }
 
 } // namespace Mastermind

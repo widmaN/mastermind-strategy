@@ -136,7 +136,7 @@ void StrategyTreeNode::WriteToFile(std::ostream &os, FileFormat format, int inde
 }
 
 void StrategyTreeNode::WriteToFile(
-	std::ostream &os, FileFormat format, const CodewordRules &rules) const
+	std::ostream &os, FileFormat format, const Rules &rules) const
 {
 	if (format == XmlFormat) 
 	{
@@ -180,7 +180,7 @@ StrategyTreeNode* StrategyTreeNode::Single(StrategyTreeMemoryManager *mm, const 
 	node->State.NCandidates = 1;
 	node->State.Guess = possibility;
 	// TBD
-	node->AddChild(compare(CodewordRules(), possibility, possibility), StrategyTreeNode::Done());
+	node->AddChild(compare(Rules(), possibility, possibility), StrategyTreeNode::Done());
 	return node;
 }
 #endif

@@ -42,7 +42,7 @@ private:
 
 public:
 	/// Creates an optimal code breaker.
-	OptimalCodeBreaker(CodewordRules rules) : CodeBreaker(rules) { }
+	OptimalCodeBreaker(Rules rules) : CodeBreaker(rules) { }
 
 	Codeword MakeGuess(
 		CodewordList possibilities,
