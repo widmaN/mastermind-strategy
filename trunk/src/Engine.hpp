@@ -1,16 +1,46 @@
+//////////////////////////////////////////////////////////////
+// Higher-level routines for manipulating codewords.
+//
+
 #ifndef MASTERMIND_ENGINE_HPP
 #define MASTERMIND_ENGINE_HPP
 
+#include "Rules.hpp"
 #include "Codeword.hpp"
 #include "Feedback.hpp"
-#include "Registry.hpp"
 #include "Algorithm.hpp"
+
+#include <vector>
+#include "util/aligned_allocator.hpp"
+#include "util/pool_allocator.hpp"
+#include "util/frequency_table.hpp"
+#include "util/range.hpp"
 
 namespace Mastermind {
 
+///////////////////////////////////////////////////////////////////////////
+// Definition of CodewordList.
+
+typedef 	std::vector<Codeword,util::aligned_allocator<Codeword,16>> CodewordList;
+typedef util::range<CodewordList::iterator> CodewordRange;
+typedef util::range<CodewordList::const_iterator> CodewordConstRange;
+
+///////////////////////////////////////////////////////////////////////////
+// Definition of FeedbackList.
+
+typedef std::vector<Feedback,util::pool_allocator<Feedback>> FeedbackList;
+
+///////////////////////////////////////////////////////////////////////////
+// Definition of FeedbackFrequencyTable.
+
+typedef util::frequency_table<Feedback,unsigned int,256> FeedbackFrequencyTable;
+
+///////////////////////////////////////////////////////////////////////////
+// Definition of Engine.
+
 class Engine
 {
-	CodewordRules _rules;
+	Rules _rules;
 	ComparisonRoutine _compare;
 	FrequencyRoutine _freq;
 	GenerationRoutine _generate;
@@ -18,7 +48,7 @@ class Engine
 
 public:
 
-	Engine(const CodewordRules &rules) : _rules(rules),
+	Engine(const Rules &rules) : _rules(rules),
 		_compare(RoutineRegistry<ComparisonRoutine>::get("generic")),
 		_freq(RoutineRegistry<FrequencyRoutine>::get("generic")),
 		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
@@ -26,10 +56,11 @@ public:
 	{
 	}
 
-	const CodewordRules& rules() const { return _rules; }
+	const Rules& rules() const { return _rules; }
 
 	void select(ComparisonRoutine f) { _compare = f; }
 
+#if 0
 	/// Compares a codeword to a list of codewords.
 	/// @returns A list of feedbacks.
 	/// @timecomplexity <code>O(N)</code>.
@@ -47,6 +78,26 @@ public:
 		}
 		return feedbacks;
 	}
+#else
+	
+	/// Compares a codeword to a list of codewords.
+	/// @returns A list of feedbacks.
+	/// @timecomplexity <code>O(N)</code>.
+	/// @spacecomplexity <code>O(N)</code>.
+	FeedbackList compare(
+		const Codeword &guess, 
+		CodewordConstRange codewords) const
+	{
+		size_t count = codewords.size();
+		FeedbackList feedbacks(count);
+		if (count > 0)
+		{
+			const Codeword *first = &(*codewords.begin());
+			_compare(_rules, guess, first, first + count, feedbacks.data());
+		}
+		return feedbacks;
+	}
+#endif
 
 	/// Compares two codewords.
 	/// @returns The feedback.

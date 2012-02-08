@@ -6,8 +6,9 @@
 #include "Algorithm.hpp"
 #include "util/intrinsic.hpp"
 
-#if 0
+using namespace Mastermind;
 
+#if 0
 // Returns n!/r!
 int NPermute(int n, int r)
 {
@@ -39,10 +40,13 @@ int NComb(int n, int r)
 {
 	return NPermute(n,r)/NPermute(r,r);
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////
 // Codeword conversion routines
 //
+
+#if 0
 
 static unsigned long codeword_to_dword(__m128i from)
 {
@@ -87,106 +91,6 @@ static __m128i dword_to_codeword(unsigned long from)
 	return ret;
 }
 
-/*
-template <class FromType, class ToType>
-void ConvertCodewords(const FromType *from, unsigned int count, ToType *to)
-{
-	assert(from != NULL);
-	assert(to != NULL);
-	for (; count > 0; count--) {
-		*(to++) = ConvertCodeword<FromType, ToType>(*(from++));
-	}
-}
-*/
-
-////////////////////////////////////////////////////////////////////////////
-// Enumeration routines
-//
-
-#if 0
-// Enumerate all codewords conformant to the given rules.
-int EnumerateCodewords(int length, int ndigits, bool allow_rep, Codeword* results)
-{
-	assert(length > 0 && length <= MM_MAX_PEGS);
-	assert(ndigits > 0 && ndigits <= MM_MAX_COLORS);
-	assert(allow_rep || ndigits >= length);
-
-	int count = allow_rep? NPower(ndigits, length) : NPermute(ndigits, length);
-	if (results == NULL)
-		return count;
-
-	unsigned char max_times = allow_rep? length : 1;
-
-	// Initialize the first codeword up till one before the last digit
-	Codeword cw;
-	//memset(cw.counter, 0, sizeof(cw.counter));
-	//memset(cw.digit, 0xFF, sizeof(cw.digit));
-
-	int k;
-	if (allow_rep) 
-	{
-		for (k = 0; k < length - 1; k++)
-			cw.set(k, 0);
-	} 
-	else 
-	{
-		for (k = 0; k < length - 1; k++)
-			cw.set(k, k);
-	}
-
-	int i = 0;
-	while (1) 
-	{
-		// Fill last digit
-		for (unsigned char d = 0; d < ndigits; d++) 
-		{
-			if (cw.count(d) < max_times) 
-			{
-				Codeword cw1 = cw;
-				cw1.set(length-1, d);
-				results[i++] = cw1;
-			}
-		}
-
-		// Find carry position
-		for (k = length - 2; k >= 0; k--) 
-		{
-			unsigned char d = cw.digit[k];  // get digit
-			cw.counter[d]--;                // turn off mask
-			while ((++d < ndigits) && (cw.counter[d] >= max_times)); // find smallest unused digit
-			if (d < ndigits) {
-				cw.digit[k] = d;
-				cw.counter[d]++;
-				break;
-			}
-		}
-		if (k < 0)
-			break;
-
-		// Fill digits up to one before the last
-		while (++k < length - 1) {
-			unsigned char d;
-			for (d = 0; cw.counter[d] >= max_times; d++); // find smallest unused digit
-			cw.digit[k] = d;
-			cw.counter[d]++;
-		}
-	}
-	assert(i == count);
-
-	return count;
-}
-
-int Enumerate_Rep(int length, int ndigits, Codeword* results)
-{
-	return EnumerateCodewords(length, ndigits, true, results);
-}
-
-int Enumerate_NoRep(int length, int ndigits, Codeword* results)
-{
-	return EnumerateCodewords(length, ndigits, false, results);
-}
-#endif
-
 ////////////////////////////////////////////////////////////////////////////
 // Filter routines
 
@@ -204,23 +108,26 @@ int Enumerate_NoRep(int length, int ndigits, Codeword* results)
 // This function keeps the lexicographical-minimum codeword of all codewords
 // equivalent to it. Therefore, this minimum codeword must exist in _src_ for
 // the function to work correctly.
-int FilterByEquivalenceClass_norep_v1(
-	const __m128i *src,
-	int nsrc,
-	const unsigned char eqclass[16],
-	__m128i *dest)
-{
-	assert(src != NULL);
-	assert(nsrc >= 0);
-	assert(dest != NULL);
 
+static size_t FilterByEquivalenceClass_norep_v1(
+	const Codeword *first,
+	const Codeword *last,
+	const unsigned char eqclass[16],
+	Codeword *filtered)
+	//const __m128i *src,
+	//int nsrc,
+	//const unsigned char eqclass[16],
+	//__m128i *dest)
+{
 	// Find out the largest digit each digit is equivalent to.
 	unsigned char head[16];
 	memset(head, -1, 16);
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 16; i++) 
+	{
 		if (i < head[i])
 			head[i] = i;
-		for (int p = eqclass[i], c = 0; (p != i) && (c <= 16); p=eqclass[p], c++) {
+		for (int p = eqclass[i], c = 0; (p != i) && (c <= 16); p=eqclass[p], c++)
+		{
 			if (i < head[p])
 				head[p] = i;
 		}
@@ -228,13 +135,15 @@ int FilterByEquivalenceClass_norep_v1(
 
 	// Find out the minimum equivalent codeword of each codeword. If it is
 	// equal to the codeword itself, keep it.
-	int ndest = 0;
-	for (int i = 0; i < nsrc; i++) {
+	size_t ndest = 0;
+	for (int i = 0; i < nsrc; i++) 
+	{
 		unsigned long cw = codeword_to_dword(src[i]);
 		unsigned long cw_remapped = 0;
 		unsigned char chain[16];
 		memcpy(chain, head, 16);
-		for (int j = 0; j < 8; j++) {
+		for (int j = 0; j < 8; j++) 
+		{
 			cw = util::intrinsic::rotate_left(cw, 4);
 			unsigned char k = (cw & 0x0f);
 			unsigned char k_remapped = chain[head[k]];
@@ -242,7 +151,8 @@ int FilterByEquivalenceClass_norep_v1(
 			cw_remapped <<= 4;
 			cw_remapped |= k_remapped;
 		}
-		if (cw == cw_remapped) {
+		if (cw == cw_remapped) 
+		{
 			dest[ndest++] = src[i];
 		}
 	}

@@ -5,8 +5,110 @@
 #include "HeuristicCodeBreaker.hpp"
 #include "Algorithm.hpp"
 
-namespace Mastermind {
+#if ENABLE_CALL_COUNTER
+static Utilities::CallCounter _call_counter("HeuristicCodeBreaker::MakeGuess", true);
+#endif
 
+void PrintMakeGuessStatistics()
+{
+#if ENABLE_CALL_COUNTER
+	_call_counter.DebugPrint();
+#endif
+}
+
+using namespace Mastermind;
+
+///////////////////////////////////////////////////////////////////////////
+// MakeGuess() implementation.
+
+template <class Heuristic>
+void HeuristicCodeBreaker<Heuristic>::MakeGuess(
+	CodewordConstRange possibilities,
+	unsigned short unguessed_mask,
+	unsigned short impossible_mask,
+	StrategyTreeState *state)
+{
+	size_t count = possibilities.size();
+	assert(count > 0);
+	state->NPossibilities = count;
+
+	// Check for obvious guess.
+	auto it = makeObviousGuess(possibilities);
+	if (it != possibilities.end())
+	{
+		state->NCandidates = (it - possibilities.begin()) + 1;
+		state->Guess = *it;
+#if ENABLE_CALL_COUNTER
+		_call_counter.AddCall(state->NCandidates*state->NPossibilities);
+#endif
+		return;
+	}
+
+	// Now that there are no obvious guesses, we need to make a guess 
+	// according to the supplied heuristic.
+
+	// Initialize the set of candidate guesses.
+	CodewordConstRange candidates1 = m_posonly? possibilities : m_all;
+
+	// Filter the candidate set to remove "equivalent" guesses.
+	// For now the equivalence is determined by bit-mask of colors.
+	// In the next step, we should determine it by graph isomorphasm.
+	CodewordList candidates = 
+		candidates1.FilterByEquivalence(unguessed_mask, impossible_mask);
+
+	// Initialize some book-keeping variables.
+	typename Heuristic::score_t choose_score = 0;
+	size_t choose_i = 0;
+	bool choose_ispos = false;
+	size_t target = Feedback::perfectValue(e.rules()).value();
+
+	// Evaluate each potential guess and find the one with the lowest score.
+	for (size_t i = 0; i < candidates.size(); i++) 
+	{
+		Codeword guess = candidates[i];
+		FeedbackFrequencyTable freq = 
+			e.frequency(e.compare(guess, possibilities));
+
+		Heuristic::score_t score = Heuristic::compute(freq);
+		if ((i == 0) || (score < choose_score) || 
+			(score == choose_score && !choose_ispos && freq[target] > 0)) 
+		{
+			choose_score = score;
+			choose_i = i;
+			choose_ispos = (freq[target] > 0);
+		}
+	}
+
+	// Store the guess we made.
+	state->NCandidates = candidates.size();
+	state->Guess = candidates[choose_i];
+#if ENABLE_CALL_COUNTER
+	_call_counter.AddCall(state->NCandidates*state->NPossibilities);
+#endif
+}
+
+#if 0
+template <class Heuristic>
+Codeword HeuristicCodeBreaker<Heuristic>::MakeGuess(
+	CodewordList possibilities,
+	unsigned short unguessed_mask,
+	unsigned short impossible_mask)
+{
+	StrategyTreeState state;
+	MakeGuess(possibilities, unguessed_mask, impossible_mask, &state);
+	return state.Guess;
+}
+#endif
+
+template <class Heuristic>
+Codeword HeuristicCodeBreaker<Heuristic>::MakeGuess()
+{
+	StrategyTreeState state;
+	MakeGuess(m_possibilities, m_unguessed, m_impossible, &state);
+	return state.Guess;
+}
+
+#if 0
 template <class Heuristic>
 StrategyTreeNode* HeuristicCodeBreaker<Heuristic>::FillStrategy(
 	CodewordList::iterator first_possibility,
@@ -33,11 +135,11 @@ StrategyTreeNode* HeuristicCodeBreaker<Heuristic>::FillStrategy(
 
 	Codeword guess = state.Guess;
 	FeedbackFrequencyTable freq;
-	_env.partition(first_possibility, last_possibility, guess, freq);
+	e.partition(first_possibility, last_possibility, guess, freq);
 	//possibilities.Partition(guess, freq);
 	//FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
 
-	Feedback perfect = Feedback::perfectValue(_env.rules());
+	Feedback perfect = Feedback::perfectValue(e.rules());
 	StrategyTreeNode *node = StrategyTreeNode::Create(mm);
 	node->State = state;
 #if 0
@@ -106,7 +208,9 @@ StrategyTreeNode* HeuristicCodeBreaker<Heuristic>::FillStrategy(
 
 	return node;
 }
+#endif
 
+#if 0
 template <class Heuristic>
 StrategyTree* HeuristicCodeBreaker<Heuristic>::BuildStrategyTree(const Codeword& first_guess)
 {
@@ -132,103 +236,8 @@ StrategyTree* HeuristicCodeBreaker<Heuristic>::BuildStrategyTree(const Codeword&
 	return (the strategy tree built this way);
 	*/
 }
-
-#if ENABLE_CALL_COUNTER
-static Utilities::CallCounter _call_counter("HeuristicCodeBreaker::MakeGuess", true);
 #endif
 
-void PrintMakeGuessStatistics()
-{
-#if ENABLE_CALL_COUNTER
-	_call_counter.DebugPrint();
-#endif
-}
-
-template <class Heuristic>
-void HeuristicCodeBreaker<Heuristic>::MakeGuess(
-	CodewordList::const_iterator first_possibility,
-	CodewordList::const_iterator last_possibility,
-	//CodewordList possibilities,
-	unsigned short unguessed_mask,
-	unsigned short impossible_mask,
-	StrategyTreeState *state)
-{
-	size_t count = last_possibility - first_possibility;
-	assert(count > 0);
-	state->NPossibilities = count;
-
-	// Check for obvious guess.
-	auto it = makeObviousGuess(first_possibility, last_possibility);
-	if (it != last_possibility)
-	{
-		state->NCandidates = (it - first_possibility) + 1;
-		state->Guess = *it;
-#if ENABLE_CALL_COUNTER
-		_call_counter.AddCall(state->NCandidates*state->NPossibilities);
-#endif
-		return;
-	}
-
-	// Now that there are no obvious guesses, we need to make a guess 
-	// according to the supplied heuristic.
-
-	// Initialize the set of candidate guesses.
-	CodewordList &candidates1 = m_posonly? possibilities : m_all;
-
-	// Filter the candidate set to remove "equivalent" guesses.
-	// For now the equivalence is determined by bit-mask of colors.
-	// In the next step, we should determine it by graph isomorphasm.
-	candidates = candidates1.FilterByEquivalence(unguessed_mask, impossible_mask);
-
-	// Initialize some book-keeping variables.
-	typename Heuristic::score_t choose_score = 0;
-	size_t choose_i = 0;
-	bool choose_ispos = false;
-	Feedback target = Feedback::perfectValue(e.rules());
-
-	// Evaluate each potential guess and find the one with the lowest score.
-	for (size_t i = 0; i < candidates.size(); i++) 
-	{
-		Codeword guess = candidates[i];
-		FeedbackFrequencyTable freq = e.frequencies(
-			e.compare(guess, first_possibility, last_possibility));
-
-		Heuristic::score_t score = Heuristic::compute(freq);
-		if ((i == 0) || (score < choose_score) || 
-			(score == choose_score && !choose_ispos && freq[target] > 0)) 
-		{
-			choose_score = score;
-			choose_i = i;
-			choose_ispos = (freq[target] > 0);
-		}
-	}
-
-	// Store the guess we made.
-	state->NCandidates = candidates.GetCount();
-	state->Guess = candidates[choose_i];
-#if ENABLE_CALL_COUNTER
-	_call_counter.AddCall(state->NCandidates*state->NPossibilities);
-#endif
-}
-
-template <class Heuristic>
-Codeword HeuristicCodeBreaker<Heuristic>::MakeGuess(
-	CodewordList possibilities,
-	unsigned short unguessed_mask,
-	unsigned short impossible_mask)
-{
-	StrategyTreeState state;
-	MakeGuess(possibilities, unguessed_mask, impossible_mask, &state);
-	return state.Guess;
-}
-
-template <class Heuristic>
-Codeword HeuristicCodeBreaker<Heuristic>::MakeGuess()
-{
-	StrategyTreeState state;
-	MakeGuess(m_possibilities, m_unguessed, m_impossible, &state);
-	return state.Guess;
-}
 
 ///////////////////////////////////////////////////////////////////////////
 // Instantiate the heuristic solver with pre-built heuristics.
@@ -298,4 +307,3 @@ int Heuristics::MinimizeSteps::partition_score[10000];
 template HeuristicCodeBreaker<Heuristics::MinimizeSteps>;
 #endif
 
-} // namespace Mastermind

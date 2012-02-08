@@ -48,7 +48,7 @@ static void generate_recursion(
 }
 
 static size_t generate_codewords(
-	const CodewordRules &rules,
+	const Rules &rules,
 	Codeword *results)
 {
 	assert(rules.valid());

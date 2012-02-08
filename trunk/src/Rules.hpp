@@ -31,7 +31,7 @@
 namespace Mastermind {
 
 /// Defines the rules that a codeword conforms to.
-class CodewordRules
+class Rules
 {
 	int _pegs;        // number of pegs.
 	int _colors;      // number of colors.
@@ -40,11 +40,11 @@ class CodewordRules
 public:
 	
 	/// Constructs a set of rules for a codeword.
-	CodewordRules(int pegs, int colors, bool repeatable)
+	Rules(int pegs, int colors, bool repeatable)
 		: _pegs(pegs), _colors(colors), _repeatable(repeatable) { }
 
 	/// Constructs a set of empty rules.
-	CodewordRules() 	: _pegs(0), _colors(0), _repeatable(false) { }
+	Rules() 	: _pegs(0), _colors(0), _repeatable(false) { }
 
 	/// Returns the number of pegs.
 	int pegs() const { return _pegs; }

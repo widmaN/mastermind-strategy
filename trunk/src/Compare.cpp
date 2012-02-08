@@ -55,7 +55,7 @@ static const generic_feedback_mapping_t generic_feedback_mapping;
 // SSE2-based implementation for comparing generic codewords.
 // Repeated colors are allowed.
 static void compare_long_codeword_generic(
-	const CodewordRules &rules,
+	const Rules &rules,
 	const Codeword &_secret,
 	const Codeword *_first,
 	const Codeword *_last,
@@ -148,7 +148,7 @@ static const norepeat_feedback_mapping_t norepeat_feedback_mapping;
 // We build a cache that pre-computes feedback from bitmask.
 // This is much (3x) faster than counting the bits each time.
 static void compare_long_codeword_norepeat(
-	const CodewordRules &rules,
+	const Rules &rules,
 	const Codeword &_secret,
 	const Codeword *first,
 	const Codeword *last,
@@ -188,7 +188,7 @@ static void compare_long_codeword_norepeat(
 // Comparison routine for non-repeatable codewords.
 // It is a manually-unrolled version of compare_long_codeword_norepeat().
 static void compare_long_codeword_norepeat_p4(
-	const CodewordRules &rules,
+	const Rules &rules,
 	const Codeword& _secret,
 	const Codeword *first,
 	const Codeword *last,

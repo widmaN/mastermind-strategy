@@ -236,7 +236,7 @@ public:
 
 
 #if 0
-int TestEquivalenceFilter(const CodewordRules &rules, long times)
+int TestEquivalenceFilter(const Rules &rules, long times)
 {
 	CodewordList list = generateCodewords(rules);
 	int total = (int)list.size();
@@ -304,7 +304,7 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 
 #if 0
 // Compare FilterByEquivalence Algorithms
-int TestEquivalenceFilter(CodewordRules rules, long times)
+int TestEquivalenceFilter(Rules rules, long times)
 {
 	CodewordList list = CodewordList::Enumerate(rules);
 
@@ -375,7 +375,7 @@ int TestEquivalenceFilter(CodewordRules rules, long times)
 /// Conclusion:
 /// Due to the memory-intensive nature of the algorithm, the performance
 /// cannot be improved much. count_freq_v6() is the chosen implementation.
-int TestFrequencyCounting(const CodewordRules &rules, long times)
+int TestFrequencyCounting(const Rules &rules, long times)
 {
 	CodewordList list = generateCodewords(rules);
 	FeedbackList fblist = compare(rules, list[0], list.cbegin(), list.cend());
@@ -439,7 +439,7 @@ static bool testSumSquares(
 	long times)
 {
 	CodewordList list = e.generateCodewords();
-	FeedbackList fbl = e.compare(list[0], list.begin(), list.end());
+	FeedbackList fbl = e.compare(list[0], list);
 	FeedbackFrequencyTable freq;
 	e.countFrequencies(fbl.begin(), fbl.end(), freq);
 	unsigned char maxfb = Feedback::maxValue(e.rules()); // fbl.GetMaxFeedbackValue();
@@ -501,7 +501,7 @@ static void TestGuessingByTree(
 	const Codeword& first_guess)
 {
 	CodewordList all = e.generateCodewords();
-	CodewordRules rules = e.rules();
+	Rules rules = e.rules();
 	Feedback target = Feedback::perfectValue(rules);
 	Utilities::HRTimer timer;
 
@@ -565,7 +565,7 @@ static void TestGuessingByTree(
 }
 
 /// Runs regression and benchmark tests.
-int test(const CodewordRules &rules)
+int test(const Rules &rules)
 {
 #ifdef NDEBUG
 #define LOOP_FLAG 1
@@ -576,21 +576,17 @@ int test(const CodewordRules &rules)
 	// Set up the standard engine.
 	Engine e(rules);
 
-#if 1
+#if 0
 	//compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
 	//compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
 	compareRoutines<MaskRoutine>(e, "generic", "unrolled", 100000*LOOP_FLAG);
 
 	//testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
-
+	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
+	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
 	system("PAUSE");
 	return 0;
 #endif
-
-	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
-	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
-	//return BuildLookupTableForLongComparison();
-	//return TestEnumerationDirect(200000*1);
 
 	Codeword first_guess = Codeword::emptyValue();
 	//Codeword first_guess = Codeword::Parse("0011", rules);

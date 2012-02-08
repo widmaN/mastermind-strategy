@@ -25,7 +25,7 @@ protected:
 	Engine &e;
 
 	/// Rules of the game that this code breaker works on.
-	CodewordRules m_rules;
+	Rules m_rules;
 
 	/// List of all codewords conforming to the rules of the game.
 	CodewordList m_all;
@@ -55,7 +55,7 @@ public:
 	/// The base implementation initializes all members. In particular,
 	/// it fills codeword list <code>m_all</code> with all codewords
 	/// conforming to the rules.
-	CodeBreaker(const CodewordRules &rules);
+	CodeBreaker(const Rules &rules);
 #endif
 
 	/// Creates a code breaker for the given environment.
@@ -103,8 +103,9 @@ public:
 	 * @spacecomplexity Constant.
 	 */
 	CodewordList::const_iterator makeObviousGuess(
-		CodewordList::const_iterator first,
-		CodewordList::const_iterator last) const;
+		CodewordConstRange possibilities) const;
+		//CodewordList::const_iterator first,
+		//CodewordList::const_iterator last) const;
 
 	/// Resets the code breaker so that it is ready to play a new game.
 	/// The base implementation resets member variables to the state

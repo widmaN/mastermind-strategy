@@ -9,7 +9,7 @@ CodewordList Engine::filterByFeedback(
 	Feedback feedback) const
 {
 	unsigned char fb = feedback.value();
-	FeedbackList fblist = compare(guess, list.begin(), list.end());
+	FeedbackList fblist = compare(guess, list);
 
 	// Count feedbacks equal to feedback.
 	size_t count = std::count(fblist.cbegin(), fblist.cend(), fb);
@@ -46,7 +46,7 @@ void Engine::partition(
 		return;
 
 	// Compare guess to each codeword in the list.
-	FeedbackList fbl = compare(guess, first, last);
+	FeedbackList fbl = compare(guess, CodewordRange(first, last));
 	countFrequencies(fbl.cbegin(), fbl.cend(), freq);
 	// freq.CountFrequencies(fbl);
 

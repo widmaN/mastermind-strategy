@@ -11,7 +11,7 @@ using namespace Mastermind;
 #if 0
 static int RegressionTestUnit()
 {
-	CodewordRules rules;
+	Rules rules;
 	rules.length = 4;
 	rules.ndigits = 10;
 	rules.allow_repetition = false;
@@ -70,7 +70,7 @@ static void DumpCodewordList(const CodewordList *list)
 	}
 }
 
-static void TestGuessing(CodewordRules rules, CodeBreaker *breakers[], int nb)
+static void TestGuessing(Rules rules, CodeBreaker *breakers[], int nb)
 {
 	CodewordList all = CodewordList::Enumerate(rules);
 	Feedback target(rules.length, 0);
@@ -149,7 +149,7 @@ static void TestGuessing(CodewordRules rules, CodeBreaker *breakers[], int nb)
 
 
 
-int TestOutputStrategyTree(CodewordRules rules)
+int TestOutputStrategyTree(Rules rules)
 {
 	//CodeBreaker *b = new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules);
 	CodeBreaker *b = new OptimalCodeBreaker(rules);
@@ -227,7 +227,7 @@ static int GetMaxBreakableWithin(
 	return best;
 }
 
-static int TestBound(CodewordRules rules)
+static int TestBound(Rules rules)
 {
 	// Find out the maximum size of any partition
 	CodewordList all = CodewordList::Enumerate(rules);
@@ -346,8 +346,8 @@ static void usage()
 // TODO: Output strategy tree after finishing a run
 // TODO: Refactor StrategyTree() to speed up Destroy() and clean up memory
 
-extern int interactive(const CodewordRules &rules);
-extern int test(const CodewordRules &rules);
+extern int interactive(const Rules &rules);
+extern int test(const Rules &rules);
 
 
 // Step 3: build a strategy tree using simple code breaker.
@@ -440,7 +440,7 @@ int main(int argc, char* argv[])
 	}
 
 	// Construct the rules.
-	CodewordRules rules(pegs, colors, repeatable);
+	Rules rules(pegs, colors, repeatable);
 
 	// Execute the selected action.
 	switch (mode)
@@ -457,9 +457,9 @@ int main(int argc, char* argv[])
 	return 0;
 
 #if 0
-	CodewordRules rules(4, 10, false); // Guess Number rules
-	CodewordRules rules(4, 6, true);   // Mastermind rules
-	CodewordRules rules(5, 8, false);
+	Rules rules(4, 10, false); // Guess Number rules
+	Rules rules(4, 6, true);   // Mastermind rules
+	Rules rules(5, 8, false);
 #endif
 
 #if 0

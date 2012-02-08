@@ -5,10 +5,8 @@
 #include <cstring>
 #include <emmintrin.h>
 #include <algorithm>
-#include <vector>
 
 #include "Rules.hpp"
-#include "util/aligned_allocator.hpp"
 
 namespace Mastermind {
 
@@ -77,7 +75,7 @@ public:
 	int pegs() const;
 
 	/// Checks whether this codeword conforms to the supplied rules.
-	bool valid(const CodewordRules &rules) const;
+	bool valid(const Rules &rules) const;
 
 	/// Tests whether two codewords are equal.
 	bool operator == (const Codeword &c) const
@@ -100,11 +98,6 @@ std::ostream& operator << (std::ostream &os, const Codeword &c);
 
 /// Inputs a codeword from a stream. No rules are enforced.
 std::istream& operator >> (std::istream &is, Codeword &c);
-
-///////////////////////////////////////////////////////////////////////////
-// Definition of CodewordList.
-
-typedef 	std::vector<Codeword,util::aligned_allocator<Codeword,16>> CodewordList;
 
 
 } // namespace Mastermind
