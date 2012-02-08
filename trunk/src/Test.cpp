@@ -48,16 +48,16 @@ bool compareRoutines(
 	TestDriver<Routine> drv2(e, func2);
 
 	// Verify computation results.
-	auto &r1 = drv1();
-	auto &r2 = drv2();
-	if (!(r1 == r2))
+	drv1();
+	drv2();
+	if (!(drv1 == drv2))
 		return false;
 
 	// Display results in debug mode.
 	if (times == 0)
 	{
-		std::cout << "Result 1: " << std::endl << r1 << std::endl;
-		std::cout << "Result 2: " << std::endl << r2 << std::endl;
+		std::cout << "Result 1: " << std::endl << drv1 << std::endl;
+		std::cout << "Result 2: " << std::endl << drv2 << std::endl;
 	}
 
 	// Time it.
@@ -84,7 +84,7 @@ bool compareRoutines(
 }
 
 #ifndef NTEST
-// Compare codeword generation algorithms.
+// Benchmark codeword generation algorithms.
 // Test: Generate all codewords of 4 pegs, 10 colors, and no repeats.
 //       Total 5040 items in each run.
 // Results: (100,000 runs, Release mode)
@@ -93,148 +93,93 @@ bool compareRoutines(
 // CombPermParallel:  0.96 s [ASM][legacy]
 // CombPermParallel2: 0.68 s [ASM][legacy]
 template <>
-struct TestDriver<GenerationRoutine> 
+class TestDriver<GenerationRoutine> 
 {
-	struct Result
-	{
-		CodewordList list;
-
-		friend std::ostream& operator << (std::ostream &os, const Result &r)
-		{
-			os << "First 10 of " << r.list.size() << " items:" << std::endl;
-			// Display first 10 items.
-			for (size_t i = 0; i < 10 && i < r.list.size(); ++i)
-				os << r.list[i] << std::endl;
-			return os;
-		}
-
-		bool operator == (const Result &r) const { return list == r.list; }
-	};
-
 	Environment &e;
 	GenerationRoutine f;
-	Result result;
+	size_t count;
+	CodewordList list;
 
+public:
 	TestDriver(Environment &env, GenerationRoutine func)
-		: e(env), f(func)
+		: e(env), f(func), count(f(e.rules(), 0)), list(count) { }
+
+	void operator()() { 	f(e.rules(), list.data()); }
+
+	bool operator == (const TestDriver &r) const 
 	{
-		size_t count = f(e.rules(), 0);
-		result.list.resize(count);
+		return list == r.list; 
 	}
 
-	const Result& operator()() 
+	friend std::ostream& operator << (std::ostream &os, const TestDriver &r)
 	{
-		f(e.rules(), result.list.data());
-		return result;
+		// Display first 10 items.
+		os << "First 10 of " << r.list.size() << " items:" << std::endl;
+		for (size_t i = 0; i < 10 && i < r.list.size(); ++i)
+			os << r.list[i] << std::endl;
+		return os;
 	}
 };
 #endif
 
-
-// Test comparison routines.
-static bool testComparison(
-	const Environment &e,
-	const char *routine1, const char *routine2, long times)
+#ifndef NTEST
+// Benchmark codeword comparison algorithms.
+// Test:     Compare a given codeword to 5040 non-repeatable codewords.
+// Results:  (100,000 runs, Win32, VC++ 2011)
+// generic:  1.68 s
+// norepeat: 0.62 s
+template <>
+class TestDriver<ComparisonRoutine> 
 {
-	CodewordList list = e.generateCodewords();
-	size_t count = list.size();
-	Codeword secret = list[count / 2];
-	FeedbackList results1(count), results2(count);
+	Environment &e;
+	ComparisonRoutine f;
+	CodewordList codewords;
+	size_t count;
+	Codeword secret;
+	FeedbackList feedbacks;
 
-	ComparisonRoutine func1 = RoutineRegistry<ComparisonRoutine>::get(routine1);
-	ComparisonRoutine func2 = RoutineRegistry<ComparisonRoutine>::get(routine2);
+public:
+	TestDriver(Environment &env, ComparisonRoutine func)
+		: e(env), f(func), codewords(e.generateCodewords()),
+		count(codewords.size()), secret(codewords[count/2]), 
+		feedbacks(count) { }
 
-	// Verify computation results.
-	if (times == 0)
+	void operator()() 
 	{
-		func1(e.rules(), secret, &list.front(), &list.back()+1, results1.data());
-		func2(e.rules(), secret, &list.front(), &list.back()+1, results2.data());
-		for (size_t i = 0; i < count; i++) 
+		f(e.rules(), secret, &codewords.front(), &codewords.back()+1, 
+			feedbacks.data());
+	}
+
+	bool operator == (const TestDriver &r) const
+	{
+		if (count != r.count)
 		{
-			if (results1[i] != results2[i])
+			std::cout << "**** ERROR: Different sizes." << std::endl;
+			return false;
+		}
+		for (size_t i = 0; i < count; i++)
+		{
+			if (feedbacks[i] != r.feedbacks[i])
 			{
 				std::cout << "**** ERROR: Inconsistent [" << i << "]: "
-					<< "Compare(" << secret << ", " << list[i] << ") = " 
-					<< results1[i] << " v " << results2[i] << std::endl;
+					<< "Compare(" << secret << ", " << codewords[i] << ") = " 
+					<< feedbacks[i] << " v " << r.feedbacks[i] << std::endl;
 				return false;
 			}
 		}
-	}
-
-#if 1
-	// Display frequency table in Debug mode.
-	if (times == 0) 
-	{
-		if (1) 
-		{
-			FeedbackFrequencyTable freq;
-			e.countFrequencies(results1.begin(), results1.end(), freq);
-			std::cout << freq;
-		}
-		if (1) 
-		{
-			FeedbackFrequencyTable freq;
-			e.countFrequencies(results2.begin(), results2.end(), freq);
-			std::cout << freq;
-		}
 		return true;
 	}
+
+	friend std::ostream& operator << (std::ostream &os, const TestDriver &r)
+	{
+		FeedbackFrequencyTable freq;
+		r.e.countFrequencies(r.feedbacks.begin(), r.feedbacks.end(), freq);
+		return os << freq;
+	}
+};
 #endif
 
-	HRTimer timer;
-	double t1 = 0, t2 = 0;
-
-	// Run performance test.
-	for (int pass = 0; pass < 10; pass++) 
-	{
-		timer.start();
-		for (int j = 0; j < times / 10; j++) 
-		{
-			func1(e.rules(), secret, &list.front(), &list.back()+1, results1.data());
-		}
-		t1 += timer.stop();
-
-		timer.start();
-		for (int j = 0; j < times / 10; j++) 
-		{
-			func2(e.rules(), secret, &list.front(), &list.back()+1, results2.data());
-		}
-		t2 += timer.stop();
-	}
-
-	printf("Algorithm 1: %6.3f\n", t1);
-	printf("Algorithm 2: %6.3f\n", t2);
-	printf("Speed Ratio: %5.2fX\n", (t1/t2));
-	return true;
-}
-
-
-
 #if 0
-int FilterByEquivalenceClass_norep_v1(
-	const __m128i *src,
-	int nsrc,
-	const unsigned char eqclass[16],
-	__m128i *dest);
-
-int FilterByEquivalenceClass_norep_v2(
-	const codeword_t *src,
-	int nsrc,
-	const unsigned char eqclass[16],
-	codeword_t *dest);
-
-int FilterByEquivalenceClass_norep_v3(
-	const codeword_t *src,
-	int nsrc,
-	const unsigned char eqclass[16],
-	codeword_t *dest);
-
-int FilterByEquivalenceClass_rep_v1(
-	const codeword_t *src,
-	int nsrc,
-	const unsigned char eqclass[16],
-	codeword_t *dest);
-
 int TestEquivalenceFilter(const CodewordRules &rules, long times)
 {
 	CodewordList list = generateCodewords(rules);
@@ -692,10 +637,9 @@ int test(const CodewordRules &rules)
 	Environment e(rules);
 
 #if 1
-	//std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
-	//testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
+	//compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
+	compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
 	//testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
-	compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
 
 	system("PAUSE");
 	return 0;
