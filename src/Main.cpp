@@ -1,8 +1,6 @@
 #include <iostream>
 #include <vector>
 
-#include "Test.h"
-
 #include <iostream>
 #include "Codeword.hpp"
 #include "CodeBreaker.h"

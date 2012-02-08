@@ -57,8 +57,8 @@ void CodeBreaker::AddFeedback(const Codeword &guess, Feedback fb)
 	assert(m_possibilities.size() > 0);
 
 	unsigned short allmask = ((unsigned short)1 << m_rules.colors()) - 1;
-	m_unguessed &= ~getDigitMask(guess);
-	m_impossible = allmask & ~getDigitMask(m_possibilities.cbegin(), m_possibilities.cend());
+	m_unguessed &= ~_env.getDigitMask(guess);
+	m_impossible = allmask & ~_env.getDigitMask(m_possibilities.cbegin(), m_possibilities.cend());
 	m_guessed = allmask & ~m_unguessed & ~m_impossible;
 
 	if (m_fp) {

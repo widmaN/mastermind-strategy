@@ -1,5 +1,5 @@
-#ifndef MASTERMIND_UTIL_INTRINSIC_HPP
-#define MASTERMIND_UTIL_INTRINSIC_HPP
+#ifndef UTILITIES_INTRINSIC_HPP
+#define UTILITIES_INTRINSIC_HPP
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -44,7 +44,6 @@ inline int pop_count(unsigned short a)
 
 }
 
-} // namespace Intrinsic
-} // namespace Utilities
+} } // namespace util::intrinsic
 
-#endif // MASTERMIND_UTIL_INTRINSIC_HPP
+#endif // UTILITIES_INTRINSIC_HPP

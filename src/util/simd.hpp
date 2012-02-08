@@ -59,22 +59,31 @@ simd_t<T,N>& operator |= (simd_t<T,N> &a, const simd_t<T,N> &b)
 /// Element-wise equality testing. 
 /// Equal elements are set to -1.
 /// Unequal elements are set to 0.
-simd_t<char,16> operator == (const simd_t<char,16> &a, const simd_t<char,16> &b)
+inline simd_t<char,16> 
+operator == (const simd_t<char,16> &a, const simd_t<char,16> &b)
 {
 	return _mm_cmpeq_epi8(a, b);
 }
 
 /// Element-wise equality testing. 
-/// Equal elements are set to -1.
+/// Equal elements are set to 0xFF.
 /// Unequal elements are set to 0.
-simd_t<uint8_t,16> operator == (const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
+inline simd_t<uint8_t,16> 
+operator == (const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 {
 	return _mm_cmpeq_epi8(a, b);
 }
 
 /// Creates a 16-bit mask from the most significant bits of the 16 bytes,
 /// and zero extends the upper bits in the result.
-int byte_mask(const simd_t<char,16> &a)
+inline int byte_mask(const simd_t<char,16> &a)
+{
+	return _mm_movemask_epi8(a);
+}
+
+/// Creates a 16-bit mask from the most significant bits of the 16 bytes,
+/// and zero extends the upper bits in the result.
+inline int byte_mask(const simd_t<uint8_t,16> &a)
 {
 	return _mm_movemask_epi8(a);
 }
@@ -126,33 +135,35 @@ int extract(const simd_t<uint16_t,8> &a)
 /// and stores the result in the upper quadword; computes the same
 /// for the lower 8 unsigned bytes and stores the result in the 
 /// lower quadword.
-simd_t<uint16_t,8> sad(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
+inline simd_t<uint16_t,8> 
+sad(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 {
 	return _mm_sad_epu8(a, b);
 }
 
 /// Element-wise minimum.
-simd_t<uint8_t,16> min(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
+inline simd_t<uint8_t,16>
+min(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 {
 	return _mm_min_epu8(a, b);
 }
 
 /// Returns the sum of bytes.
-int sum(const simd_t<uint8_t,16> &a)
+inline int sum(const simd_t<uint8_t,16> &a)
 {
 	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
 	return extract<0>(t) + extract<4>(t);
 }
 
 /// Returns the sum of the upper half bytes.
-int sum_high(const simd_t<uint8_t,16> &a)
+inline int sum_high(const simd_t<uint8_t,16> &a)
 {
 	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
 	return extract<4>(t);
 }
 
 /// Returns the sum of the lower half bytes.
-int sum_low(const simd_t<uint8_t,16> &a)
+inline int sum_low(const simd_t<uint8_t,16> &a)
 {
 	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
 	return extract<0>(t);
