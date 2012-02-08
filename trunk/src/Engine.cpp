@@ -1,10 +1,9 @@
-#include "Algorithm.hpp"
-#include "Environment.hpp"
+#include "Engine.hpp"
 
-namespace Mastermind {
+using namespace Mastermind;
 
 // TODO: Does this function take a lot of time?
-CodewordList Environment::filterByFeedback(
+CodewordList Engine::filterByFeedback(
 	const CodewordList &list,
 	const Codeword &guess, 
 	Feedback feedback) const
@@ -36,7 +35,7 @@ CodewordList Environment::filterByFeedback(
 	return result;
 }
 
-void Environment::partition(
+void Engine::partition(
 	CodewordList::iterator first,
 	CodewordList::iterator last,
 	const Codeword &guess,
@@ -100,7 +99,7 @@ void Environment::partition(
 	}
 }
 
-void Environment::countFrequencies(
+void Engine::countFrequencies(
 	FeedbackList::const_iterator first,
 	FeedbackList::const_iterator last,
 	FeedbackFrequencyTable &freq) const
@@ -118,8 +117,3 @@ void Environment::countFrequencies(
 		freq.resize(0);
 	}
 }
-
-
-
-
-} // namespace Mastermind

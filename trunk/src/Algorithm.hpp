@@ -94,15 +94,6 @@ typedef unsigned short (*MaskRoutine)(
 	const Codeword *first,
 	const Codeword *last);
 
-#if 0
-FeedbackFrequencyTable frequency(const FeedbackList &feedbacks);
-{
-	FeedbackFrequencyTable table;
-	countFrequencies(feedbacks.begin(), feedbacks.end(), table);
-	return table;
-}
-#endif
-
 template <class Routine>
 struct RoutineRegistry : public Utilities::Registry<std::string, Routine>
 {

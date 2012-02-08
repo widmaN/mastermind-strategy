@@ -14,7 +14,7 @@ class SimpleCodeBreaker : public CodeBreaker
 
 public:
 	/// Creates a simple code breaker.
-	SimpleCodeBreaker(Environment &env)	: CodeBreaker(env)
+	SimpleCodeBreaker(Engine &engine) : CodeBreaker(engine)
 	{ 
 	}
 

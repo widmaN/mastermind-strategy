@@ -135,12 +135,12 @@
     <ClCompile Include="src\CodeBreaker.cpp" />
     <ClCompile Include="src\Codeword.cpp" />
     <ClCompile Include="src\Compare.cpp" />
+    <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\Equivalence.cpp" />
     <ClCompile Include="src\Frequency.cpp" />
     <ClCompile Include="src\Generation.cpp" />
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Environment.cpp" />
     <ClCompile Include="src\Mask.cpp" />
     <ClCompile Include="src\SimpleCodeBreaker.cpp" />
     <ClCompile Include="src\StrategyTree.cpp" />
@@ -151,7 +151,7 @@
     <ClInclude Include="src\CallCounter.h" />
     <ClInclude Include="src\CodeBreaker.h" />
     <ClInclude Include="src\Codeword.hpp" />
-    <ClInclude Include="src\Environment.hpp" />
+    <ClInclude Include="src\Engine.hpp" />
     <ClInclude Include="src\Feedback.hpp" />
     <ClInclude Include="src\HeuristicCodeBreaker.hpp" />
     <ClInclude Include="src\HRTimer.h" />

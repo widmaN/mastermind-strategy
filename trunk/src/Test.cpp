@@ -14,7 +14,7 @@
 #include "CodeBreaker.h"
 #include "SimpleCodeBreaker.hpp"
 #include "HeuristicCodeBreaker.hpp"
-#include "Environment.hpp"
+#include "Engine.hpp"
 
 using namespace Mastermind;
 using namespace Utilities;
@@ -23,10 +23,10 @@ using namespace Utilities;
 template <class Routine>
 struct TestDriver 
 {
-	Environment &e;
+	Engine &e;
 	Routine f;
 
-	TestDriver(Environment &env, Routine func) : e(env), f(func) { }
+	TestDriver(Engine &engine, Routine func) : e(engine), f(func) { }
 
 	bool operator () () const { return true; }
 };
@@ -34,7 +34,7 @@ struct TestDriver
 // Compares the running time of two routines.
 template <class Routine>
 bool compareRoutines(
-	Environment &e, 
+	Engine &e, 
 	const char *routine1, 
 	const char *routine2,
 	long times)
@@ -91,14 +91,14 @@ bool compareRoutines(
 // CombPermParallel2: 0.68 s [ASM][legacy]
 template <> class TestDriver<GenerationRoutine> 
 {
-	Environment &e;
+	Engine &e;
 	GenerationRoutine f;
 	size_t count;
 	CodewordList list;
 
 public:
-	TestDriver(Environment &env, GenerationRoutine func)
-		: e(env), f(func), count(f(e.rules(), 0)), list(count) { }
+	TestDriver(Engine &engine, GenerationRoutine func)
+		: e(engine), f(func), count(f(e.rules(), 0)), list(count) { }
 
 	void operator()() { 	f(e.rules(), list.data()); }
 
@@ -124,7 +124,7 @@ public:
 // norepeat: 0.62 s
 template <> class TestDriver<ComparisonRoutine> 
 {
-	Environment &e;
+	Engine &e;
 	ComparisonRoutine f;
 	CodewordList codewords;
 	size_t count;
@@ -132,7 +132,7 @@ template <> class TestDriver<ComparisonRoutine>
 	FeedbackList feedbacks;
 
 public:
-	TestDriver(Environment &env, ComparisonRoutine func)
+	TestDriver(Engine &env, ComparisonRoutine func)
 		: e(env), f(func), codewords(e.generateCodewords()),
 		count(codewords.size()), secret(codewords[count/2]), 
 		feedbacks(count) { }
@@ -196,13 +196,13 @@ public:
 // ScanDigitMask_v1 (SSE2): 0.40 s
 template <> class TestDriver<MaskRoutine> 
 {
-	Environment &e;
+	Engine &e;
 	MaskRoutine f;
 	CodewordList list;
 	unsigned short mask;
 
 public:
-	TestDriver(Environment &env, MaskRoutine func)
+	TestDriver(Engine &env, MaskRoutine func)
 		: e(env), f(func), list(e.generateCodewords()), mask(0) { }
 
 	void operator()() 
@@ -433,7 +433,7 @@ int TestFrequencyCounting(const CodewordRules &rules, long times)
 #endif
 
 static bool testSumSquares(
-	const Environment &e,
+	const Engine &e,
 	const char *routine1, 
 	const char *routine2, 
 	long times)
@@ -495,7 +495,7 @@ static bool testSumSquares(
 }
 
 static void TestGuessingByTree(
-	const Environment &e,
+	const Engine &e,
 	CodeBreaker *breakers[], 
 	int nb,
 	const Codeword& first_guess)
@@ -573,8 +573,8 @@ int test(const CodewordRules &rules)
 #define LOOP_FLAG 0
 #endif
 
-	// Set up a standard environment.
-	Environment e(rules);
+	// Set up the standard engine.
+	Engine e(rules);
 
 #if 1
 	//compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);

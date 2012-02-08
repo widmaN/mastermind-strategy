@@ -3,7 +3,7 @@
 
 #include "Codeword.hpp"
 #include "Algorithm.hpp"
-#include "Environment.hpp"
+#include "Engine.hpp"
 
 using namespace Mastermind;
 
@@ -45,7 +45,7 @@ static void displayHelp()
 int interactive(const CodewordRules &rules)
 {
 	// Set up default engine for the rules.
-	Environment e(rules);
+	Engine e(rules);
 
 	// Display available commands.
 	displayHelp();
