@@ -1,9 +1,9 @@
 #include <iostream>
 #include <random>
 
-#include "CodewordRules.hpp"
-#include "CodewordList.hpp"
+#include "Codeword.hpp"
 #include "Algorithm.hpp"
+#include "Environment.hpp"
 
 using namespace Mastermind;
 
@@ -44,12 +44,15 @@ static void displayHelp()
 // Interactive mode.
 int interactive(const CodewordRules &rules)
 {
+	// Set up default engine for the rules.
+	Environment e(rules);
+
 	// Display available commands.
 	displayHelp();
 
 	// Generate all codewords.
 	std::cout << "Generating all codewords..." << std::endl;
-	CodewordList all = generateCodewords(rules);
+	CodewordList all = e.generateCodewords();
 	std::cout << "Done. There are " << all.size() << " codewords." << std::endl;
 
 	// Generate a secret.

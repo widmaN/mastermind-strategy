@@ -3,7 +3,6 @@
 
 #include "util/simd.hpp"
 #include "util/intrinsic.hpp"
-#include "MMConfig.h"
 #include "Algorithm.hpp"
 
 // Define NTEST to exclude non-essential routines from compilation.

@@ -4,7 +4,7 @@
 
 #include "CodeBreaker.h"
 #include "CallCounter.h"
-#include "Feedback.h"
+#include "Feedback.hpp"
 #include "Algorithm.hpp"
 
 namespace Mastermind {
@@ -12,7 +12,7 @@ namespace Mastermind {
 StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManager();
 
 CodeBreaker::CodeBreaker(Environment &env)
-	: _env(env), m_rules(env.rules()), m_all(generateCodewords(m_rules))
+	: _env(env), m_rules(env.rules()), m_all(env.generateCodewords())
 {
 	assert(m_rules.valid());
 

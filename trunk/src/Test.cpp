@@ -6,14 +6,12 @@
 #include <malloc.h>
 #include <iomanip>
 
-#include "CodewordList.hpp"
 #include "HRTimer.h"
-#include "Enumerate.h"
 #include "Test.h"
 #include "Scan.h"
-#include "Feedback.h"
+#include "Feedback.hpp"
 
-#include "CodewordRules.hpp"
+#include "Codeword.hpp"
 #include "Algorithm.hpp"
 #include "CodeBreaker.h"
 #include "SimpleCodeBreaker.hpp"
@@ -23,12 +21,122 @@
 using namespace Mastermind;
 using namespace Utilities;
 
+// Dummy test driver that does nothing in the test and always returns success.
+template <class Routine>
+struct TestDriver 
+{
+	Environment &e;
+	Routine f;
+
+	TestDriver(Environment &env, Routine func) : e(env), f(func) { }
+
+	bool operator () () const { return true; }
+};
+
+// Compares the running time of two routines.
+template <class Routine>
+bool compareRoutines(
+	Environment &e, 
+	const char *routine1, 
+	const char *routine2,
+	long times)
+{
+	Routine func1 = RoutineRegistry<Routine>::get(routine1);
+	Routine func2 = RoutineRegistry<Routine>::get(routine2);
+
+	TestDriver<Routine> drv1(e, func1);
+	TestDriver<Routine> drv2(e, func2);
+
+	// Verify computation results.
+	auto &r1 = drv1();
+	auto &r2 = drv2();
+	if (!(r1 == r2))
+		return false;
+
+	// Display results in debug mode.
+	if (times == 0)
+	{
+		std::cout << "Result 1: " << std::endl << r1 << std::endl;
+		std::cout << "Result 2: " << std::endl << r2 << std::endl;
+	}
+
+	// Time it.
+	HRTimer timer;
+	double t1 = 0, t2 = 0;
+
+	for (int pass = 0; pass < 10; pass++) 
+	{
+		timer.start();
+		for (int k = 0; k < times / 10; k++) 
+			drv1();
+		t1 += timer.stop();
+
+		timer.start();
+		for (int k = 0; k < times / 10; k++) 
+			drv2();
+		t2 += timer.stop();
+	}
+
+	printf("Algorithm 1: %6.3f\n", t1);
+	printf("Algorithm 2: %6.3f\n", t2);
+	printf("Throughput Ratio: %5.2fX\n", (t1/t2));
+	return true;
+}
+
+#ifndef NTEST
+// Compare codeword generation algorithms.
+// Test: Generate all codewords of 4 pegs, 10 colors, and no repeats.
+//       Total 5040 items in each run.
+// Results: (100,000 runs, Release mode)
+// LexOrder: 4.43 s
+// CombPerm: 8.54 s [legacy]
+// CombPermParallel:  0.96 s [ASM][legacy]
+// CombPermParallel2: 0.68 s [ASM][legacy]
+template <>
+struct TestDriver<GenerationRoutine> 
+{
+	struct Result
+	{
+		CodewordList list;
+
+		friend std::ostream& operator << (std::ostream &os, const Result &r)
+		{
+			os << "First 10 of " << r.list.size() << " items:" << std::endl;
+			// Display first 10 items.
+			for (size_t i = 0; i < 10 && i < r.list.size(); ++i)
+				os << r.list[i] << std::endl;
+			return os;
+		}
+
+		bool operator == (const Result &r) const { return list == r.list; }
+	};
+
+	Environment &e;
+	GenerationRoutine f;
+	Result result;
+
+	TestDriver(Environment &env, GenerationRoutine func)
+		: e(env), f(func)
+	{
+		size_t count = f(e.rules(), 0);
+		result.list.resize(count);
+	}
+
+	const Result& operator()() 
+	{
+		f(e.rules(), result.list.data());
+		return result;
+	}
+};
+#endif
+
+
 // Test comparison routines.
 static bool testComparison(
-	const CodewordRules &rules,
+	const Environment &e,
 	const char *routine1, const char *routine2, long times)
 {
-	CodewordList list = generateCodewords(rules);
+	CodewordList list = e.generateCodewords();
 	size_t count = list.size();
 	Codeword secret = list[count / 2];
 	FeedbackList results1(count), results2(count);
@@ -39,8 +147,8 @@ static bool testComparison(
 	// Verify computation results.
 	if (times == 0)
 	{
-		func1(rules, secret, &list.front(), &list.back()+1, results1.data());
-		func2(rules, secret, &list.front(), &list.back()+1, results2.data());
+		func1(e.rules(), secret, &list.front(), &list.back()+1, results1.data());
+		func2(e.rules(), secret, &list.front(), &list.back()+1, results2.data());
 		for (size_t i = 0; i < count; i++) 
 		{
 			if (results1[i] != results2[i])
@@ -57,7 +165,6 @@ static bool testComparison(
 	// Display frequency table in Debug mode.
 	if (times == 0) 
 	{
-		Environment e(rules);
 		if (1) 
 		{
 			FeedbackFrequencyTable freq;
@@ -83,14 +190,14 @@ static bool testComparison(
 		timer.start();
 		for (int j = 0; j < times / 10; j++) 
 		{
-			func1(rules, secret, &list.front(), &list.back()+1, results1.data());
+			func1(e.rules(), secret, &list.front(), &list.back()+1, results1.data());
 		}
 		t1 += timer.stop();
 
 		timer.start();
 		for (int j = 0; j < times / 10; j++) 
 		{
-			func2(rules, secret, &list.front(), &list.back()+1, results2.data());
+			func2(e.rules(), secret, &list.front(), &list.back()+1, results2.data());
 		}
 		t2 += timer.stop();
 	}
@@ -101,133 +208,9 @@ static bool testComparison(
 	return true;
 }
 
-#if 0
-// Compare Enumeration Algorithms
-// Test: Generate whole enumeration of 10 digits, 4 places, no repetition.
-//       Total 5040 items in each run.
-// Results: (100,000 runs, Release mode)
-// LexOrder: 4.43 s
-// CombPerm: 8.54 s
-// CombPermParallel:  0.96 s [ASM]
-// CombPermParallel2: 0.68 s [ASM]
-int TestEnumeration(CodewordRules rules, long times)
-{
-	CodewordList list, list2;
-	CodewordEnumerationAlgorithm a1 = CombPermParallel2;
-	CodewordEnumerationAlgorithm a2 = CombPermParallel3;
-	bool use_mask1 = false;
-	bool use_mask2 = true;
-	//CodewordEnumerationAlgorithm a1 = LexOrder;
-	//CodewordEnumerationAlgorithm a2 = CombPerm;
-	unsigned short guessed_mask = 0x03ff;
-	unsigned short unguessed_mask = 0;
-	unsigned short impossible_mask = 0;
 
-	if (times == 0) {
-		if (use_mask2) {
-			//list2 = CodewordList::Enumerate(rules, guessed_mask, unguessed_mask, impossible_mask, a2);
-			list2 = CodewordList::Enumerate(rules, 0x0000, 0x03ff, 0x0000, a2);
-		} else {
-			list2 = CodewordList::Enumerate(rules, a2);
-		}
-		if (1) {
-			for (int i = 0; i < list2.GetCount(); i++) {
-				printf("%s ", list2[i].ToString().c_str());
-			}
-		}
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-
-	t1 = t2 = 0;
-	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			if (use_mask1) {
-				list = CodewordList::Enumerate(rules, guessed_mask, unguessed_mask, impossible_mask, a1);
-			} else {
-				list = CodewordList::Enumerate(rules, a1);
-			}
-		}
-		t1 += timer.Stop();
-
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			if (use_mask2) {
-				list2 = CodewordList::Enumerate(rules, guessed_mask, unguessed_mask, impossible_mask, a2);
-			} else {
-				list2 = CodewordList::Enumerate(rules, a2);
-			}
-		}
-		t2 += timer.Stop();
-	}
-	printf("Enumeration 1: %6.3f\n", t1);
-	printf("Enumeration 2: %6.3f\n", t2);
-	printf("Count: %d\n", list.GetCount());
-
-	system("PAUSE");
-	return 0;
-}
-#endif
 
 #if 0
-#ifndef _WIN64
-// Compare Enumeration Algorithms
-// Test: Generate whole enumeration of 10 digits, 4 places, no repetition.
-//       Total 5040 items in each run.
-// Results: (200,000 runs, Release mode)
-// Enumerate_16bit_norep_v1: 1.28 s
-// Enumerate_16bit_norep_v2: 0.75 s
-int TestEnumerationDirect(long times)
-{
-	unsigned short guessed_mask = 0x03ff;
-	unsigned short unguessed_mask = 0;
-	unsigned short impossible_mask = 0;
-
-	unsigned short results[5040];
-	int nresult = 5040;
-	int count1, count2;
-
-	if (times == 0) {
-		count2 = Enumerate_16bit_norep_v2(4, 10, results, nresult);
-		if (1) {
-			for (int i = 0; i < count2; i++) {
-				printf("%04x ", results[i]);
-			}
-		}
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-
-	t1 = t2 = 0;
-	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			count1 = Enumerate_16bit_norep_v1(4, 10, results, nresult);
-		}
-		t1 += timer.Stop();
-
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			count2 = Enumerate_16bit_norep_v2(4, 10, results, nresult);
-		}
-		t2 += timer.Stop();
-	}
-	printf("Enumeration 1: %6.3f, count=%d\n", t1, count1);
-	printf("Enumeration 2: %6.3f, count=%d\n", t2, count2);
-
-	system("PAUSE");
-	return 0;
-}
-#endif
-#endif
-
 int FilterByEquivalenceClass_norep_v1(
 	const __m128i *src,
 	int nsrc,
@@ -264,7 +247,7 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 		0,3,2,5, 4,1,6,7, 8,9,10,11, 12,13,14,15 }; // 1,3,5 same
 
 	//__m128i *output = (__m128i*)_aligned_malloc(16*total, 16);
-	aligned_allocator<__m128i,16> alloc;
+	util::aligned_allocator<__m128i,16> alloc;
 	__m128i* output = alloc.allocate(total);
 
 	int count;
@@ -316,6 +299,7 @@ int TestEquivalenceFilter(const CodewordRules &rules, long times)
 	system("PAUSE");
 	return 0;
 }
+#endif
 
 #if 0
 // Compare FilterByEquivalence Algorithms
@@ -564,17 +548,16 @@ int TestNewScan(CodewordRules rules, long times)
 #endif
 
 static bool testSumSquares(
-	const CodewordRules &rules, 
+	const Environment &e,
 	const char *routine1, 
 	const char *routine2, 
 	long times)
 {
-	Environment e(rules);
-	CodewordList list = generateCodewords(rules);
+	CodewordList list = e.generateCodewords();
 	FeedbackList fbl = e.compare(list[0], list.begin(), list.end());
 	FeedbackFrequencyTable freq;
 	e.countFrequencies(fbl.begin(), fbl.end(), freq);
-	unsigned char maxfb = Feedback::maxValue(rules); // fbl.GetMaxFeedbackValue();
+	unsigned char maxfb = Feedback::maxValue(e.rules()); // fbl.GetMaxFeedbackValue();
 	size_t count = maxfb + 1;
 
 	SumSquaresRoutine func1 = RoutineRegistry<SumSquaresRoutine>::get(routine1);
@@ -627,12 +610,13 @@ static bool testSumSquares(
 }
 
 static void TestGuessingByTree(
-	CodewordRules rules, 
+	const Environment &e,
 	CodeBreaker *breakers[], 
 	int nb,
 	const Codeword& first_guess)
 {
-	CodewordList all = generateCodewords(rules);
+	CodewordList all = e.generateCodewords();
+	CodewordRules rules = e.rules();
 	Feedback target = Feedback::perfectValue(rules);
 	Utilities::HRTimer timer;
 
@@ -709,8 +693,9 @@ int test(const CodewordRules &rules)
 
 #if 1
 	//std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
-	testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
+	//testComparison(rules, "generic", "norepeat", 100000*LOOP_FLAG);
 	//testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
+	compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
 
 	system("PAUSE");
 	return 0;

@@ -24,6 +24,33 @@ unsigned short getDigitMask(
 }
 
 #if 0
+// Generates all codewords that conforms to the given set of rules.
+CodewordList generateCodewords(const CodewordRules &rules)
+{
+	assert(rules.valid());
+
+	// Compute number of possibilities.
+	size_t count = rules.repeatable()? 
+		NPower(rules.colors(), rules.pegs()) : NPermute(rules.colors(), rules.pegs());
+
+	// Creates the empty list.
+	// @todo: do not initialize Codewords.
+	CodewordList list(count);
+
+	// Invoke the handler function to generate all codewords.
+	if (rules.repeatable()) 
+	{
+		Enumerate_Rep(rules.pegs(), rules.colors(), (codeword_t*)list.data());
+	} 
+	else 
+	{
+		Enumerate_NoRep(rules.pegs(), rules.colors(), (codeword_t*)list.data());
+	}
+	return list;
+}
+#endif
+
+#if 0
 void countFrequencies(
 	const CodewordRules &rules,
 	FeedbackList::const_iterator first,

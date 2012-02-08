@@ -1,10 +1,8 @@
 #ifndef MASTERMIND_ENVIRONMENT_HPP
 #define MASTERMIND_ENVIRONMENT_HPP
 
-#include "CodewordRules.hpp"
 #include "Codeword.hpp"
-#include "CodewordList.hpp"
-#include "Feedback.h"
+#include "Feedback.hpp"
 #include "Registry.hpp"
 #include "Algorithm.hpp"
 
@@ -15,12 +13,14 @@ class Environment
 	CodewordRules _rules;
 	ComparisonRoutine _compare;
 	FrequencyRoutine _freq;
+	GenerationRoutine _generate;
 
 public:
 
 	Environment(const CodewordRules &rules)	: _rules(rules),
 		_compare(RoutineRegistry<ComparisonRoutine>::get("generic")),
-		_freq(RoutineRegistry<FrequencyRoutine>::get("generic"))
+		_freq(RoutineRegistry<FrequencyRoutine>::get("generic")),
+		_generate(RoutineRegistry<GenerationRoutine>::get("generic"))
 	{
 	}
 
@@ -57,6 +57,21 @@ public:
 		Feedback feedback;
 		_compare(_rules, guess, &secret, &secret + 1, &feedback);
 		return feedback;
+	}
+
+	/// Generates all codewords that conforms to the given set of rules.
+	CodewordList generateCodewords() const 
+	{
+		// Call the generation routine once to get the count.
+		const size_t count = _generate(_rules, NULL);
+
+		// Create an empty list.
+		// @todo: do not initialize Codewords.
+		CodewordList list(count);
+
+		// Call the generation routine again to fill in the codewords.
+		_generate(_rules, list.data());
+		return list;
 	}
 
 	CodewordList filterByFeedback(

@@ -6,8 +6,6 @@
 #ifndef NTEST
 
 #include "Codeword.hpp"
-#include "CodewordList.hpp"
-#include "CodewordRules.hpp"
 
 using namespace Mastermind;
 

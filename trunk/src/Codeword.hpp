@@ -5,8 +5,10 @@
 #include <cstring>
 #include <emmintrin.h>
 #include <algorithm>
-#include "MMConfig.h"
-#include "CodewordRules.hpp"
+#include <vector>
+
+#include "Rules.hpp"
+#include "util/aligned_allocator.hpp"
 
 namespace Mastermind {
 
@@ -58,6 +60,12 @@ public:
 			++_counter[color];
 	}
 
+	/// Returns the number of occurrences of a given color.
+	int count(int color) const 
+	{
+		return _counter[color];
+	}
+
 	/// Tests whether the codeword contains any color more than once.
 	bool repeated() const
 	{
@@ -92,6 +100,12 @@ std::ostream& operator << (std::ostream &os, const Codeword &c);
 
 /// Inputs a codeword from a stream. No rules are enforced.
 std::istream& operator >> (std::istream &is, Codeword &c);
+
+///////////////////////////////////////////////////////////////////////////
+// Definition of CodewordList.
+
+typedef 	std::vector<Codeword,util::aligned_allocator<Codeword,16>> CodewordList;
+
 
 } // namespace Mastermind
 

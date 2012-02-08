@@ -1,10 +1,10 @@
-#ifndef MASTERMIND_ALIGNED_ALLOCATOR_HPP
-#define MASTERMIND_ALIGNED_ALLOCATOR_HPP
+#ifndef UTILITIES_ALIGNED_ALLOCATOR_HPP
+#define UTILITIES_ALIGNED_ALLOCATOR_HPP
 
 #include <malloc.h>
 #include <limits>
 
-namespace Utilities {
+namespace util {
 
 template <class T, size_t Alignment>
 struct aligned_allocator
@@ -85,6 +85,6 @@ bool operator != (const aligned_allocator<T1,A1> &, const aligned_allocator<T2,A
 	return false;
 }
 
-} // namespace Utilities
+} // namespace util
 
-#endif // MASTERMIND_ALIGNED_ALLOCATOR_HPP
+#endif // UTILITIES_ALIGNED_ALLOCATOR_HPP

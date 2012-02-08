@@ -3,11 +3,10 @@
 #include <stdio.h>
 #include <ostream>
 
-#include "MMConfig.h"
-#include "Feedback.h"
+#include "Codeword.hpp"
+#include "Feedback.hpp"
 #include "PoolMemoryManager.h"
 
-#include "CodewordList.hpp"
 
 // StrategyTree data structure
 //

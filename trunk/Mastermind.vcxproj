@@ -135,13 +135,12 @@
     <ClCompile Include="src\CallCounter.cpp" />
     <ClCompile Include="src\CodeBreaker.cpp" />
     <ClCompile Include="src\Codeword.cpp" />
-    <ClCompile Include="src\CodewordList.cpp" />
     <ClCompile Include="src\Compare.cpp" />
-    <ClCompile Include="src\Enumerate.cpp" />
+    <ClCompile Include="src\Equivalence.cpp" />
     <ClCompile Include="src\Frequency.cpp" />
+    <ClCompile Include="src\Generation.cpp" />
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\MMConfig.cpp" />
     <ClCompile Include="src\Environment.cpp" />
     <ClCompile Include="src\Scan.cpp" />
     <ClCompile Include="src\SimpleCodeBreaker.cpp" />
@@ -150,32 +149,27 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Algorithm.hpp" />
-    <ClInclude Include="src\AlignedAllocator.hpp" />
     <ClInclude Include="src\CallCounter.h" />
     <ClInclude Include="src\CodeBreaker.h" />
     <ClInclude Include="src\Codeword.hpp" />
-    <ClInclude Include="src\CodewordList.hpp" />
-    <ClInclude Include="src\CodewordRules.hpp" />
-    <ClInclude Include="src\Compare.h" />
     <ClInclude Include="src\Environment.hpp" />
-    <ClInclude Include="src\Enumerate.h" />
-    <ClInclude Include="src\Feedback.h" />
+    <ClInclude Include="src\Feedback.hpp" />
     <ClInclude Include="src\FifoMemoryManager.h" />
-    <ClInclude Include="src\Frequency.h" />
     <ClInclude Include="src\HeuristicCodeBreaker.hpp" />
     <ClInclude Include="src\HRTimer.h" />
-    <ClInclude Include="src\Intrinsic.hpp" />
-    <ClInclude Include="src\MMConfig.h" />
     <ClInclude Include="src\OptimalCodeBreaker.hpp" />
-    <ClInclude Include="src\PoolAllocator.hpp" />
     <ClInclude Include="src\PoolMemoryManager.h" />
     <ClInclude Include="src\Registry.hpp" />
     <ClInclude Include="src\RoutineSelector.h" />
+    <ClInclude Include="src\Rules.hpp" />
     <ClInclude Include="src\Scan.h" />
     <ClInclude Include="src\SimpleCodeBreaker.hpp" />
     <ClInclude Include="src\StrategyTree.h" />
     <ClInclude Include="src\Test.h" />
+    <ClInclude Include="src\util\aligned_allocator.hpp" />
     <ClInclude Include="src\util\frequency_table.hpp" />
+    <ClInclude Include="src\util\intrinsic.hpp" />
+    <ClInclude Include="src\util\pool_allocator.hpp" />
     <ClInclude Include="src\util\simd.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

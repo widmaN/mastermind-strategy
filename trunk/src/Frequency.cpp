@@ -3,7 +3,6 @@
 //#include <emmintrin.h>
 //#include <stdio.h>
 
-#include "MMConfig.h"
 #include "Algorithm.hpp"
 
 #if ENABLE_CALL_COUNTER

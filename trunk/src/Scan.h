@@ -2,8 +2,6 @@
 
 #include <emmintrin.h>
 
-#include "MMConfig.h"
-
 /// Scans an array of codewords and returns a 16-bit mask of appeared 
 /// digits.
 ///

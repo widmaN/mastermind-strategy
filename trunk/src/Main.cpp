@@ -2,11 +2,9 @@
 #include <vector>
 
 #include "Test.h"
-#include "Enumerate.h"
 
 #include <iostream>
-#include "CodewordRules.hpp"
-#include "CodewordList.hpp"
+#include "Codeword.hpp"
 #include "CodeBreaker.h"
 #include "SimpleCodeBreaker.hpp"
 

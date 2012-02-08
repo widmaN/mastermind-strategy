@@ -3,9 +3,10 @@
 #include <emmintrin.h>
 #include <memory.h>
 
-#include "MMConfig.h"
-#include "Enumerate.h"
+#include "Algorithm.hpp"
 #include "util/intrinsic.hpp"
+
+#if 0
 
 // Returns n!/r!
 int NPermute(int n, int r)
@@ -102,8 +103,9 @@ void ConvertCodewords(const FromType *from, unsigned int count, ToType *to)
 // Enumeration routines
 //
 
+#if 0
 // Enumerate all codewords conformant to the given rules.
-int EnumerateCodewords(int length, int ndigits, bool allow_rep, codeword_t* results)
+int EnumerateCodewords(int length, int ndigits, bool allow_rep, Codeword* results)
 {
 	assert(length > 0 && length <= MM_MAX_PEGS);
 	assert(ndigits > 0 && ndigits <= MM_MAX_COLORS);
@@ -116,37 +118,39 @@ int EnumerateCodewords(int length, int ndigits, bool allow_rep, codeword_t* resu
 	unsigned char max_times = allow_rep? length : 1;
 
 	// Initialize the first codeword up till one before the last digit
-	codeword_t cw;
-	memset(cw.counter, 0, sizeof(cw.counter));
-	memset(cw.digit, 0xFF, sizeof(cw.digit));
+	Codeword cw;
+	//memset(cw.counter, 0, sizeof(cw.counter));
+	//memset(cw.digit, 0xFF, sizeof(cw.digit));
 
 	int k;
-	if (allow_rep) {
-		for (k = 0; k < length - 1; k++) {
-			cw.digit[k] = 0;
-		}
-		cw.counter[0] = length - 1;
-	} else {
-		for (k = 0; k < length - 1; k++) {
-			cw.digit[k] = k;
-			cw.counter[k] = 1;
-		}
+	if (allow_rep) 
+	{
+		for (k = 0; k < length - 1; k++)
+			cw.set(k, 0);
+	} 
+	else 
+	{
+		for (k = 0; k < length - 1; k++)
+			cw.set(k, k);
 	}
 
 	int i = 0;
-	while (1) {
+	while (1) 
+	{
 		// Fill last digit
-		for (unsigned char d = 0; d < ndigits; d++) {
-			if (cw.counter[d] < max_times) {
-				codeword_t cw1 = cw;
-				cw1.digit[length - 1] = d;
-				cw1.counter[d]++;
+		for (unsigned char d = 0; d < ndigits; d++) 
+		{
+			if (cw.count(d) < max_times) 
+			{
+				Codeword cw1 = cw;
+				cw1.set(length-1, d);
 				results[i++] = cw1;
 			}
 		}
 
 		// Find carry position
-		for (k = length - 2; k >= 0; k--) {
+		for (k = length - 2; k >= 0; k--) 
+		{
 			unsigned char d = cw.digit[k];  // get digit
 			cw.counter[d]--;                // turn off mask
 			while ((++d < ndigits) && (cw.counter[d] >= max_times)); // find smallest unused digit
@@ -172,15 +176,16 @@ int EnumerateCodewords(int length, int ndigits, bool allow_rep, codeword_t* resu
 	return count;
 }
 
-int Enumerate_Rep(int length, int ndigits, codeword_t* results)
+int Enumerate_Rep(int length, int ndigits, Codeword* results)
 {
 	return EnumerateCodewords(length, ndigits, true, results);
 }
 
-int Enumerate_NoRep(int length, int ndigits, codeword_t* results)
+int Enumerate_NoRep(int length, int ndigits, Codeword* results)
 {
 	return EnumerateCodewords(length, ndigits, false, results);
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////
 // Filter routines
@@ -245,10 +250,10 @@ int FilterByEquivalenceClass_norep_v1(
 }
 
 int FilterByEquivalenceClass_norep_v2(
-	const codeword_t *src,
+	const Codeword *src,
 	int nsrc,
 	const unsigned char eqclass[16],
-	codeword_t *dest)
+	Codeword *dest)
 {
 	assert(src != NULL);
 	assert(nsrc >= 0);
@@ -297,10 +302,10 @@ int FilterByEquivalenceClass_norep_v2(
 }
 
 int FilterByEquivalenceClass_norep_v3(
-	const codeword_t *src,
+	const Codeword *src,
 	int nsrc,
 	const unsigned char eqclass[16],
-	codeword_t *dest)
+	Codeword *dest)
 {
 	assert(src != NULL);
 	assert(nsrc >= 0);
@@ -350,10 +355,10 @@ int FilterByEquivalenceClass_norep_v3(
 }
 
 int FilterByEquivalenceClass_rep_v1(
-	const codeword_t *src,
+	const Codeword *src,
 	int nsrc,
 	const unsigned char eqclass[16],
-	codeword_t *dest)
+	Codeword *dest)
 {
 	assert(src != NULL);
 	assert(nsrc >= 0);
@@ -427,10 +432,10 @@ int FilterByEquivalenceClass_rep_v1(
 
 // TODO: impossible digit is not repetition-sensitive (repsens)
 int FilterByEquivalenceClass_rep_v2(
-	const codeword_t *src,
+	const Codeword *src,
 	int nsrc,
 	const unsigned char eqclass[16],
-	codeword_t *dest)
+	Codeword *dest)
 {
 	assert(src != NULL);
 	assert(nsrc >= 0);
@@ -488,20 +493,20 @@ int FilterByEquivalenceClass_rep_v2(
 //
 
 int FilterByEquivalence_NoRep(
-	const codeword_t *src,
+	const Codeword *src,
 	unsigned int nsrc,
 	const unsigned char eqclass[16],
-	codeword_t *dest)
+	Codeword *dest)
 {
 	//return FilterByEquivalenceClass_norep_v1((__m128i*)src, nsrc, eqclass, (__m128i*)dest);
 	return FilterByEquivalenceClass_norep_v3(src, nsrc, eqclass, dest);
 }
 
 int FilterByEquivalence_Rep(
-	const codeword_t *src,
+	const Codeword *src,
 	unsigned int nsrc,
 	const unsigned char eqclass[16],
-	codeword_t *dest)
+	Codeword *dest)
 {
 	if (1) {
 		return FilterByEquivalenceClass_rep_v2(src, nsrc, eqclass, dest);
@@ -513,3 +518,5 @@ int FilterByEquivalence_Rep(
 		return nsrc;
 	}
 }
+
+#endif
