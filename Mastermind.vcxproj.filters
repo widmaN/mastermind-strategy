@@ -57,15 +57,9 @@
     <ClCompile Include="src\Engine.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\HeuristicCodeBreaker.cpp">
-      <Filter>Strategies</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\OptimalCodeBreaker.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\HeuristicCodeBreaker.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\Algorithm.hpp">
@@ -126,6 +120,9 @@
       <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\SimpleStrategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HeuristicStrategy.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
   </ItemGroup>

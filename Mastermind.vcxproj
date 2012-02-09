@@ -139,7 +139,6 @@
     <ClCompile Include="src\Equivalence.cpp" />
     <ClCompile Include="src\Frequency.cpp" />
     <ClCompile Include="src\Generation.cpp" />
-    <ClCompile Include="src\HeuristicCodeBreaker.cpp" />
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mask.cpp" />
@@ -153,7 +152,7 @@
     <ClInclude Include="src\Codeword.hpp" />
     <ClInclude Include="src\Engine.hpp" />
     <ClInclude Include="src\Feedback.hpp" />
-    <ClInclude Include="src\HeuristicCodeBreaker.hpp" />
+    <ClInclude Include="src\HeuristicStrategy.hpp" />
     <ClInclude Include="src\HRTimer.h" />
     <ClInclude Include="src\ObviousStrategy.hpp" />
     <ClInclude Include="src\OptimalCodeBreaker.hpp" />
