@@ -22,7 +22,7 @@ using namespace Utilities;
 
 // Dummy test driver that does nothing in the test and always returns success.
 template <class Routine>
-struct TestDriver 
+struct TestDriver
 {
 	Engine &e;
 	Routine f;
@@ -35,8 +35,8 @@ struct TestDriver
 // Compares the running time of two routines.
 template <class Routine>
 bool compareRoutines(
-	Engine &e, 
-	const char *routine1, 
+	Engine &e,
+	const char *routine1,
 	const char *routine2,
 	long times)
 {
@@ -63,15 +63,15 @@ bool compareRoutines(
 	HRTimer timer;
 	double t1 = 0, t2 = 0;
 
-	for (int pass = 0; pass < 10; pass++) 
+	for (int pass = 0; pass < 10; pass++)
 	{
 		timer.start();
-		for (int k = 0; k < times / 10; k++) 
+		for (int k = 0; k < times / 10; k++)
 			drv1();
 		t1 += timer.stop();
 
 		timer.start();
-		for (int k = 0; k < times / 10; k++) 
+		for (int k = 0; k < times / 10; k++)
 			drv2();
 		t2 += timer.stop();
 	}
@@ -90,7 +90,7 @@ bool compareRoutines(
 // CombPerm: 8.54 s [legacy]
 // CombPermParallel:  0.96 s [ASM][legacy]
 // CombPermParallel2: 0.68 s [ASM][legacy]
-template <> class TestDriver<GenerationRoutine> 
+template <> class TestDriver<GenerationRoutine>
 {
 	Engine &e;
 	GenerationRoutine f;
@@ -103,9 +103,9 @@ public:
 
 	void operator()() { 	f(e.rules(), list.data()); }
 
-	bool operator == (const TestDriver &r) const 
+	bool operator == (const TestDriver &r) const
 	{
-		return list == r.list; 
+		return list == r.list;
 	}
 
 	friend std::ostream& operator << (std::ostream &os, const TestDriver &r)
@@ -123,7 +123,7 @@ public:
 // Results:  (100,000 runs, Win32, VC++ 2011)
 // generic:  1.68 s
 // norepeat: 0.62 s
-template <> class TestDriver<ComparisonRoutine> 
+template <> class TestDriver<ComparisonRoutine>
 {
 	Engine &e;
 	ComparisonRoutine f;
@@ -135,12 +135,12 @@ template <> class TestDriver<ComparisonRoutine>
 public:
 	TestDriver(Engine &env, ComparisonRoutine func)
 		: e(env), f(func), codewords(e.generateCodewords()),
-		count(codewords.size()), secret(codewords[count/2]), 
+		count(codewords.size()), secret(codewords[count/2]),
 		feedbacks(count) { }
 
-	void operator()() 
+	void operator()()
 	{
-		f(e.rules(), secret, &codewords.front(), &codewords.back()+1, 
+		f(e.rules(), secret, &codewords.front(), &codewords.back()+1,
 			feedbacks.data());
 	}
 
@@ -156,7 +156,7 @@ public:
 			if (feedbacks[i] != r.feedbacks[i])
 			{
 				std::cout << "**** ERROR: Inconsistent [" << i << "]: "
-					<< "Compare(" << secret << ", " << codewords[i] << ") = " 
+					<< "Compare(" << secret << ", " << codewords[i] << ") = "
 					<< feedbacks[i] << " v " << r.feedbacks[i] << std::endl;
 				return false;
 			}
@@ -195,7 +195,7 @@ public:
 // **** New Results ****
 // These results are for "long" codewords.
 // ScanDigitMask_v1 (SSE2): 0.40 s
-template <> class TestDriver<MaskRoutine> 
+template <> class TestDriver<MaskRoutine>
 {
 	Engine &e;
 	MaskRoutine f;
@@ -206,12 +206,12 @@ public:
 	TestDriver(Engine &env, MaskRoutine func)
 		: e(env), f(func), list(e.generateCodewords()), mask(0) { }
 
-	void operator()() 
+	void operator()()
 	{
 		mask = list.empty()? 0 : f(&list.front(), &list.back() + 1);
 	}
 
-	bool operator == (const TestDriver &r) const 
+	bool operator == (const TestDriver &r) const
 	{
 		if (mask != r.mask)
 		{
@@ -435,8 +435,8 @@ int TestFrequencyCounting(const Rules &rules, long times)
 
 static bool testSumSquares(
 	const Engine &e,
-	const char *routine1, 
-	const char *routine2, 
+	const char *routine1,
+	const char *routine2,
 	long times)
 {
 	CodewordList list = e.generateCodewords();
@@ -452,15 +452,15 @@ static bool testSumSquares(
 	// Verify results.
 	unsigned int ss1 = func1(freq.data(), freq.data() + count);
 	unsigned int ss2 = func2(freq.data(), freq.data() + count);
-	if (ss1 != ss2) 
+	if (ss1 != ss2)
 	{
-		std::cout << "**** ERROR: Result mismatch: " << ss1 
+		std::cout << "**** ERROR: Result mismatch: " << ss1
 			<< " v " << ss2 << std::endl;
 		return false;
 	}
 
 	// Print result if in debug mode
-	if (times == 0) 
+	if (times == 0)
 	{
 		std::cout << "SS1 = " << ss1 << std::endl;
 		std::cout << "SS2 = " << ss2 << std::endl;
@@ -470,17 +470,17 @@ static bool testSumSquares(
 	HRTimer timer;
 	double t1 = 0, t2 = 0;
 
-	for (int pass = 0; pass < 10; pass++) 
+	for (int pass = 0; pass < 10; pass++)
 	{
 		timer.start();
-		for (int j = 0; j < times / 10; j++) 
+		for (int j = 0; j < times / 10; j++)
 		{
 			ss1 = func1(freq.data(), freq.data() + count);
 		}
 		t1 += timer.stop();
 
 		timer.start();
-		for (int j = 0; j < times / 10; j++) 
+		for (int j = 0; j < times / 10; j++)
 		{
 			ss2 = func2(freq.data(), freq.data() + count);
 		}
@@ -500,13 +500,13 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 	CodewordList all = e.generateCodewords();
 	Rules rules = e.rules();
 
-	std::cout 
+	std::cout
 		<< "Game Settings" << std::endl
 		<< "---------------" << std::endl
-		<< "  Number of pegs:      " << rules.pegs() << std::endl
-		<< "  Number of colors:    " << rules.colors() << std::endl
-		<< "  Color repeatable:    " << std::boolalpha << rules.repeatable() << std::endl
-		<< "  Number of codewords: " << all.size() << std::endl;
+		<< "Number of pegs:      " << rules.pegs() << std::endl
+		<< "Number of colors:    " << rules.colors() << std::endl
+		<< "Color repeatable:    " << std::boolalpha << rules.repeatable() << std::endl
+		<< "Number of codewords: " << rules.size() << std::endl;
 
 	// Pick a secret "randomly".
 	Codeword secret = all[all.size()/4*3];
@@ -524,7 +524,7 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 		std::cout << std::setw(10) << name;
 	}
 	std::cout << std::right << std::endl;
-	
+
 	// Output horizontal line.
 	std::cout << "---";
 	for (size_t i = 0; i < n; ++i)
@@ -532,7 +532,7 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 		std::cout << "----------";
 	}
 	std::cout << std::endl;
-	
+
 	// Step-by-step guessing.
 	int step = 0;
 	for (size_t finished_count = 0; finished_count < n; )
@@ -584,7 +584,7 @@ static void test_strategy_tree(
 	//Feedback target = Feedback::perfectValue(rules);
 	Utilities::HRTimer timer;
 
-	std::cout 
+	std::cout
 		<< "Game Settings" << std::endl
 		<< "---------------" << std::endl
 		<< "Number of pegs:      " << rules.pegs() << std::endl
@@ -595,9 +595,9 @@ static void test_strategy_tree(
 	std::cout << std::endl
 		<< "Options" << std::endl
 		<< "---------" << std::endl
-		<< "Optimize obvious guess: " << std::boolalpha 
+		<< "Optimize obvious guess: " << std::boolalpha
 			<< options.optimize_obvious << std::endl
-		<< "Guess possibility only: " << std::boolalpha 
+		<< "Guess possibility only: " << std::boolalpha
 			<< options.possibility_only << std::endl;
 
 	//printf("\n");
@@ -636,11 +636,11 @@ static void test_strategy_tree(
 		// Display statistics
 		std::cout << "\r" << std::setw(8) << strat->name() << ":"
 			<< std::setw(6) << total << " "
-			<< std::setw(5) << std::setprecision(3) 
+			<< std::setw(5) << std::setprecision(3)
 			<< std::fixed << (double)total / count << ' ';
 
 		for (int i = 1; i <= max_depth; i++) {
-			if (freq[i-1] > 0) 
+			if (freq[i-1] > 0)
 				std::cout << std::setw(4) << freq[i-1] << ' ';
 			else
 				std::cout << "   - ";
@@ -709,7 +709,7 @@ int test(const Rules &rules)
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};
-	
+
 	//simulate_guessing(e, breakers, sizeof(breakers)/sizeof(breakers[0]));
 	test_strategy_tree(e, strats, sizeof(strats)/sizeof(strats[0]), options);
 

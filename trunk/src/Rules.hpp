@@ -1,20 +1,22 @@
 #ifndef MASTERMIND_RULES_HPP
 #define MASTERMIND_RULES_HPP
 
+#include <cstddef>
+
 #ifndef MM_MAX_PEGS
 /// The maximum number of pegs supported by the program.
-/// For performance reasons, certain data structures or algorithms 
-/// pose a limit on the maximum number of pegs allowed in a codeword. 
-/// If this constant is defined higher than the limit, the program 
+/// For performance reasons, certain data structures or algorithms
+/// pose a limit on the maximum number of pegs allowed in a codeword.
+/// If this constant is defined higher than the limit, the program
 /// will produce a compile-time error.
 #define MM_MAX_PEGS 6
 #endif
 
 #ifndef MM_MAX_COLORS
 /// The maximum number of colors supported by the program.
-/// For performance reasons, certain data structures or algorithms 
-/// pose a limit on the maximum number of colors allowed in a codeword. 
-/// If this constant is defined higher than the limit, the program 
+/// For performance reasons, certain data structures or algorithms
+/// pose a limit on the maximum number of colors allowed in a codeword.
+/// If this constant is defined higher than the limit, the program
 /// will produce a compile-time error.
 #define MM_MAX_COLORS 10
 #endif
@@ -38,7 +40,7 @@ class Rules
 	bool _repeatable; // whether the same color can appear more than once.
 
 public:
-	
+
 	/// Constructs a set of rules for a codeword.
 	Rules(int pegs, int colors, bool repeatable)
 		: _pegs(pegs), _colors(colors), _repeatable(repeatable) { }
@@ -56,7 +58,7 @@ public:
 	bool repeatable() const { return _repeatable; }
 
 	/// Checks whether this set of rules is valid.
-	bool valid() const 
+	bool valid() const
 	{
 		return (_pegs > 0 && _pegs <= MM_MAX_PEGS)
 			&& (_colors > 0 && _colors <= MM_MAX_COLORS)
@@ -64,7 +66,7 @@ public:
 	}
 
 	/// Gets the number of codewords conforming to this set of rules.
-	size_t size() const 
+	size_t size() const
 	{
 		if (!valid())
 			return 0;

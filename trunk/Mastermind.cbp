@@ -37,9 +37,6 @@
 			<Add option="-std=c++0x" />
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="src/Algorithm.cpp">
-			<Option virtualFolder="Algorithms/" />
-		</Unit>
 		<Unit filename="src/Algorithm.hpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
@@ -52,7 +49,7 @@
 		<Unit filename="src/CodeBreaker.cpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
-		<Unit filename="src/CodeBreaker.h">
+		<Unit filename="src/CodeBreaker.hpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
 		<Unit filename="src/Codeword.cpp">
@@ -64,10 +61,10 @@
 		<Unit filename="src/Compare.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/Environment.cpp">
+		<Unit filename="src/Engine.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/Environment.hpp">
+		<Unit filename="src/Engine.hpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
 		<Unit filename="src/Equivalence.cpp">
@@ -85,46 +82,43 @@
 		<Unit filename="src/HRTimer.h">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
+		<Unit filename="src/HeuristicStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
 		<Unit filename="src/Interactive.cpp">
 			<Option virtualFolder="Program/" />
 		</Unit>
 		<Unit filename="src/Main.cpp">
 			<Option virtualFolder="Program/" />
 		</Unit>
-		<Unit filename="src/PoolMemoryManager.h">
-			<Option virtualFolder="Utilities/" />
+		<Unit filename="src/Mask.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/ObviousStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
 		</Unit>
 		<Unit filename="src/Registry.hpp">
-			<Option virtualFolder="Utilities/" />
-		</Unit>
-		<Unit filename="src/RoutineSelector.h">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/Rules.hpp">
 			<Option virtualFolder="Types/" />
 		</Unit>
-		<Unit filename="src/Scan.cpp">
-			<Option virtualFolder="Algorithms/" />
-		</Unit>
-		<Unit filename="src/Scan.h">
-			<Option virtualFolder="Algorithms/" />
-		</Unit>
-		<Unit filename="src/SimpleCodeBreaker.cpp">
+		<Unit filename="src/SimpleStrategy.hpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
-		<Unit filename="src/SimpleCodeBreaker.hpp">
+		<Unit filename="src/State.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Strategy.hpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
 		<Unit filename="src/StrategyTree.cpp">
 			<Option virtualFolder="Types/" />
 		</Unit>
-		<Unit filename="src/StrategyTree.h">
+		<Unit filename="src/StrategyTree.hpp">
 			<Option virtualFolder="Types/" />
 		</Unit>
 		<Unit filename="src/Test.cpp">
-			<Option virtualFolder="Program/" />
-		</Unit>
-		<Unit filename="src/Test.h">
 			<Option virtualFolder="Program/" />
 		</Unit>
 		<Unit filename="src/util/aligned_allocator.hpp">
@@ -137,6 +131,9 @@
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/util/pool_allocator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/range.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/util/simd.hpp">
