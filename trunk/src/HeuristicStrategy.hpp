@@ -1,99 +1,94 @@
-#ifndef MASTERMIND_HEURISTIC_CODE_BREAKER_HPP
-#define MASTERMIND_HEURISTIC_CODE_BREAKER_HPP
+#ifndef MASTERMIND_HEURISTIC_STRATEGY_HPP
+#define MASTERMIND_HEURISTIC_STRATEGY_HPP
 
-#include <string>
-#include "CodeBreaker.hpp"
+#include "Strategy.hpp"
 
 namespace Mastermind {
 
-typedef void ProgressReport(double percentage, void *tag);
+//typedef void ProgressReport(double percentage, void *tag);
 
-/// Code breaker that makes a guess that produces the highest heuristic 
-/// score.
-///
-/// The heuristic code breaker makes a guess by scoring each potential 
-/// guess according to a heuristic function. The heuristic function 
-/// works on the partitioning of the possibility set by the guess.
-/// Then the code breaker picks the guess that gets the highest score. 
-/// If more than one guesses have the same score, the guess that is 
-/// in the possibility set is preferred. If more than one such guesses
-/// exist, it is picked in lexicographical order.
-///
-/// The heuristic function used by the code breaker is supplied in
-/// the template parameter <code>Heuristic</code>. It accepts the 
-/// frequency table of the partition as input, and returns a heuristic
-/// score. The partition is defined as below.
-///
-/// Suppose there are <code>N</code> remaining possibilities. For 
-/// a given guess, these possibilities are divided into <code>p</code> 
-/// partitions, where the possibilities in each partition have the 
-/// same feedback. That is, given that guess, there is no way to 
-/// distinguish one possibility from another in the same partition. 
-///
-// The heuristic code breaker evaluates each guess by computing
-// a score on the partitions it produces. Let <code>n[i]</code>
-// be the number of possibilities in partition <code>i</code>,
-// where <code>i=1..p</code>, and <code>n[1]+...+n[p]=N</code>. 
-// The scoring formulas are described below. In these formulas
-// we assume that the possibilities are uniformly distributed.
+/**
+ * Strategy that makes the guess that produces the optimal score for
+ * a heuristic function.
+ *
+ * The heuristic strategy makes a guess by computing a score for each
+ * candidate guess using a <i>heuristic function</i>. The heuristic 
+ * function takes as input the partitioning of the possibility set by
+ * the guess, and outputs a scalar score. The guess that produces the
+ * optimal (lowest) score is chosen. If more than one guesses have
+ * the same score, the guess that is in the possibility set is chosen.
+ * If multiple choices still exist, the first one is chosen.
+ *
+ * The heuristic function used by the strategy is specified in the
+ * template parameter <code>Heuristic</code>. It takes as input the
+ * frequency table of the partition, and returns a heuristic score.
+ * The partition is defined as below.
+ *
+ * Suppose there are <code>N</code> remaining possibilities. Given
+ * a guess, these possibilities can be partitioned into <code>m</code> 
+ * cells, where the possibilities in each cell have the same feedback
+ * when compared to the guess. That is, given that guess, there is 
+ * no way to distinguish one possibility from another in the same 
+ * cell.
+ *
+ * Note that when computing the heuristic score, we always assume that
+ * each codeword in the possibility set is equally-likely to be the
+ * secret.
+ */
 template <class Heuristic>
-class HeuristicCodeBreaker : public CodeBreaker
-{
-private:
-		
-	/// Whether to pick a guess only from remaining possibilities.
-	/// If set to false, a guess is picked from all codewords.
-	bool m_posonly;
-
-private:
-
-	void MakeGuess(
-		CodewordConstRange possibilities,
-		//CodewordList::const_iterator first_possibility,
-		//CodewordList::const_iterator last_possibility,
-		unsigned short unguessed_mask,
-		unsigned short impossible_mask,
-		StrategyTreeState *state);
-
-	StrategyTreeNode* FillStrategy(
-		CodewordList::iterator first_possibility,
-		CodewordList::iterator last_possibility,
-		unsigned short unguessed_mask,
-		unsigned short impossible_mask,
-		const Codeword &first_guess,
-		int *progress);
-
-	/*
-	StrategyTreeNode* FillStrategy(
-		CodewordList possibilities,
-		unsigned short unguessed_mask,
-		unsigned short impossible_mask,
-		const Codeword& first_guess,
-		int *progress);
-		*/
+class HeuristicStrategy : public Strategy
+{		
+	Engine &e;
 
 public:
 
-	/// Creates a heuristic code breaker.
-	HeuristicCodeBreaker(Engine &engine, bool posonly = false) 
-		: CodeBreaker(engine), m_posonly(posonly) 
-	{ 
+	/// Constructs the strategy.
+	HeuristicStrategy(Engine &engine) : e(engine) { }
+
+	/// Returns the name of the strategy.
+	virtual std::string name() const
+	{
+		 return Heuristic::name();
 	}
 
-#if 0
-	virtual Codeword MakeGuess(
-		CodewordList possibilities,
-		unsigned short unguessed_mask,
-		unsigned short impossible_mask);
-#endif
+	/// Returns a description of the strategy.
+	virtual std::string description() const
+	{
+		return Heuristic::name();
+	}
 
-	virtual Codeword MakeGuess();
+	virtual Codeword make_guess(
+		CodewordConstRange possibilities, 
+		CodewordConstRange candidates)
+	{
+		if (candidates.empty())
+			return Codeword::emptyValue();
 
-	virtual std::string name() const { return Heuristic::name(); }
+		Codeword choice = Codeword::emptyValue();
+		typename Heuristic::score_t choice_score = 0;
+		bool choice_ispos = false;
+		size_t target = Feedback::perfectValue(e.rules()).value();
 
-	virtual std::string description() const { return Heuristic::name(); }
+		// Evaluate each candidate guess and find the one that 
+		// produces the lowest score.
+		for (auto it = candidates.begin(); it != candidates.end(); ++it)
+		{
+			Codeword guess = *it;
+			FeedbackFrequencyTable freq = 
+				e.frequency(e.compare(guess, possibilities));
 
-	virtual StrategyTree* BuildStrategyTree(const Codeword& first_guess);
+			typename Heuristic::score_t score = Heuristic::compute(freq);
+			if ((it == candidates.begin()) || (score < choice_score) || 
+				(score == choice_score && !choice_ispos && freq[target] > 0)) 
+			{
+				choice = guess;
+				choice_score = score;
+				choice_ispos = (freq[target] > 0);
+			}
+			// std::cout << (it - candidates.begin()) << std::endl;
+		}
+		return choice;
+	}
 };
 
 namespace Heuristics {
@@ -157,7 +152,7 @@ struct MaximizeEntropy
 	typedef double score_t;
 
 	/// Short identifier of the heuristic function.
-	static std::string name() { return "	entropy"; }
+	static std::string name() { return "entropy"; }
 
 	/// Computes the heuristic score - negative of the entropy.
 	static score_t compute(const FeedbackFrequencyTable &freq)
@@ -175,7 +170,7 @@ struct MaximizePartitions
 	typedef int score_t;
 
 	/// Short identifier of the heuristic function.
-	static std::string name() { return "	maxparts"; }
+	static std::string name() { return "maxparts"; }
 
 	/// Computes the heuristic score - negative of the number of
 	/// partitions.
@@ -207,4 +202,4 @@ public:
 
 } // namespace Mastermind
 
-#endif // MASTERMIND_HEURISTIC_CODE_BREAKER_HPP
+#endif // MASTERMIND_HEURISTIC_STRATEGY_HPP

@@ -13,7 +13,7 @@
 #include "Engine.hpp"
 #include "CodeBreaker.hpp"
 #include "SimpleStrategy.hpp"
-//#include "HeuristicCodeBreaker.hpp"
+#include "HeuristicStrategy.hpp"
 
 #include "HRTimer.h"
 
@@ -495,7 +495,7 @@ static bool testSumSquares(
 	return 0;
 }
 
-static void simulate_guessing(Engine &e, CodeBreaker *breakers[], size_t n)
+static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 {
 	CodewordList all = e.generateCodewords();
 	Rules rules = e.rules();
@@ -517,11 +517,11 @@ static void simulate_guessing(Engine &e, CodeBreaker *breakers[], size_t n)
 	std::vector<bool> finished(n);
 
 	// Output strategy names.
-	std::cout << " # ";
+	std::cout << std::left << " # ";
 	for (size_t i = 0; i < n; ++i)
 	{
-		CodeBreaker *breaker = breakers[i];
-		std::cout << std::left << std::setw(10) << breaker->strategy()->name();
+		std::string name = breakers[i]->strategy()->name();
+		std::cout << std::setw(10) << name;
 	}
 	std::cout << std::right << std::endl;
 	
@@ -667,11 +667,17 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
+	using namespace Mastermind::Heuristics;
+
 	Codeword first_guess = Codeword::emptyValue();
 	//Codeword first_guess = Codeword::Parse("0011", rules);
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
 		new CodeBreaker(e, new SimpleStrategy(e), posonly),
+		new CodeBreaker(e, new HeuristicStrategy<MinimizeWorstCase>(e), posonly),
+		//new CodeBreaker(e, new HeuristicStrategy<MinimizeAverage>(e), posonly),
+		new CodeBreaker(e, new HeuristicStrategy<MaximizeEntropy>(e), posonly),
+		new CodeBreaker(e, new HeuristicStrategy<MaximizePartitions>(e), posonly),
 #if 0
 		new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(e, posonly),
 		new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(e, posonly),
