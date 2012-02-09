@@ -11,18 +11,29 @@
 namespace Mastermind
 {
 
+struct CodeBreakerOptions
+{
+	bool optimize_obvious; // make an obvious guess first
+	bool possibility_only; // only make a guess from possibilities
+	
+	CodeBreakerOptions()
+		: optimize_obvious(true), 
+		possibility_only(false)
+	{ }
+};
+
 // Free-standing function that makes a guess.
 Codeword MakeGuess(
 	Engine &e,
 	State &state,
 	Strategy *strat,
-	bool possibility_only);
+	const CodeBreakerOptions &options);
 
 // Free-standing function that builds a strategy tree.
 StrategyTree BuildStrategyTree(
 	Engine &e, 
 	Strategy *strat, 
-	bool possibility_only);
+	const CodeBreakerOptions &options);
 
 /// Helper class that uses a given strategy to break a code.
 class CodeBreaker
@@ -34,8 +45,8 @@ class CodeBreaker
 	/// @todo Use auto_ptr or smart_ptr.
 	Strategy *strat;
 
-	/// Whether to make guess only from remaining possibilities.
-	bool _pos_only;
+	/// Options.
+	CodeBreakerOptions _options;
 
 	/// Set of possibilities. This set is updated on the way.
 	CodewordList _possibilities;
@@ -46,10 +57,13 @@ class CodeBreaker
 public:
 
 	/// Creates a code breaker using the given engine and strategy.
-	CodeBreaker(Engine &engine, Strategy *strategy, bool pos_only)
+	CodeBreaker(
+		Engine &engine, 
+		Strategy *strategy, 
+		const CodeBreakerOptions &options)
 		: e(engine), 
 		strat(strategy), 
-		_pos_only(pos_only),
+		_options(options),
 		_possibilities(e.universe().begin(), e.universe().end()),
 		_state(e, _possibilities)
 	{ 
@@ -76,7 +90,7 @@ public:
 	/// Makes a guess.
 	Codeword MakeGuess()
 	{
-		return Mastermind::MakeGuess(e, _state, strat, _pos_only);
+		return Mastermind::MakeGuess(e, _state, strat, _options);
 	}
 };
 
