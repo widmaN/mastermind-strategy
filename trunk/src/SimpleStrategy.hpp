@@ -1,21 +1,47 @@
-#include <cassert>
+#ifndef MASTERMIND_SIMPLE_STRATEGY_HPP
+#define MASTERMIND_SIMPLE_STRATEGY_HPP
 
-#include "SimpleCodeBreaker.hpp"
-#include "Algorithm.hpp"
+#include "Strategy.hpp"
 
 namespace Mastermind {
 
-Codeword SimpleCodeBreaker::MakeGuess()
+/// Simple strategy that always guesses the first codeword from the
+/// set of remaining possibilities.
+class SimpleStrategy : public Strategy
 {
-	assert(m_possibilities.size() > 0);
-	return m_possibilities[0];
-}
+public:
 
-Codeword SimpleCodeBreaker::MakeGuess(CodewordList &possibilities)
-{
-	assert(possibilities.size() > 0);
-	return possibilities[0];
-}
+	/// Constructs the strategy.
+	SimpleStrategy(Engine &) { }
+
+	/// Returns the name of the strategy.
+	virtual std::string name() const
+	{
+		return "simple";
+	}
+
+	/// Returns a description of the strategy.
+	virtual std::string description() const
+	{
+		return "guesses the first possibility";
+	}
+
+	/// Returns the first codeword from the possibility set as the
+	/// guess. If the possibility set is empty, returns 
+	/// <code>Codeword::emptyValue()</code>.
+	virtual Codeword make_guess(
+		CodewordConstRange possibilities, 
+		CodewordConstRange /* candidates */)
+	{
+		if (possibilities.empty())
+			return Codeword::emptyValue();
+		else
+			return *possibilities.begin();
+	}
+};
+
+#if 0
+// Copied from SimpleCodeBreaker.cpp
 
 StrategyTreeNode* SimpleCodeBreaker::FillStrategy(CodewordList possibilities, const Codeword &first_guess)
 {
@@ -78,5 +104,8 @@ StrategyTree* SimpleCodeBreaker::BuildStrategyTree(const Codeword& first_guess)
 	return (the strategy tree built this way);
 	*/
 }
+#endif
 
 } // namespace Mastermind
+
+#endif // MASTERMIND_SIMPLE_STRATEGY_HPP

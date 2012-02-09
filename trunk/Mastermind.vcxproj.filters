@@ -21,9 +21,6 @@
     <ClCompile Include="src\CodeBreaker.cpp">
       <Filter>Strategies</Filter>
     </ClCompile>
-    <ClCompile Include="src\SimpleCodeBreaker.cpp">
-      <Filter>Strategies</Filter>
-    </ClCompile>
     <ClCompile Include="src\Compare.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
@@ -60,18 +57,15 @@
     <ClCompile Include="src\Engine.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
+    <ClCompile Include="src\HeuristicCodeBreaker.cpp">
+      <Filter>Strategies</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\SimpleCodeBreaker.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
     <ClInclude Include="src\OptimalCodeBreaker.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\HeuristicCodeBreaker.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CodeBreaker.h">
       <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="src\Algorithm.hpp">
@@ -121,6 +115,18 @@
     </ClInclude>
     <ClInclude Include="src\util\range.hpp">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Strategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CodeBreaker.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ObviousStrategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SimpleStrategy.hpp">
+      <Filter>Strategies</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
