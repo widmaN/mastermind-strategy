@@ -156,11 +156,9 @@ public:
 	 *
 	 * The feedback frequency table is returned as a by-product.
 	 */
-	void partition(
-		CodewordList::iterator first,
-		CodewordList::iterator last,
-		const Codeword &guess,
-		FeedbackFrequencyTable &freq) const;
+	FeedbackFrequencyTable partition(
+		CodewordRange codewords, 
+		const Codeword &guess) const;
 
 	/// Counts the frequencies of each feedback in a feedback list.
 	void countFrequencies(

@@ -5,19 +5,23 @@
 #include "Engine.hpp"
 #include "Strategy.hpp"
 #include "ObviousStrategy.hpp"
-#include "StrategyTree.h"
+#include "StrategyTree.hpp"
 #include "State.hpp"
 
 namespace Mastermind
 {
-
-extern StrategyTreeMemoryManager *default_strat_mm;
 
 // Free-standing function that makes a guess.
 Codeword MakeGuess(
 	Engine &e,
 	State &state,
 	Strategy *strat,
+	bool possibility_only);
+
+// Free-standing function that builds a strategy tree.
+StrategyTree BuildStrategyTree(
+	Engine &e, 
+	Strategy *strat, 
 	bool possibility_only);
 
 /// Helper class that uses a given strategy to break a code.
@@ -63,10 +67,10 @@ public:
 	/// to make a guess at all. If a particular implementation does not
 	/// support such behavior (e.g. one that makes guesses according to
 	/// a pre-built strategy tree), it must throw an exception.
-	void AddConstraint(const Codeword &guess, Feedback fb)
+	void AddConstraint(const Codeword &guess, Feedback feedback)
 	{
-		_possibilities = e.filterByFeedback(_possibilities, guess, fb);
-		_state.udpate(e, guess, _possibilities);
+		_possibilities = e.filterByFeedback(_possibilities, guess, feedback);
+		_state.udpate(e, guess, feedback, _possibilities);
 	}
 
 	/// Makes a guess.

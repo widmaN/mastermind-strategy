@@ -571,17 +571,18 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 	}
 }
 
-#if 0
-static void TestGuessingByTree(
-	const Engine &e,
-	CodeBreaker *breakers[], 
-	int nb,
-	const Codeword& first_guess)
+#if 1
+static void test_strategy_tree(
+	Engine &e,
+	Strategy *strategies[],
+	size_t n)
+	// const Codeword& first_guess)
 {
-	CodewordList all = e.generateCodewords();
+	//CodewordList all = e.generateCodewords();
 	Rules rules = e.rules();
-	Feedback target = Feedback::perfectValue(rules);
+	//Feedback target = Feedback::perfectValue(rules);
 	Utilities::HRTimer timer;
+
 
 	std::cout 
 		<< "Game Settings" << std::endl
@@ -589,7 +590,7 @@ static void TestGuessingByTree(
 		<< "  Number of pegs:      " << rules.pegs() << std::endl
 		<< "  Number of colors:    " << rules.colors() << std::endl
 		<< "  Color repeatable:    " << rules.repeatable() << std::endl
-		<< "  Number of codewords: " << all.size() << std::endl;
+		<< "  Number of codewords: " << rules.size() << std::endl;
 
 	//printf("\n");
 	//printf("Algorithm Descriptions\n");
@@ -603,19 +604,20 @@ static void TestGuessingByTree(
 		<< "-----------------" << std::endl
 		<< "Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time" << std::endl;
 
-	for (int ib = 0; ib < nb; ib++) {
-		CodeBreaker *breaker = breakers[ib];
+	for (size_t i = 0; i < n; ++i)
+	{
+		Strategy *strat = strategies[i];
 
 		// Build a strategy tree of this code breaker
 		timer.start();
-		StrategyTree *tree = breaker->BuildStrategyTree(first_guess);
+		StrategyTree tree = BuildStrategyTree(e, strat, false);
 		double t = timer.stop();
 
 		// Count the steps used to get the answers
-		const int max_rounds = 10;
-		int freq[max_rounds+1];
-		int sum_rounds = tree->GetDepthInfo(freq, max_rounds);
-		int count = all.size();
+		const int max_depth = 10;
+		unsigned int freq[max_depth];
+		unsigned int total = tree.getDepthInfo(freq, max_depth);
+		size_t count = rules.size();
 
 //			if (i*100/count > pct) {
 //				pct = i*100/count;
@@ -624,21 +626,18 @@ static void TestGuessingByTree(
 //			}
 
 		// Display statistics
-		std::cout << "\r" << std::setw(8) << breaker->name() << ":"
-			<< std::setw(6) << sum_rounds << " "
+		std::cout << "\r" << std::setw(8) << strat->name() << ":"
+			<< std::setw(6) << total << " "
 			<< std::setw(5) << std::setprecision(3) 
-			<< (double)sum_rounds / count;
+			<< (double)total / count;
 
-		for (int i = 1; i <= max_rounds; i++) {
-			if (freq[i] > 0) 
-				std::cout << std::setw(4) << freq[i] << ' ';
+		for (int i = 1; i <= max_depth; i++) {
+			if (freq[i-1] > 0) 
+				std::cout << std::setw(4) << freq[i-1] << ' ';
 			else
 				std::cout << "   - ";
 		}
 		std::cout << std::setw(6) << std::setprecision(1) << t << std::endl;
-
-		// delete tree;
-		// TODO: garbage collection!
 	}
 }
 #endif
@@ -687,11 +686,18 @@ int test(const Rules &rules)
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};
-
-	// CountFrequenciesImpl->SelectRoutine("c");
-	//TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
-	//printf("\n");
-	simulate_guessing(e, breakers, sizeof(breakers)/sizeof(breakers[0]));
+	Strategy* strats[] = {
+		new SimpleStrategy(e),
+		new HeuristicStrategy<MinimizeWorstCase>(e),
+		//new CodeBreaker(e, new HeuristicStrategy<MinimizeAverage>(e), posonly),
+		new HeuristicStrategy<MaximizeEntropy>(e),
+		new HeuristicStrategy<MaximizePartitions>(e),
+		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
+		//new OptimalCodeBreaker(rules),
+	};
+	
+	//simulate_guessing(e, breakers, sizeof(breakers)/sizeof(breakers[0]));
+	test_strategy_tree(e, strats, sizeof(strats)/sizeof(strats[0]));
 
 #if 0
 	if (0) {

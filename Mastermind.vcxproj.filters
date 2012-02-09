@@ -77,9 +77,6 @@
     <ClInclude Include="src\PoolMemoryManager.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="src\StrategyTree.h">
-      <Filter>Types</Filter>
-    </ClInclude>
     <ClInclude Include="src\Registry.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -127,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="src\State.hpp">
       <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StrategyTree.hpp">
+      <Filter>Types</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
