@@ -2,9 +2,11 @@
 #include <iomanip>
 #include <cassert>
 
-#include <stdlib.h>
+//#include <stdlib.h>
+#include <algorithm>
+#include <utility>
 
-#include "StrategyTree.h"
+#include "StrategyTree.hpp"
 #include "Algorithm.hpp"
 
 using namespace Mastermind;
@@ -13,6 +15,170 @@ using namespace Mastermind;
 // StrategyTreeNode implementation
 //
 
+namespace Mastermind {
+
+#if 0
+void StrategyTree::AddChild(const Node &node)
+{
+#if 1
+	nodes.push_back(node);
+#else
+
+	int j = fb.value();
+#ifndef NDEBUG
+	for (int i = 0; i < m_childcount; i++) {
+		assert(m_childindex[i] != j);
+	}
+#endif
+	m_children[j] = child;
+	m_childindex[m_childcount++] = j;
+
+	if (child == Done()) {
+		if (m_depth < 1)
+			m_depth = 1;
+		m_hits++;
+		m_totaldepth += 1;
+	} else {
+		if (m_depth < (child->m_depth + 1)) {
+			m_depth = child->m_depth + 1;
+		} 
+		m_hits += child->m_hits;
+		m_totaldepth += (child->m_totaldepth + child->m_hits);
+	}
+#endif
+}
+#endif
+
+unsigned int StrategyTree::getDepthInfo(
+	unsigned int depth_freq[], 
+	unsigned int count) const
+{
+	unsigned char target = Feedback::perfectValue(_rules).value();
+	unsigned int total = 0;
+	std::fill(depth_freq + 0, depth_freq + count, 0);
+	for (size_t i = 0; i < _nodes.size(); ++i)
+	{
+		if (_nodes[i].feedback == target)
+		{
+			total += _nodes[i].depth;
+			++depth_freq[std::min((unsigned int)_nodes[i].depth, count)-1];
+		}
+	}
+	return total;
+}
+
+#if 0
+template <>
+void WriteToFile<TextFormat>(std::ostream &os, const StrategyTree &tree)
+{
+	if (format == XmlFormat) 
+	{
+		os << "<mmstrat" 
+			<< " npegs=" << '"' << rules.pegs() << '"'
+			<< " ncolors=\"" << rules.colors() << '"'
+			<< " allowrepetition=\"" << std::boolalpha << rules.repeatable() << '"'
+			<< ">" << std::endl;
+		
+		const int max_depth = 100;
+		int freq[max_depth+1];
+		int total = GetDepthInfo(freq, max_depth);
+
+		os << "<summary totalsteps=\"" << total << "\">" << std::endl;
+		for (int i = 0; i <= max_depth; i++) 
+		{
+			if (freq[i] > 0) 
+			{
+				os << "  <where"
+					<< " steps=\"" << i << '"'
+					<< " count=\"" << freq[i] << '"'
+					<< "/>" << std::endl;
+			}
+		}
+		os << "</summary>\n";
+		os << "<details>\n";
+	}
+	WriteToFile(os, format, 0);
+	if (format == XmlFormat) 
+	{
+		os << "</details>" << std::endl;
+		os << "</mmstrat>" << std::endl;
+	}
+}
+#endif
+
+template <>
+void WriteToFile<XmlFormat>(std::ostream &os, const StrategyTree &tree)
+{
+	Rules rules = tree.rules();
+
+	// Output XML header.
+	os << "<mastermind-strategy" 
+		<< " pegs=" << '"' << rules.pegs() << '"'
+		<< " colors=\"" << rules.colors() << '"'
+		<< " repeatable=\"" << std::boolalpha << rules.repeatable() << '"'
+		<< ">" << std::endl;
+	
+	// Output summary.
+	const int max_depth = 100;
+	unsigned int freq[max_depth];
+	unsigned int total = tree.getDepthInfo(freq, max_depth);
+
+	os << "<summary totalsteps=\"" << total << "\">" << std::endl;
+	for (int i = 1; i <= max_depth; i++) 
+	{
+		if (freq[i-1] > 0) 
+		{
+			os << "  <where"
+				<< " steps=\"" << i << '"'
+				<< " count=\"" << freq[i-1] << '"'
+				<< "/>" << std::endl;
+		}
+	}
+	os << "</summary>" << std::endl;
+
+	// Output the strategy.
+	os << "<details>" << std::endl;
+
+	unsigned char target = Feedback::perfectValue(tree.rules()).value();
+	int indent = 2;
+	int level = 0;
+	for (size_t i = 0; i < tree.nodes().size(); ++i)
+	{
+		const StrategyTree::Node &node = tree.nodes()[i];
+
+		// Close deeper branches.
+		for (; level > node.depth; --level)
+		{
+			os << std::setw(indent*level) << "" << "</case>" << std::endl;
+		}
+		level = node.depth;
+
+		if (node.feedback == target)
+		{
+			os << std::setw(indent*level) << "" << "<state guess=\"" 
+				<< Codeword::unpack(node.guess) << "\" feedback=\"" 
+				<< Feedback(node.feedback) << "\"/>" << std::endl;
+		}
+		else 
+		{
+			os << std::setw(indent*level) << "" << "<state "
+				<< "guess=\"" << Codeword::unpack(node.guess) << "\" "
+				<< "feedback=\"" << Feedback(node.feedback) << "\" "
+				<< "npos=\"" << node.npossibilities << "\" "
+				<< "ncand=\"" << node.ncandidates << "\" "
+				<< "next=\"" << node.suggestion << "\">"
+				<< std::endl;
+		}
+	}
+
+	// Write closing tags.
+	os << "</details>" << std::endl;
+	os << "</mastermind-strategy>" << std::endl;
+}
+
+} // namespace Mastermind
+
+#if 0
 StrategyTreeNode* StrategyTreeNode::Create(StrategyTreeMemoryManager *mm)
 {
 	assert(mm != NULL);
@@ -68,31 +234,7 @@ void StrategyTreeNode::AddChild(Feedback fb, StrategyTreeNode *child)
 	}
 }
 
-int StrategyTreeNode::FillDepthInfo(int depth, int freq[], int max_depth) const
-{
-	int total = 0;
-	for (int i = 0; i < m_childcount; i++) {
-		int j = m_childindex[i]; 
-		const StrategyTreeNode *child = m_children[j];
-		if (child == Done()) { // this is the leaf
-			if (depth > max_depth) {
-				freq[max_depth]++;
-			} else {
-				freq[depth]++;
-			}
-			total += depth;
-		} else {
-			total += child->FillDepthInfo(depth + 1, freq, max_depth);
-		}
-	}
-	return total;
-}
 
-int StrategyTreeNode::GetDepthInfo(int freq[], int max_depth) const
-{
-	memset(freq, 0, sizeof(int)*(max_depth+1));
-	return FillDepthInfo(1, freq, max_depth);
-}
 
 void StrategyTreeNode::WriteToFile(std::ostream &os, FileFormat format, int indent) const
 {
@@ -183,4 +325,5 @@ StrategyTreeNode* StrategyTreeNode::Single(StrategyTreeMemoryManager *mm, const 
 	node->AddChild(compare(Rules(), possibility, possibility), StrategyTreeNode::Done());
 	return node;
 }
+#endif
 #endif

@@ -43,105 +43,88 @@ Codeword MakeGuess(
 	return guess;
 }
 
-// Build a partial strategy tree from the current state of the code breaker.
-#if 0
-static StrategyTreeNode * 
-fill_strategy(
+// Build a partial strategy tree from the given state.
+// That state has NOT been output to the tree yet.
+// The following fields must be filled in partial_node:
+//   - node.depth
+//   - node.guess
+//   - node.feedback
+// Note: This actually can be turned into a tail recursion.
+//       We can do that later if necessary.
+#if 1
+static void FillStrategy(
+	StrategyTree &tree,
+	const StrategyTree::Node &partial_node,
 	Engine &e,
-	State *st,
+	State &state,
 	Strategy *strat,
 	bool possibility_only,
 	int *progress)
 {
+	// Create a node.
+	StrategyTree::Node node(partial_node);
+		
 	// Make a guess.
-	Codeword guess = make_guess(e, st->possibilities, all, possibility_only, strat);
+	Codeword guess = MakeGuess(e, state, strat, possibility_only);
 	if (guess.empty())
-		return false;
-
-#if 0
-	StrategyTreeState state;
-	if (first_guess.empty()) 
 	{
-		MakeGuess(first_possibility, last_possibility, 
-			unguessed_mask, impossible_mask, &state);
+		tree.append(node);
+		return;
 	}
-	else 
-	{
-		state.NPossibilities = last_possibility - first_possibility;
-		state.NCandidates = -1;
-		state.Guess = first_guess;
-	}
-#endif
 
-	//StrategyTreeMemoryManager *mm = default_strat_mm;
+	// Fill strategy-related fields and output this node/state.
+	node.npossibilities = state.possibilities.size();
+	node.ncandidates = 0; // TBD
+	node.suggestion = Codeword::pack(guess);
+	tree.append(node);
 
 	// Partition the possibility set using this guess.
-	FeedbackFrequencyTable freq = e.partition(st->possibilities, guess);
+	FeedbackFrequencyTable freq = e.partition(state.possibilities, guess);
 
 	// Recursively fill the strategy for each non-empty cell in the partition.
-	CodewordRange cell(st->possibilities.begin(), st->possibilities.begin());
+	CodewordRange cell(state.possibilities.begin(), state.possibilities.begin());
 	Feedback perfect = Feedback::perfectValue(e.rules());
-	
-	//StrategyTreeNode *node = StrategyTreeNode::Create(mm);
-	//node->State = state;
-
 	for (size_t k = 0; k < freq.size(); ++k)
 	{
 		Feedback feedback(k);
 		if (freq[k] == 0)
 			continue;
 
+		// Select the possibility set with this feedback.
 		cell = CodewordRange(cell.end(), cell.end() + freq[k]);
-		if (feedback == perfect) 
+
+		// Prepare a node for the child state.
+		StrategyTree::Node child(node.depth + 1, node.suggestion, feedback.value());
+
+		if (feedback == perfect)
 		{
 			(*progress)++;
 			//double pcnt = (double)(*progress) / m_all.size();
 			//printf("\rProgress: %3.0f%%", pcnt*100);
 			//fflush(stdout);
-			node->AddChild(feedback, StrategyTreeNode::Done());
+			tree.append(child);
 		}
 		else
 		{
-			//Filter new_filter(filter, guess, feedback, cell);
-
 			// Create a new, child state.
-			State child(state);
-			child.udpate(e, guess, feedback, cell);
-
-			StrategyTreeNode *child = 
-				fill_strategy(strat, cell, hints, progress);
-			node->AddChild(fb, child);
+			State new_state(state);
+			new_state.udpate(e, guess, feedback, cell);
+			FillStrategy(tree, child, e, new_state, strat, possibility_only, progress);
 		}
 	}
-	return node;
 }
 #endif
 
-#if 0
-void build_strategy_tree(Engine &e)
+#if 1
+StrategyTree BuildStrategyTree(Engine &e, Strategy *strat, bool possibility_only)
 {
+	StrategyTree tree(e.rules());
 	CodewordList all = e.generateCodewords();
-
-	unsigned short impossible_mask = 0;
-	unsigned short unguessed_mask = (1 << m_rules.colors()) - 1;
+	StrategyTree::Node root(0, (uint32_t)-1, 0);
+	State state(e, all);
 	int progress = 0;
-	StrategyTreeNode *node = FillStrategy(
-		all.begin(), all.end(), unguessed_mask, impossible_mask, first_guess, &progress);
-	return (StrategyTree*)node;
-	/*
-	partition the possibility list, i.e. reorder the elements so that
-		elements with same feedback are put together;
-	foreach (feedback in all feedbacks) {
-		filter possibilities with the feedback (locate the partition);
-		find the first remaining element in possibilities;
-		use this item as the guess, and push it into strategy tree;
-		the remaining possibilities are the partition;
-		call BuildStrategyTree() recursively;
-	}
-
-	return (the strategy tree built this way);
-	*/
-
+	FillStrategy(tree, root, e, state, strat, possibility_only, &progress);
+	return tree;
 }
 #endif
 

@@ -35,20 +35,17 @@ CodewordList Engine::filterByFeedback(
 	return result;
 }
 
-void Engine::partition(
-	CodewordList::iterator first,
-	CodewordList::iterator last,
-	const Codeword &guess,
-	FeedbackFrequencyTable &freq) const
+FeedbackFrequencyTable Engine::partition(
+	CodewordRange codewords,
+	const Codeword &guess) const
 {
 	// If there's no element in the list, do nothing.
-	if (first == last)
-		return;
+	if (codewords.empty())
+		return FeedbackFrequencyTable();
 
-	// Compare guess to each codeword in the list.
-	FeedbackList fbl = compare(guess, CodewordRange(first, last));
-	countFrequencies(fbl.cbegin(), fbl.cend(), freq);
-	// freq.CountFrequencies(fbl);
+	// Compare the guess to each codeword in the list.
+	FeedbackList fbl = compare(guess, codewords);
+	FeedbackFrequencyTable freq = frequency(fbl);
 
 	// Build a table to store the range of each partition.
 	struct partition_location
@@ -74,10 +71,12 @@ void Engine::partition(
 		++k;
 
 	// Perform a in-place partitioning.
-	size_t count = last - first;
+	CodewordIterator first = codewords.begin();
+	size_t count = codewords.size();
 	for (size_t i = 0; i < count; )
 	{
 		int fbv = fbl[i].value();
+		//std::cout << "Feedback[" << i << "] = " << fbl[i] << std::endl;
 		if (fbv == k) 
 		{
 			// Codeword[i] is in the correct partition.
@@ -94,9 +93,12 @@ void Engine::partition(
 			// Codeword[i] is NOT in the correct partition.
 			// Swap it into the correct partition, and increment
 			// the pointer of that partition.
-			std::swap(first[i], first[part[fbv].current++]);
+			size_t j = part[fbv].current++;
+			std::swap(first[i], first[j]);
+			std::swap(fbl[i], fbl[j]);
 		}
 	}
+	return freq;
 }
 
 void Engine::countFrequencies(

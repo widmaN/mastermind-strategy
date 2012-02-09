@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cstdint>
 #include <emmintrin.h>
 #include <algorithm>
 
@@ -84,13 +85,40 @@ public:
 		return memcmp(this, &c, sizeof(Codeword)) == 0;
 	}
 
-	/// Returns an empty codeword. This function has the same effect as
-	// calling the constructor with no parameter.
+	/// Returns an empty codeword.
 	static Codeword emptyValue()
 	{
 		return Codeword();
 	}
 
+	/// Packs a codeword into a 4-byte representation.
+	static uint32_t pack(const Codeword &c)
+	{
+		uint32_t w = 0xffffffff;
+		for (int i = 0; i < MM_MAX_PEGS; i++) 
+		{
+			unsigned char d = c[i];
+			if (d == 0xFF)
+				break;
+			w <<= 4;
+			w |= d;
+		}
+		return w;
+	}
+
+	/// Unpacks a codeword from a 4-byte representation.
+	static Codeword unpack(uint32_t w)
+	{
+		Codeword c = emptyValue();
+		int i = 0;
+		for (int nibble = 7; nibble >= 0; --nibble)
+		{
+			unsigned char d = (w >> (nibble*4)) & 0xFF;
+			if (d != 0xFF)
+				c.set(i++, d);
+		}
+		return c;
+	}
 };
 
 /// Outputs a codeword to a stream.

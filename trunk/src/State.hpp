@@ -214,7 +214,8 @@ struct State
 		excluded_colors(0) { }
 	
 	/// Updates the status.
-	void udpate(	Engine &e, const Codeword &guess, CodewordRange remaining)
+	void udpate(	Engine &e, 
+		const Codeword &guess, Feedback /*feedback*/, CodewordRange remaining)
 	{
 		ColorMask allmask((1 << e.rules().colors()) - 1);
 		fresh_colors &= ~ e.colorMask(guess);

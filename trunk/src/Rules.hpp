@@ -58,13 +58,31 @@ public:
 	/// Checks whether this set of rules is valid.
 	bool valid() const 
 	{
-#if 0
-		return (length > 0 && length <= MM_MAX_PEGS) 
-			&& (ndigits > 0 && ndigits <= MM_MAX_COLORS) 
-			&& (allow_repetition || ndigits >= length);
-#else
-		return true;
-#endif
+		return (_pegs > 0 && _pegs <= MM_MAX_PEGS)
+			&& (_colors > 0 && _colors <= MM_MAX_COLORS)
+			&& (_repeatable || _colors >= _pegs);
+	}
+
+	/// Gets the number of codewords conforming to this set of rules.
+	size_t size() const 
+	{
+		if (!valid())
+			return 0;
+
+		if (repeatable())
+		{
+			size_t n = 1;
+			for (int i = 0; i < _pegs; ++i)
+				n *= (size_t)_colors;
+			return n;
+		}
+		else
+		{
+			size_t n = 1;
+			for (int i = _colors; i > _colors - _pegs; --i)
+				n *= (size_t)i;
+			return n;
+		}
 	}
 
 #if 0
