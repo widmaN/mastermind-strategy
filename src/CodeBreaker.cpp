@@ -1,16 +1,42 @@
-#include <assert.h>
-#include <stdio.h>
-//#include <limits>
+#include "CodeBreaker.hpp"
 
-#include "CallCounter.h"
-#include "Rules.hpp"
-#include "Codeword.hpp"
-#include "Feedback.hpp"
-#include "CodeBreaker.h"
-#include "Algorithm.hpp"
+using namespace Mastermind;
 
-namespace Mastermind {
+Codeword CodeBreaker::MakeGuess()
+{
+	CodewordConstRange possibilities = m_possibilities;
+	size_t count = possibilities.size();
+	if (count == 0)
+		return Codeword::emptyValue();
 
+	// state->NPossibilities = count;
+
+	// Check for obvious guess.
+	Codeword guess = obvious.make_guess(possibilities, possibilities);
+	if (!guess.empty())
+	{
+		//state->NCandidates = (it - possibilities.begin()) + 1;
+		//state->Guess = *it;
+		return guess;
+	}
+
+	// Initialize the set of candidate guesses.
+	CodewordConstRange candidates = _pos_only?
+		possibilities : CodewordConstRange(m_all);
+
+	// Filter the candidate set to remove "equivalent" guesses.
+	// For now the equivalence is determined by bit-mask of colors.
+	// In the next step, we should determine it by graph isomorphasm.
+	CodewordList canonical = 
+		CodewordList(candidates.begin(), candidates.end());
+		//candidates.FilterByEquivalence(unguessed_mask, impossible_mask);
+
+	// Make a guess using the strategy provided.
+	guess = strat->make_guess(possibilities, canonical);
+	return guess;
+}
+
+#if 0
 StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManager();
 
 CodeBreaker::CodeBreaker(Engine &engine)
@@ -110,5 +136,4 @@ CodeBreaker::makeObviousGuess(CodewordConstRange possibilities) const
 	});
 #endif
 }
-
-} // namespace Mastermind
+#endif

@@ -2,7 +2,7 @@
 #define MASTERMIND_HEURISTIC_CODE_BREAKER_HPP
 
 #include <string>
-#include "CodeBreaker.h"
+#include "CodeBreaker.hpp"
 
 namespace Mastermind {
 

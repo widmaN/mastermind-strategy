@@ -2,9 +2,10 @@
 #include <vector>
 
 #include <iostream>
+#include "Rules.hpp"
 #include "Codeword.hpp"
-#include "CodeBreaker.h"
-#include "SimpleCodeBreaker.hpp"
+//#include "CodeBreaker.h"
+//#include "SimpleCodeBreaker.hpp"
 
 using namespace Mastermind;
 

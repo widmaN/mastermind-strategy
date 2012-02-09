@@ -6,15 +6,16 @@
 #include <malloc.h>
 #include <iomanip>
 
-#include "HRTimer.h"
-
+#include "Rules.hpp"
 #include "Codeword.hpp"
 #include "Feedback.hpp"
 #include "Algorithm.hpp"
-#include "CodeBreaker.h"
-#include "SimpleCodeBreaker.hpp"
-#include "HeuristicCodeBreaker.hpp"
 #include "Engine.hpp"
+#include "CodeBreaker.hpp"
+#include "SimpleStrategy.hpp"
+//#include "HeuristicCodeBreaker.hpp"
+
+#include "HRTimer.h"
 
 using namespace Mastermind;
 using namespace Utilities;
@@ -494,6 +495,83 @@ static bool testSumSquares(
 	return 0;
 }
 
+static void simulate_guessing(Engine &e, CodeBreaker *breakers[], size_t n)
+{
+	CodewordList all = e.generateCodewords();
+	Rules rules = e.rules();
+
+	std::cout 
+		<< "Game Settings" << std::endl
+		<< "---------------" << std::endl
+		<< "  Number of pegs:      " << rules.pegs() << std::endl
+		<< "  Number of colors:    " << rules.colors() << std::endl
+		<< "  Color repeatable:    " << std::boolalpha << rules.repeatable() << std::endl
+		<< "  Number of codewords: " << all.size() << std::endl;
+
+	// Pick a secret "randomly".
+	Codeword secret = all[all.size()/4*3];
+	std::cout << std::endl;
+	std::cout << "Secret: " << secret << std::endl;
+
+	// Use an array to store the status of each codebreaker.
+	std::vector<bool> finished(n);
+
+	// Output strategy names.
+	std::cout << " # ";
+	for (size_t i = 0; i < n; ++i)
+	{
+		CodeBreaker *breaker = breakers[i];
+		std::cout << std::left << std::setw(10) << breaker->strategy()->name();
+	}
+	std::cout << std::right << std::endl;
+	
+	// Output horizontal line.
+	std::cout << "---";
+	for (size_t i = 0; i < n; ++i)
+	{
+		std::cout << "----------";
+	}
+	std::cout << std::endl;
+	
+	// Step-by-step guessing.
+	int step = 0;
+	for (size_t finished_count = 0; finished_count < n; )
+	{
+		std::cout << std::setw(2) << (++step);
+		std::cout.flush();
+
+		// Test each code breaker in turn.
+		for (size_t i = 0; i < n; ++i)
+		{
+			if (finished[i])
+				continue;
+
+			CodeBreaker *breaker = breakers[i];
+			Codeword guess = breaker->MakeGuess();
+			if (guess.empty())
+			{
+				std::cout << " FAIL";
+				finished[i] = true;
+				++finished_count;
+			}
+			else
+			{
+				Feedback feedback = e.compare(secret, guess);
+				std::cout << " " << guess << ":" << feedback;
+				std::cout.flush();
+				if (feedback == Feedback::perfectValue(e.rules()))
+				{
+					finished[i] = true;
+					++finished_count;
+				}
+				breaker->AddFeedback(guess, feedback);
+			}
+		}
+		std::cout << std::endl;
+	}
+}
+
+#if 0
 static void TestGuessingByTree(
 	const Engine &e,
 	CodeBreaker *breakers[], 
@@ -563,6 +641,7 @@ static void TestGuessingByTree(
 		// TODO: garbage collection!
 	}
 }
+#endif
 
 /// Runs regression and benchmark tests.
 int test(const Rules &rules)
@@ -592,7 +671,7 @@ int test(const Rules &rules)
 	//Codeword first_guess = Codeword::Parse("0011", rules);
 	bool posonly = false; // only guess from remaining possibilities
 	CodeBreaker* breakers[] = {
-		new SimpleCodeBreaker(e),
+		new CodeBreaker(e, new SimpleStrategy(e), posonly),
 #if 0
 		new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(e, posonly),
 		new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(e, posonly),
@@ -604,8 +683,9 @@ int test(const Rules &rules)
 	};
 
 	// CountFrequenciesImpl->SelectRoutine("c");
-	TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
-	printf("\n");
+	//TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
+	//printf("\n");
+	simulate_guessing(e, breakers, sizeof(breakers)/sizeof(breakers[0]));
 
 #if 0
 	if (0) {

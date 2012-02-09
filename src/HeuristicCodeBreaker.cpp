@@ -244,10 +244,12 @@ StrategyTree* HeuristicCodeBreaker<Heuristic>::BuildStrategyTree(const Codeword&
 // Ideally we should put the logic in the header file, so that
 // we don't need to explicitly instantiate them.
 
+#if 0
 template HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>;
 template HeuristicCodeBreaker<Heuristics::MinimizeAverage>;
 template HeuristicCodeBreaker<Heuristics::MaximizeEntropy>;
 template HeuristicCodeBreaker<Heuristics::MaximizePartitions>;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 // Heuristic Definitions

@@ -19,9 +19,13 @@
 namespace Mastermind {
 
 ///////////////////////////////////////////////////////////////////////////
-// Definition of CodewordList.
+// Definition of CodewordList and related types.
 
 typedef 	std::vector<Codeword,util::aligned_allocator<Codeword,16>> CodewordList;
+
+typedef CodewordList::iterator CodewordIterator;
+typedef CodewordList::const_iterator CodewordConstIterator;
+
 typedef util::range<CodewordList::iterator> CodewordRange;
 typedef util::range<CodewordList::const_iterator> CodewordConstRange;
 
@@ -167,6 +171,7 @@ public:
 		return _mask(&c, &c + 1);
 	}
 
+#if 0
 	/// Returns a bit-mask of the colors that are present in a list of
 	/// codewords.
 	unsigned short getDigitMask(
@@ -179,7 +184,22 @@ public:
 		else
 			return _mask(&(*first), &(*first) + count);
 	}
+#endif
 
+	/// Returns a bit-mask of the colors that are present in a list of
+	/// codewords.
+	unsigned short color_mask(CodewordConstRange codewords) const
+	{
+		if (codewords.empty())
+		{
+			return 0;
+		}
+		else
+		{
+			const Codeword *first = &(*codewords.begin());
+			return _mask(first, first + codewords.size());
+		}
+	}
 };
 
 } // namespace Mastermind
