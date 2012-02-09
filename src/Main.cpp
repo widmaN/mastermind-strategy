@@ -137,7 +137,7 @@ static void TestGuessing(Rules rules, CodeBreaker *breakers[], int nb)
 		// Display statistics
 		printf("\r  A%d: %5.3f ", (ib + 1), (double)sum_round / count);
 		for (int i = 1; i <= max_freq; i++) {
-			if (freq[i] > 0) 
+			if (freq[i] > 0)
 				printf("%4d ", freq[i]);
 			else
 				printf("   - ");
@@ -158,7 +158,7 @@ int TestOutputStrategyTree(Rules rules)
 	StrategyTree *tree = b->BuildStrategyTree(first_guess);
 	//const char *filename = "E:/good-strat.txt";
 	char filename[100];
-	sprintf_s(filename, "./strats/mm-%dp%dc-%s-%s.xml", rules.length, rules.ndigits, 
+	sprintf_s(filename, "./strats/mm-%dp%dc-%s-%s.xml", rules.length, rules.ndigits,
 		(rules.allow_repetition? "r":"nr"), b->GetName());
 	FILE *fp = fopen(filename, "wt");
 	tree->WriteToFile(fp, StrategyTree::XmlFormat, rules);
@@ -172,9 +172,9 @@ int TestOutputStrategyTree(Rules rules)
 // c.f. http://www.javaworld.com.tw/jute/post/view?bid=35&id=138372&sty=1&tpg=1&ppg=1&age=0#138372
 
 static int GetMaxBreakableWithin(
-	int nsteps, 
-	int f[], 
-	CodewordList possibilities, 
+	int nsteps,
+	int f[],
+	CodewordList possibilities,
 	CodewordList all,
 	unsigned short unguessed_mask,
 	int expand_levels)
@@ -186,7 +186,7 @@ static int GetMaxBreakableWithin(
 		return 0;
 	} else if (nsteps == 1) {
 		return 1;
-	} 
+	}
 	//else if (nsteps == 2) {
 	//	int npegs = possibilities.GetRules().length;
 	//	return std::min(possibilities.GetCount(), npegs*(npegs+3)/2);
@@ -197,7 +197,7 @@ static int GetMaxBreakableWithin(
 	int best = 0;
 	for (int i = 0; i < candidates.GetCount(); i++) {
 		Codeword guess = candidates[i];
-			
+
 		int nguessable = 0;
 		if (expand_levels == 0) {
 			FeedbackFrequencyTable freq(FeedbackList(guess, possibilities));
@@ -215,7 +215,7 @@ static int GetMaxBreakableWithin(
 					continue;
 
 				CodewordList filtered(possibilities, partition_start, partition_size);
-				int tmpcount = GetMaxBreakableWithin(nsteps-1, f, filtered, all, 
+				int tmpcount = GetMaxBreakableWithin(nsteps-1, f, filtered, all,
 					unguessed_mask & ~guess.GetDigitMask(),
 					expand_levels-1);
 				nguessable += std::min(tmpcount, partition_size);
@@ -251,7 +251,7 @@ static int TestBound(Rules rules)
 		printf("Maximum number of secrets that can be guessed in %2d rounds: <= %d\n",
 			n, f[n]);
 	}
-	printf("**** Minimum number of rounds necessary to guess all secrets: >= %d\n", 
+	printf("**** Minimum number of rounds necessary to guess all secrets: >= %d\n",
 		min_rounds);
 
 	int min_steps = all.GetCount()*min_rounds;
@@ -307,7 +307,7 @@ static int TestBound(Rules rules)
 
 static void usage()
 {
-	std::cerr << 
+	std::cerr <<
 		"Mastermind [options] [rules] [-s strategy] [action]\n"
 		"Actions:\n"
 		"    (none)     interactive mode\n"
@@ -350,6 +350,12 @@ static void usage()
 extern int interactive(const Rules &rules);
 extern int test(const Rules &rules);
 
+static void pause_output()
+{
+#ifdef _WIN32
+	system("PAUSE");
+#endif
+}
 
 // Step 3: build a strategy tree using simple code breaker.
 int main(int argc, char* argv[])
@@ -391,7 +397,7 @@ int main(int argc, char* argv[])
 				break;
 			case 'h':
 				usage();
-				system("PAUSE");
+				pause_output();
 				return 0;
 				break;
 			case 'v':
@@ -400,7 +406,7 @@ int main(int argc, char* argv[])
 			default:
 				std::cerr << "Unknown option: " << s[1] << std::endl;
 				usage();
-				system("PAUSE");
+				pause_output();
 				break;
 			}
 		}
@@ -413,7 +419,7 @@ int main(int argc, char* argv[])
 			else
 			{
 				usage();
-				system("PAUSE");
+				pause_output();
 				break;
 			}
 		}
@@ -422,14 +428,14 @@ int main(int argc, char* argv[])
 	// Check if the rule specified is valid.
 	if (!(pegs > 0 && colors > 0 && (repeatable || colors >= pegs)))
 	{
-		std::cerr << "Error: Invalid rules: pegs=" << pegs 
+		std::cerr << "Error: Invalid rules: pegs=" << pegs
 			<< ", colors=" << colors << ", repeatable="
 			<< std::boolalpha << repeatable << std::endl;
 		return 2;
 	}
 	if (pegs > MM_MAX_PEGS)
 	{
-		std::cerr << "Error: Too many pegs: max=" << MM_MAX_PEGS 
+		std::cerr << "Error: Too many pegs: max=" << MM_MAX_PEGS
 			<< ", supplied=" << pegs << std::endl;
 		return 2;
 	}
@@ -471,7 +477,7 @@ int main(int argc, char* argv[])
 	// If the first guess is 0011 and feedback is 0A1B,
 	// Then the filter will think 1223 and 1233 are equivalent,
 	// and keep the first one only.
-	// But actually, the second codeword has better score 
+	// But actually, the second codeword has better score
 	// in the worst-case heuristic criteria.
 	// Let's find out why.
 	if (0) {

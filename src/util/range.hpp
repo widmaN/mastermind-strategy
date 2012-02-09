@@ -19,8 +19,8 @@ struct range : private std::pair<RanIt,RanIt>
 	range(Container &c)
 		: std::pair<RanIt,RanIt>(c.begin(), c.end()) { }
 
-	RanIt begin() const { return first; }
-	RanIt end() const { return second; }
+	RanIt begin() const { return std::pair<RanIt,RanIt>::first; }
+	RanIt end() const { return std::pair<RanIt,RanIt>::second; }
 	size_t size() const { return end() - begin(); }
 	bool empty() const { return size() == 0; }
 };
