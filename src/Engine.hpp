@@ -11,6 +11,7 @@
 #include "Algorithm.hpp"
 
 #include <vector>
+#include <bitset>
 #include "util/aligned_allocator.hpp"
 #include "util/pool_allocator.hpp"
 #include "util/frequency_table.hpp"
@@ -40,6 +41,11 @@ typedef std::vector<Feedback,util::pool_allocator<Feedback>> FeedbackList;
 typedef util::frequency_table<Feedback,unsigned int,256> FeedbackFrequencyTable;
 
 ///////////////////////////////////////////////////////////////////////////
+// Definition of ColorMask.
+
+typedef std::bitset<MM_MAX_COLORS> ColorMask;
+
+///////////////////////////////////////////////////////////////////////////
 // Definition of Engine.
 
 class Engine
@@ -49,6 +55,7 @@ class Engine
 	FrequencyRoutine _freq;
 	GenerationRoutine _generate;
 	MaskRoutine _mask;
+	CodewordList _all;
 
 public:
 
@@ -56,11 +63,14 @@ public:
 		_compare(RoutineRegistry<ComparisonRoutine>::get("generic")),
 		_freq(RoutineRegistry<FrequencyRoutine>::get("generic")),
 		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
-		_mask(RoutineRegistry<MaskRoutine>::get("generic"))
+		_mask(RoutineRegistry<MaskRoutine>::get("generic")),
+		_all(generateCodewords())
 	{
 	}
 
 	const Rules& rules() const { return _rules; }
+
+	CodewordConstRange universe() const { return _all; }
 
 	void select(ComparisonRoutine f) { _compare = f; }
 
@@ -166,29 +176,14 @@ public:
 	}
 
 	/// Returns a bit-mask of the colors that are present in the codeword.
-	unsigned short getDigitMask(const Codeword &c) const
+	ColorMask colorMask(const Codeword &c) const
 	{
 		return _mask(&c, &c + 1);
 	}
 
-#if 0
 	/// Returns a bit-mask of the colors that are present in a list of
 	/// codewords.
-	unsigned short getDigitMask(
-		CodewordList::const_iterator first, 
-		CodewordList::const_iterator last) const
-	{
-		size_t count = last - first;
-		if (count == 0)
-			return 0;
-		else
-			return _mask(&(*first), &(*first) + count);
-	}
-#endif
-
-	/// Returns a bit-mask of the colors that are present in a list of
-	/// codewords.
-	unsigned short color_mask(CodewordConstRange codewords) const
+	ColorMask colorMask(CodewordConstRange codewords) const
 	{
 		if (codewords.empty())
 		{

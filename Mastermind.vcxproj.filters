@@ -125,5 +125,8 @@
     <ClInclude Include="src\HeuristicStrategy.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
+    <ClInclude Include="src\State.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
