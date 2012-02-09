@@ -1,10 +1,16 @@
 #include "CodeBreaker.hpp"
+#include "ObviousStrategy.hpp"
 
-using namespace Mastermind;
+namespace Mastermind {
 
-Codeword CodeBreaker::MakeGuess()
+// Create a free-standing function to make a guess.
+Codeword MakeGuess(
+	Engine &e,
+	State &state,
+	Strategy *strat,
+	bool possibility_only)
 {
-	CodewordConstRange possibilities = m_possibilities;
+	CodewordConstRange possibilities = state.possibilities;
 	size_t count = possibilities.size();
 	if (count == 0)
 		return Codeword::emptyValue();
@@ -12,7 +18,7 @@ Codeword CodeBreaker::MakeGuess()
 	// state->NPossibilities = count;
 
 	// Check for obvious guess.
-	Codeword guess = obvious.make_guess(possibilities, possibilities);
+	Codeword guess = ObviousStrategy(e).make_guess(possibilities, possibilities);
 	if (!guess.empty())
 	{
 		//state->NCandidates = (it - possibilities.begin()) + 1;
@@ -21,8 +27,8 @@ Codeword CodeBreaker::MakeGuess()
 	}
 
 	// Initialize the set of candidate guesses.
-	CodewordConstRange candidates = _pos_only?
-		possibilities : CodewordConstRange(m_all);
+	CodewordConstRange candidates = possibility_only? 
+		possibilities : e.universe();
 
 	// Filter the candidate set to remove "equivalent" guesses.
 	// For now the equivalence is determined by bit-mask of colors.
@@ -30,15 +36,118 @@ Codeword CodeBreaker::MakeGuess()
 	CodewordList canonical = 
 		CodewordList(candidates.begin(), candidates.end());
 		//candidates.FilterByEquivalence(unguessed_mask, impossible_mask);
+		//CodewordList canonical = e.canonicalize(candidates, filter);
 
 	// Make a guess using the strategy provided.
 	guess = strat->make_guess(possibilities, canonical);
 	return guess;
 }
 
-//StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManager();
+// Build a partial strategy tree from the current state of the code breaker.
+#if 0
+static StrategyTreeNode * 
+fill_strategy(
+	Engine &e,
+	State *st,
+	Strategy *strat,
+	bool possibility_only,
+	int *progress)
+{
+	// Make a guess.
+	Codeword guess = make_guess(e, st->possibilities, all, possibility_only, strat);
+	if (guess.empty())
+		return false;
+
+#if 0
+	StrategyTreeState state;
+	if (first_guess.empty()) 
+	{
+		MakeGuess(first_possibility, last_possibility, 
+			unguessed_mask, impossible_mask, &state);
+	}
+	else 
+	{
+		state.NPossibilities = last_possibility - first_possibility;
+		state.NCandidates = -1;
+		state.Guess = first_guess;
+	}
+#endif
+
+	//StrategyTreeMemoryManager *mm = default_strat_mm;
+
+	// Partition the possibility set using this guess.
+	FeedbackFrequencyTable freq = e.partition(st->possibilities, guess);
+
+	// Recursively fill the strategy for each non-empty cell in the partition.
+	CodewordRange cell(st->possibilities.begin(), st->possibilities.begin());
+	Feedback perfect = Feedback::perfectValue(e.rules());
+	
+	//StrategyTreeNode *node = StrategyTreeNode::Create(mm);
+	//node->State = state;
+
+	for (size_t k = 0; k < freq.size(); ++k)
+	{
+		Feedback feedback(k);
+		if (freq[k] == 0)
+			continue;
+
+		cell = CodewordRange(cell.end(), cell.end() + freq[k]);
+		if (feedback == perfect) 
+		{
+			(*progress)++;
+			//double pcnt = (double)(*progress) / m_all.size();
+			//printf("\rProgress: %3.0f%%", pcnt*100);
+			//fflush(stdout);
+			node->AddChild(feedback, StrategyTreeNode::Done());
+		}
+		else
+		{
+			//Filter new_filter(filter, guess, feedback, cell);
+
+			// Create a new, child state.
+			State child(state);
+			child.udpate(e, guess, feedback, cell);
+
+			StrategyTreeNode *child = 
+				fill_strategy(strat, cell, hints, progress);
+			node->AddChild(fb, child);
+		}
+	}
+	return node;
+}
+#endif
+
+#if 0
+void build_strategy_tree(Engine &e)
+{
+	CodewordList all = e.generateCodewords();
+
+	unsigned short impossible_mask = 0;
+	unsigned short unguessed_mask = (1 << m_rules.colors()) - 1;
+	int progress = 0;
+	StrategyTreeNode *node = FillStrategy(
+		all.begin(), all.end(), unguessed_mask, impossible_mask, first_guess, &progress);
+	return (StrategyTree*)node;
+	/*
+	partition the possibility list, i.e. reorder the elements so that
+		elements with same feedback are put together;
+	foreach (feedback in all feedbacks) {
+		filter possibilities with the feedback (locate the partition);
+		find the first remaining element in possibilities;
+		use this item as the guess, and push it into strategy tree;
+		the remaining possibilities are the partition;
+		call BuildStrategyTree() recursively;
+	}
+
+	return (the strategy tree built this way);
+	*/
+
+}
+#endif
 
 // Copied from HeuristicCodeBreaker.cpp
+
+//StrategyTreeMemoryManager *default_strat_mm = new StrategyTreeMemoryManager();
 
 ///////////////////////////////////////////////////////////////////////////
 // HeuristicCodeBreaker implementation
@@ -217,3 +326,5 @@ int Heuristics::MinimizeSteps::compute(const FeedbackFrequencyTable &freq)
 
 int Heuristics::MinimizeSteps::partition_score[10000];
 #endif
+
+} // namespace Mastermind

@@ -564,7 +564,7 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 					finished[i] = true;
 					++finished_count;
 				}
-				breaker->AddFeedback(guess, feedback);
+				breaker->AddConstraint(guess, feedback);
 			}
 		}
 		std::cout << std::endl;
