@@ -8,7 +8,7 @@ Codeword MakeGuess(
 	Engine &e,
 	State &state,
 	Strategy *strat,
-	bool possibility_only)
+	const CodeBreakerOptions &options)
 {
 	CodewordConstRange possibilities = state.possibilities;
 	size_t count = possibilities.size();
@@ -18,16 +18,19 @@ Codeword MakeGuess(
 	// state->NPossibilities = count;
 
 	// Check for obvious guess.
-	Codeword guess = ObviousStrategy(e).make_guess(possibilities, possibilities);
-	if (!guess.empty())
+	if (options.optimize_obvious)
 	{
-		//state->NCandidates = (it - possibilities.begin()) + 1;
-		//state->Guess = *it;
-		return guess;
+		Codeword guess = ObviousStrategy(e).make_guess(possibilities, possibilities);
+		if (!guess.empty())
+		{
+			//state->NCandidates = (it - possibilities.begin()) + 1;
+			//state->Guess = *it;
+			return guess;
+		}
 	}
 
 	// Initialize the set of candidate guesses.
-	CodewordConstRange candidates = possibility_only? 
+	CodewordConstRange candidates = options.possibility_only?
 		possibilities : e.universe();
 
 	// Filter the candidate set to remove "equivalent" guesses.
@@ -39,7 +42,7 @@ Codeword MakeGuess(
 		//CodewordList canonical = e.canonicalize(candidates, filter);
 
 	// Make a guess using the strategy provided.
-	guess = strat->make_guess(possibilities, canonical);
+	Codeword guess = strat->make_guess(possibilities, canonical);
 	return guess;
 }
 
@@ -58,14 +61,14 @@ static void FillStrategy(
 	Engine &e,
 	State &state,
 	Strategy *strat,
-	bool possibility_only,
+	const CodeBreakerOptions &options,
 	int *progress)
 {
 	// Create a node.
 	StrategyTree::Node node(partial_node);
 		
 	// Make a guess.
-	Codeword guess = MakeGuess(e, state, strat, possibility_only);
+	Codeword guess = MakeGuess(e, state, strat, options);
 	if (guess.empty())
 	{
 		tree.append(node);
@@ -109,21 +112,22 @@ static void FillStrategy(
 			// Create a new, child state.
 			State new_state(state);
 			new_state.udpate(e, guess, feedback, cell);
-			FillStrategy(tree, child, e, new_state, strat, possibility_only, progress);
+			FillStrategy(tree, child, e, new_state, strat, options, progress);
 		}
 	}
 }
 #endif
 
 #if 1
-StrategyTree BuildStrategyTree(Engine &e, Strategy *strat, bool possibility_only)
+StrategyTree BuildStrategyTree(
+	Engine &e, Strategy *strat, const CodeBreakerOptions &options)
 {
 	StrategyTree tree(e.rules());
 	CodewordList all = e.generateCodewords();
 	StrategyTree::Node root(0, (uint32_t)-1, 0);
 	State state(e, all);
 	int progress = 0;
-	FillStrategy(tree, root, e, state, strat, possibility_only, &progress);
+	FillStrategy(tree, root, e, state, strat, options, &progress);
 	return tree;
 }
 #endif

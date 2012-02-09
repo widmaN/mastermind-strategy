@@ -575,7 +575,8 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 static void test_strategy_tree(
 	Engine &e,
 	Strategy *strategies[],
-	size_t n)
+	size_t n,
+	const CodeBreakerOptions &options)
 	// const Codeword& first_guess)
 {
 	//CodewordList all = e.generateCodewords();
@@ -583,14 +584,21 @@ static void test_strategy_tree(
 	//Feedback target = Feedback::perfectValue(rules);
 	Utilities::HRTimer timer;
 
-
 	std::cout 
 		<< "Game Settings" << std::endl
 		<< "---------------" << std::endl
-		<< "  Number of pegs:      " << rules.pegs() << std::endl
-		<< "  Number of colors:    " << rules.colors() << std::endl
-		<< "  Color repeatable:    " << rules.repeatable() << std::endl
-		<< "  Number of codewords: " << rules.size() << std::endl;
+		<< "Number of pegs:      " << rules.pegs() << std::endl
+		<< "Number of colors:    " << rules.colors() << std::endl
+		<< "Color repeatable:    " << std::boolalpha << rules.repeatable() << std::endl
+		<< "Number of codewords: " << rules.size() << std::endl;
+
+	std::cout << std::endl
+		<< "Options" << std::endl
+		<< "---------" << std::endl
+		<< "Optimize obvious guess: " << std::boolalpha 
+			<< options.optimize_obvious << std::endl
+		<< "Guess possibility only: " << std::boolalpha 
+			<< options.possibility_only << std::endl;
 
 	//printf("\n");
 	//printf("Algorithm Descriptions\n");
@@ -610,7 +618,7 @@ static void test_strategy_tree(
 
 		// Build a strategy tree of this code breaker
 		timer.start();
-		StrategyTree tree = BuildStrategyTree(e, strat, false);
+		StrategyTree tree = BuildStrategyTree(e, strat, options);
 		double t = timer.stop();
 
 		// Count the steps used to get the answers
@@ -629,7 +637,7 @@ static void test_strategy_tree(
 		std::cout << "\r" << std::setw(8) << strat->name() << ":"
 			<< std::setw(6) << total << " "
 			<< std::setw(5) << std::setprecision(3) 
-			<< (double)total / count;
+			<< std::fixed << (double)total / count << ' ';
 
 		for (int i = 1; i <= max_depth; i++) {
 			if (freq[i-1] > 0) 
@@ -637,7 +645,7 @@ static void test_strategy_tree(
 			else
 				std::cout << "   - ";
 		}
-		std::cout << std::setw(6) << std::setprecision(1) << t << std::endl;
+		std::cout << std::fixed << std::setw(6) << std::setprecision(2) << t << std::endl;
 	}
 }
 #endif
@@ -668,9 +676,14 @@ int test(const Rules &rules)
 
 	using namespace Mastermind::Heuristics;
 
-	Codeword first_guess = Codeword::emptyValue();
+	CodeBreakerOptions options;
+	options.optimize_obvious = true;
+	options.possibility_only = false;
+
+	//Codeword first_guess = Codeword::emptyValue();
 	//Codeword first_guess = Codeword::Parse("0011", rules);
-	bool posonly = false; // only guess from remaining possibilities
+
+#if 0
 	CodeBreaker* breakers[] = {
 		new CodeBreaker(e, new SimpleStrategy(e), posonly),
 		new CodeBreaker(e, new HeuristicStrategy<MinimizeWorstCase>(e), posonly),
@@ -686,6 +699,7 @@ int test(const Rules &rules)
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};
+#endif
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
 		new HeuristicStrategy<MinimizeWorstCase>(e),
@@ -697,7 +711,7 @@ int test(const Rules &rules)
 	};
 	
 	//simulate_guessing(e, breakers, sizeof(breakers)/sizeof(breakers[0]));
-	test_strategy_tree(e, strats, sizeof(strats)/sizeof(strats[0]));
+	test_strategy_tree(e, strats, sizeof(strats)/sizeof(strats[0]), options);
 
 #if 0
 	if (0) {
