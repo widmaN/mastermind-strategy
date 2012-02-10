@@ -25,11 +25,6 @@
 # error MM_MAX_PEGS and MM_MAX_COLORS must add to 16.
 #endif
 
-// Whether to compile call counter.
-// Note that this option should not be here. Instead, it should
-// go into the -D compiler option. It is here only temporarily.
-#define ENABLE_CALL_COUNTER 0
-
 namespace Mastermind {
 
 /// Defines the rules that a codeword conforms to.
