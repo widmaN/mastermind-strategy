@@ -24,9 +24,6 @@
     <ClCompile Include="src\Compare.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\CallCounter.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="src\Codeword.cpp">
       <Filter>Types</Filter>
     </ClCompile>
@@ -68,13 +65,7 @@
     <ClInclude Include="src\Codeword.hpp">
       <Filter>Types</Filter>
     </ClInclude>
-    <ClInclude Include="src\CallCounter.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\HRTimer.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PoolMemoryManager.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="src\Registry.hpp">
@@ -125,8 +116,8 @@
     <ClInclude Include="src\State.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
-    <ClInclude Include="src\StrategyTree.hpp">
-      <Filter>Types</Filter>
+    <ClInclude Include="src\util\call_counter.hpp">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

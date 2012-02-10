@@ -3,26 +3,13 @@
 
 #include "util/simd.hpp"
 #include "util/intrinsic.hpp"
+#include "util/call_counter.hpp"
 #include "Algorithm.hpp"
 
 // Define NTEST to exclude non-essential routines from compilation.
 #define NTEST
 
-#if ENABLE_CALL_COUNTER
-#include "CallCounter.h"
-
-static Utilities::CallCounter _call_counter("CompareCodewords", true);
-
-static inline void UpdateCallCounter(unsigned int comp)
-{
-	_call_counter.AddCall(comp);
-}
-
-void PrintCompareStatistics()
-{
-	_call_counter.DebugPrint();
-}
-#endif
+REGISTER_CALL_COUNTER(Comparison)
 
 using namespace Mastermind;
 
@@ -61,7 +48,14 @@ static void compare_long_codeword_generic(
 	const Codeword *_last,
 	Feedback result[])
 {
-	// UpdateCallCounter(count);
+	UPDATE_CALL_COUNTER(Comparison, (unsigned int)(_last - _first));
+#if 0
+	if (_last - _first == 1)
+	{
+		int kk = 1;
+	}
+#endif
+
 	using namespace util::simd;
 	typedef util::simd::simd_t<uint8_t,16> simd_t;
 
@@ -154,7 +148,8 @@ static void compare_long_codeword_norepeat(
 	const Codeword *last,
 	Feedback result[])
 {
-	//UpdateCallCounter(count);
+	UPDATE_CALL_COUNTER(Comparison, (unsigned int)(last - first));
+
 	typedef util::simd::simd_t<char,16> simd_t;
 	simd_t secret = _secret.value();
 

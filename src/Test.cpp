@@ -6,6 +6,7 @@
 #include <malloc.h>
 #include <iomanip>
 
+#include "util/call_counter.hpp"
 #include "Rules.hpp"
 #include "Codeword.hpp"
 #include "Feedback.hpp"
@@ -676,6 +677,8 @@ int test(const Rules &rules)
 
 	using namespace Mastermind::Heuristics;
 
+	// todo: we can use "optimize obvious" to reduce the strategy tree size.
+	// todo: output strategy tree size info.
 	CodeBreakerOptions options;
 	options.optimize_obvious = true;
 	options.possibility_only = false;
@@ -712,6 +715,14 @@ int test(const Rules &rules)
 
 	//simulate_guessing(e, breakers, sizeof(breakers)/sizeof(breakers[0]));
 	test_strategy_tree(e, strats, sizeof(strats)/sizeof(strats[0]), options);
+
+	// Display some statistics.
+	std::cout << std::endl
+		<< "Call statistics" << std::endl
+		<< "-----------------" << std::endl;
+
+	std::cout << "** Comparison **" << std::endl
+		<< util::call_counter::get("Comparison") << std::endl;
 
 #if 0
 	if (0) {
