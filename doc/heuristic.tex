@@ -1,0 +1,128 @@
+\section{Heuristic Strategies}
+
+%   - Overview [How it works]
+%   - The MinMax heuristic
+%   - The MinAverage heuristic
+%   - The Max Entropy heuristic
+%   - The Max Parts heuristic
+%   - The Min Steps heuristic
+%   - Hybrid heuristics (e.g. WideDev, LongRect)
+%   - Comparison of heuristics
+
+\subsection{Overview}
+
+Heuristic strategies are interesting to study because they tend to uncover some interesting links between an optimal strategy and the immediate step. Good heuristics have an intuitive rationale as why the heuristic is constructed that way.
+
+In this sense, the objective of a heuristic may not only be to yield an optimal solution quickly. [See e.g. neuwirth].
+
+It is fair to expect that a tailored-heuristic to one configuration of the rules may not perform well in another configuration. This is the defect of tailored heuristics. (Show some examples)
+
+\subsection{The Min-Max heuristic}
+
+Knuth \cite{knuth76} published the first paper on Mastermind, where he introduced a heuristic strategy aiming at minimizing the worst-case number of remaining possibilities.
+
+Rationale: fewer remaining possibilities is better. We want to play safe and reduce the worst-case number of remaining possibilities. 
+
+Note that this strategy does not need an assumption on the distribution of the secret. [see neu] (This, e.g. is suitable in mastermind with lie (or dynamic mastermind.))
+
+Note: If two guesses yield the same worst-case partition, the second-to-worst partition size is compared, etc.
+
+\subsection{The Min-Average heuristic}
+
+Rationale: fewer remaining possibilities is better. We want to minimize the expected partition size.
+
+\subsection{The Max-Entropy heuristic}
+
+Rationale: we want a guess to provide as much information as possible as to determine what is the secret.
+
+The entropy heuristic first appeared in \cite{neuwirth81}.
+
+Heeffer \cite{heeffer07} tested various heuristic algorithms on the Mastermind game with 5 pegs and 8 colors, and found the entropy heuristic to perform the best.
+
+See \href{http://en.wikipedia.org/wiki/Entropy\_(information\_theory)\#Further\_properties}{Wikipedia}.
+
+Each feedback from a guess can be thought of as a "alphabet"
+For p4c10n, there are 14 alphabets, but some letters are more likely to follow certain letters than others. However, such likelyhood depends on the guess chosen.
+
+For example, if a guess partitions the possibility set into discrete partition, then all letters in that alphabet 
+
+If alphabet is equally likely, then the entropy is maximized.
+
+
+***************
+
+Why entropy heuristic doesn't yield best (worst step) and (average step)?
+
+The apparent underperformance of the entropy heuristic could be explained by noting the fact that there is a distinction between \emph{determining} the secret and \emph{revealing} the secret. Suppose we are left with 2 possibilities: 5678 and 7890. We can \emph{determine} the secret with one guess (e.g. 5678). However, to actualy \emph{reveal} the secret, we need to make an extra guess (7890) if 5689 returns 0A2B. In total we need maximum 2 guesses and average 1.5 guesses.
+
+However, from a information theory's pespective, the extra guess is totally redundant in that there is no uncertainty of the outcome: we know for sure that we will get 4A0B when we guess 7890. In fact, when we guess 5678, the entropy of the resulting partition {(5678:4A0B),(7890:0A2B)} is zero (ignoring the constant denominator), which means uncertainty removed.
+
+The extra step to reveal the secret is necessary in the traditional human game because otherwise it's difficult to judge that the code breaker wins. On the other hand, the human game rules could be slightly modified to remove the need for the extra guess. Instead of required to \emph{reveal} the guess with a 4A0B feedback, the codebreaker is required to \emph{assert} the guess after a number of rounds. If the assertion is correct, he wins; if the assertion is wrong, he loses. The number of guesses one needs before making an assertion is equal to the number of steps one needs to determine the secret, and this number is consistent with an information-theory perspective.
+
+To cope with subtle discrepancy of determining and revealing the secret, the entropy heuristic could be amended to distinguish the difference, though in this case the theory is not that sound. See [taiwan wang you]
+
+Another issue with the entropy heuristic is that when computing the entropy, it only depends on the probablity of each partition (i.e. the size of each partition). This is because in entropy theory, it assumes that we know absolutely nothing about the underlying random variable (the secret), except which partition it resides in. Under this assumption, two partitions with the same size gives the same amount of information; for example, if partition A and partiton B both contain 3 possibilities, then if either case turns out to contain the secret, then we are equipped with the knowledge that we have 3 possibilities left, without any more knowledge.
+
+However, in the scenario of Mastermind, the situation is different, because we have extra knowledge about the codewords apart from the size. Consider two partitions of the same size:
+
+A = (1234, 1235, 1236), and
+
+B = (1234, 1235, 2135)
+
+Though both partitions contain the same number of elements, their information content is different; partition A has more uncertainty (in Mastermind sense) than partition B. This is because it requires at least 2 steps to determine the secret in A (this can be verified by an exhaustive search). However, partition B can be determined with one guess (for example, any one of the three secrets). Thus, with the extra knowledge not present in a vanilla entropy theory, partition A has more uncertainty.
+
+Thus the assumptions of applying the entropy theory do not exactly hold. Consequenty, the strategy produced by entropy theory may not be as good as it apparently suggests. This may also mean that the logarithm base in computing the entropy may need to be adapted to the actual structure of the partition. However, if we continue this step recursively, then it is essentially an exhaustive strategy, in which case we don't need the heuristic any more.
+
+
+
+\subsection{The Max-Parts Heuristic}
+
+Rationale is problematic. Subject to choice of equal heuristic element. (We can perform a randomized test to permute the codeword list.)
+
+Kooi \cite{kooi05} provided a concise yet thorough overview of the heuristic algorithms and proposed a new heuristic called Max-Parts, which proved to work well for a Mastermind game with 4 pegs and 6 colors, but didn't work well for one with 5 pegs and 8 colors.
+
+%\subsection{The Min-Steps Heuristic}
+
+\subsection{Hybrid heuristics}
+
+%http://mercury.webster.edu/aleshunas/Support\%20Materials/Analysis/Dowelll\%20-\%20Mastermind%20v2-0.doc
+
+%Defeating Mastermind
+%By Justin Dowell
+
+%- WideDev
+%- LongRect both hybrid strats
+
+These are not good. Because we need a "rationale" for the heuristic. 
+
+\subsection{Comparison of heuristics}
+
+When several candidate guesses yield the same heuristic value, a choice must be made as to pick which one as the guess. Standard way is to choose the ``first'' candidate as it appears in the list, or the lexicographically minima. However, some evidence (where??) shows that the performance of a heuristic does depend on which choice is made. This is not ideal.
+
+
+
+
+% -------------------------------- %
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% -------------------------------- %
