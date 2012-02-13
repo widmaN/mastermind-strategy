@@ -54,6 +54,9 @@
     <ClCompile Include="src\Engine.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
+    <ClCompile Include="src\Morphism.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\OptimalCodeBreaker.hpp">

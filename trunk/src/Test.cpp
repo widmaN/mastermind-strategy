@@ -675,6 +675,13 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
+#if 1
+	extern void test_morphism(Engine &);
+	test_morphism(e);
+	system("PAUSE");
+	return 0;
+#endif
+
 	using namespace Mastermind::Heuristics;
 
 	// todo: we can use "optimize obvious" to reduce the strategy tree size.
