@@ -42,7 +42,7 @@ If such a guess exists and comes from the possibility set, then it is optimal be
 
 Note that an obviously-optimal guess is fairly generic about the goal -- it is optimal both in terms of the worst-case number of steps and the expected number of steps to determine or reveal the secret.
 
-A necessary condition for an obviously-optimal guess to exist is that the number of remaining possibilities does not exceed the number of distinct feedbacks. For a game with $p$ pegs, the number of distinct feedbacks is $p(p+3)/2$. For example, in a four-peg game, there can be at most 14 secrets left for an obviously-optimal guess to exist. This is a useful check in practice to reduce unnecessary efforts to find an obviously optimal guess.
+A necessary condition for an obviously-optimal guess to exist is that the number of remaining possibilities does not exceed the number of distinct feedbacks. For a game with $p$ pegs, the number of distinct feedbacks is $p(p+3)/2$. For example, in a four-peg game, there can be at most 14 secrets left for an obviously-optimal guess to exist. This is a useful check in practice to reduce unnecessary efforts to search for an obviously optimal guess.
 
 Note also that in practice we may only want to check in the remaining possibilities (so that the effort is minimized). In turns out that if we check outside the remaining possibilities, it is equivalent to a full-run of a heuristic function, as we show below.
 
