@@ -1,0 +1,105 @@
+\section{Optimal Strategies}
+
+After examining a variety of heuristic strategies that perform variably under different configuration of rules, a natural question arise: for a given set of rules, is there an optimal strategy? The answer is ``yes''. In this chapter, we are going to explore the techniques that enable us to find such a strategy.
+
+\subsection{Overview}
+
+An \emph{optimal strategy} is a strategy that achieves a certain objective in an optimal manner. Three types of objectives are typical:
+
+1) To minimize the worst-case number of guesses needed to reveal the secret.
+
+2) To minimize the average number of guesses needed to reveal the secret.
+
+3) To minimize the average number of guesses while keeping the worse-case steps to a minimum.
+
+Note that in each case, we could replace ``reveal'' with ``determine'', which are subtly different from an information perspective (see 2.4). However the overall methodology will remain the same. Therefore in the following we will proceed with the above goals and give results to the ``determine'' version along the way.
+
+For the first goal, the \minmax{} heuristic strategy (2.2) already provides an optimal solution, as it reveals all secrets with no more than 5 guesses and any strategy cannot use fewer [proof???]. So in this chapter we will focus on the second and third objectives.
+
+Note that there may be other objectives for a strategy, such as minimizing the number of guesses evaluated. See, for example, Temporel and Kovacs (2003). However, those objectives are not studied in this chapter.
+
+The theory to find an optimal strategy is simple. Since the number of possible secrets as well as sequence of (non-redundant) guesses are finite, the code breaker can employ a depth-first search to find out the optimal guessing strategy.
+
+The optimal strategy minimizes the expected number of guesses, optionally subject to a maximum-guesses constraint. Finding such a strategy involves exhaustive search, and therefore is too slow to be suitable for real-time application. For more details on the implementation, see optimal strategies.
+
+[show the search scale of the problem]
+
+[show that an optimal strategy is not unique]
+
+\subsection{Obviously-optimal guesses}
+
+Some definitions. Partitions, feedback count, etc.
+
+
+
+While finding an optimal strategy for the general game is complex, in certain cases it's easy. For example, when there's only one possibility left, we should guess it. When there are only two possibilities left, we should guess (either) one of them. [these appear in Neuwirth 82]. When there are more than two possibilities, it's still possible.
+
+An obviously-optimal guess is an optimal guess that doesn't require too much effort to identify. Depending on the techniques used to identify such, the "obvious"-ty could vary. Here we use the technique introduced by \cite{koyama93}. 
+
+[Definition.] An obviously-optimal guess is a guess that partitions the remaining possibilities into discrete cells, i.e.\ where every cell contains exactly one element. 
+
+If such a guess exists and comes from the possibility set, then it is optimal because it reveals one potential secret (itself) in the immediate step and reveals all the other potential secrets in two steps. It is easy to see that no other strategy could do better. If no such guess exists in the possibility set but one exists outside the possibility set, then that one is optimal because it reveals all secrets in two steps. 
+
+Note that an obviously-optimal guess is fairly generic about the goal -- it is optimal both in terms of the worst-case number of steps and the expected number of steps to determine or reveal the secret.
+
+A necessary condition for an obviously-optimal guess to exist is that the number of remaining possibilities does not exceed the number of distinct feedbacks. For a game with $p$ pegs, the number of distinct feedbacks is $p(p+3)/2$. For example, in a four-peg game, there can be at most 14 secrets left for an obviously-optimal guess to exist. This is a useful check in practice to reduce unnecessary efforts to find an obviously optimal guess.
+
+Note also that in practice we may only want to check in the remaining possibilities (so that the effort is minimized). In turns out that if we check outside the remaining possibilities, it is equivalent to a full-run of a heuristic function, as we show below.
+
+It turns out (not so surprisingly) that the heuristics introduced in the previous chapter will yield an obviously-optimal guess when one exists. We only need to show that the partition of an obviously-optimal guess (which we will call an \emph{obviously optimal partition} and denote by $Q$ below) achieves the lowest possible heuristic value.
+
+Let $P$ denote any given partition. Let $k$ denote the number of (non-empty) cells in $P$. Let $n_i$ denote the number of elements in the $i$-th cell. Let $n = \sum_{i=1}^k$ denote the total number of elements, which is invariant across different $P$. Finally, let $Q$ denote the partition of an obviously-optimal guess, i.e. one with all singleton cells.
+
+\paragraph{Min-Max} 
+The \minmax{} heuristic value of an obviously optimal partition is one. This is the minimum value of the heuristic function.
+\[
+h(P) = \max_{1 \le i \le n} n_i \ge 1 = h(Q).
+\]
+
+\paragraph{Min-Avg}
+The \minavg{} heuristic value of an obviously optimal partition is one. This is the minimum value of the function.
+\[
+h(P) = \sum_{i=1}^k \frac{n_i}{n} n_i \ge \min_{1 \le i \le k} n_i \ge 1 = h(Q).
+\]
+
+\paragraph{Max-Entropy}
+The \maxent{} heuristic value of an obviously optimal partition is ?. This is the maximum value of the function.
+\[
+h(P) = - \sum_{i=1}^k \frac{n_i}{n} \log \frac{n_i}{n} = ?
+\]
+
+\paragraph{Max-Parts}
+The \maxpar{} heuristic value of an obviously optimal partition is $n$. This is the maximum value of the function.
+\[
+h(P) = k \le n = h(Q).
+\]
+
+Since all four heuristics introduced yield an obviously optimal guess when one exists, we can insert the step to find an optimal guess into the strategy as a shortcut to save computation time, knowing that this will not alter the output of the heuristic strategy.
+
+\subsection{Equivalence of guesses}
+
+Isomorphism of guesses
+
+\subsubsection{Color equivalence}
+
+\subsubsection{Constraint equivalence}
+
+Constraint/filter equivalence
+
+\subsubsection{Partition equivalence}
+
+State/Partition Equivalence
+
+\subsection{Search space pruning}
+
+\subsection{Other techniques}
+
+(e.g. two-phase optimization, hash collision group)
+
+\subsection{Using a pre-built strategy tree}
+
+\subsection{Extended/Adaptive strategy tree}
+
+i.e. the tree not only contains guesses along the chosen strategy path, but also includes guesses if the user made a non-optimal guess halfway. The tree size in this case is much larger, and we must use isomorphism to detect the symmetry.
+
+ 
