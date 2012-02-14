@@ -14,10 +14,7 @@ struct permutation
 	T _perm[MaxSize];
 	T _size;
 
-	permutation()
-	{
-		assert(0);
-	}
+	permutation() : _size(0) { }
 
 	permutation(T size) : _size(size)
 	{
@@ -347,6 +344,8 @@ public:
 		CodewordList canonical;
 		CodewordConstIterator all = e.universe().begin();
 
+		// Todo: use dynamic bitset.
+
 		// Check each non-crossed codeword in the list.
 		for (size_t i = 0; i < n; ++i)
 		{
@@ -357,6 +356,10 @@ public:
 			canonical.push_back(c);
 			if (verbose)
 				std::cout << "Processing canonical codeword " << c << std::endl;
+
+			// Create a temporary boolean array to mark the codewords 
+			// that are equivalent to this codeword.
+			// std::vector<bool> eq(n);
 
 #ifndef NDEBUG
 			bool debug_stop = false;
@@ -386,6 +389,9 @@ public:
 				// and only cross out lexicographically larger equivalent
 				// codewords.
 
+				// Or, we should not skip it if it is crossed out in 
+				// this round.
+
 				// Find the colors in the codeword which can be permuted.
 				// Such colors are not fixed in the partial color mapping.
 				color_perm_t partial = pp[j].second;
@@ -401,9 +407,11 @@ public:
 				}
 				if (nfree == 0)
 				{
+					// Should not cross out because ?
+					Codeword mapped = permute_colors(rules, cc, partial);
 					if (verbose)
-						std::cout << "    Crossed out " << cc << std::endl;
-					crossed_out[get_codeword_index(cc, rules)] = true;
+						std::cout << "    Crossed out " << mapped << std::endl;
+					crossed_out[get_codeword_index(mapped, rules)] = true;
 					continue;
 				}
 
