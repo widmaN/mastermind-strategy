@@ -85,6 +85,9 @@ public:
 		return memcmp(this, &c, sizeof(Codeword)) == 0;
 	}
 
+	/// Tests whether two codewords are not equal.
+	bool operator != (const Codeword &c) const { return ! operator == (c); }
+
 	/// Returns an empty codeword.
 	static Codeword emptyValue()
 	{
