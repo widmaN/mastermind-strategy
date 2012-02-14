@@ -675,7 +675,7 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
-#if 1
+#if 0
 	extern void test_morphism(Engine &);
 	test_morphism(e);
 	system("PAUSE");
@@ -713,8 +713,9 @@ int test(const Rules &rules)
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
 		new HeuristicStrategy<MinimizeWorstCase>(e),
-		//new CodeBreaker(e, new HeuristicStrategy<MinimizeAverage>(e), posonly),
-		new HeuristicStrategy<MaximizeEntropy>(e),
+		new HeuristicStrategy<MinimizeAverage>(e),
+		new HeuristicStrategy<MaximizeEntropy<false>>(e),
+		new HeuristicStrategy<MaximizeEntropy<true>>(e),
 		new HeuristicStrategy<MaximizePartitions>(e),
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),

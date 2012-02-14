@@ -26,6 +26,12 @@ The optimal strategy minimizes the expected number of guesses, optionally subjec
 
 [show that an optimal strategy is not unique]
 
+[Tanaka also noted that a strategy which produces a minimum expected
+game length is not the optimal strategy for head-to-head play between two human
+opponents when a win by any number of moves scores the same as a win by a
+single move.] What does this mean??
+
+
 \subsection{Obviously-optimal guesses}
 
 Some definitions. Partitions, feedback count, etc.
@@ -78,13 +84,162 @@ Since all four heuristics introduced yield an obviously optimal guess when one e
 
 \subsection{Equivalence of guesses}
 
-Isomorphism of guesses
+Just as a human would be easy to identify equivalent guesses, we use that in computer as well.
+
+[]Isomorphism of guesses]
 
 \subsubsection{Color equivalence}
 
+As a start-up, let's work with a simple but useful way to detect guess equivalence.
+
 \subsubsection{Constraint equivalence}
 
-Constraint/filter equivalence
+Here the definition of \emph{constraint equivalence} is rather restrictive. Ideally, constraint equivalence should be the same as partition equivalence, but this is not the case here.
+
+Introduced by \cite{neuwirth81,koyama93}. 
+
+[Constraint/filter equivalence]
+
+It is easy to see that solving a game only depends on what colors have appeared before, and the relative peg position of the guesses. The particular colors or pegs guessed are not important. From this knowledge, we define the following.
+
+[Definition. Codeword permutation] A codeword permutation, denoted $\pi$, is the combination of a permutation $\pi_p$ of pegs and a permutation $\pi_c$ of colors. We write it as $\pi=(\pi_p,\pi_c)$. Note that the actual sequence of applying the peg permutation first or the color permutation first doesn't matter, so for convenience we always write peg permutation first. Given codeword $g$, we denote the permuted codeword under $\pi$ as $g^\pi$.
+
+[Definition. Codeword equivalence] Two codewords $g$ and $h$ are equivalent if and only if there exists a codeword permutation $\pi=(\pi_p,\pi_c)$ such that $g^\pi = h$.
+
+[Properties.] Some usual properties of permutations apply to codeword permutation as well.
+
+1) A codeword permutation is invertible, i.e.\ for any $\pi$, there exists $\pi^{-1}$.
+
+2) The equivalence relation defined above is indeed an \emph{equivalence relation}. Hence, in each equivalence class, there exists one \emph{representative}, also called the \emph{canonical element}. All elements in the same equivalence class are equivalent to this element; i.e.\ for all $g$, there exists $\pi$ such that $g = g_0^\pi$.
+
+[Definition. Constraint equivalence] (see a few references) Let $\mathcal{C}_1$ and $\mathcal{C}_2$ be two ordered sets of constraints of the same size $r$. Let the guesses in $\mathcal{C}_1$ be $(g_1,g_2,\cdots,g_r)$ and the guesses in $\mathcal{C}_2$ be $(h_1,h_2,\cdots,h_r)$. Then constraint sets $\mathcal{C}_1$ and $\mathcal{C}_2$ are equivalent if and only if there exists a codeword permutation $\pi=(\pi_p,\pi_c)$ such that
+$g_i^\pi = h_i$ for $1 \le i \le r$.
+
+The intuition about equivalent constraints are rather simple: if we rearrange the peg positions and relabel the colors, then the two sets of constraints become exactly the same. Hence for the purpose of devising a strategy, we only need to work with one of them and the other follows automatically.
+
+Note, however, that there is a critical restriction in the above definition: the feedback in the constraints are ignored. This has two implications. On the one hand, constraints such as 
+\[
+\mathcal{C}_1 = \{ (1234:0A0B), (3456:2A0B) \}
+\]
+and
+\[
+\mathcal{C}_2 = \{ (1234:1A0B), (3456:0A2B) \}
+\]
+are considered equivalent, although they lead to drastically different potential secrets. On the other hand, constraints such as
+\[
+\mathcal{C}_1 = \{ (1234:0A0B), (1234:0A0B) \}
+\]
+and
+\[
+\mathcal{C}_2 = \{ (1234:0A0B), (4321:0A0B) \}
+\]
+are obviously not equivalent by definition, but from the first feedback \fb{0}{0} we could already exclude the colors 1 -- 4 from the potential secret, so any permutation of 1234 should ideally be considered equivalent.
+
+Despite the less-than-ideal properties of such definition, this equivalence relation is still commonly used \cite{neuwirth81,koyama93,francis10} because of its clarity, relative simplicity, and effectiveness for the first few guesses. A more powerful (but also more complex) equivalence definition will be introduced in the next section.
+
+To actually apply a constraint equivalence filter in practice, we implement an \emph{incremental filter}, as described below. An alternative, more generic method, which relies on \emph{graph automorphism}, will be introduced in the next section.
+
+Given a set of constraints with guesses $(g_1,\cdots,g_r)$, we want to find all canonical guesses $g$ as candidates for the next guess. We could do this by iterating each $g$ and cross out all guesses $h$ equivalent to it. To determine whether two guesses are equivalent, we need to find a permutation $\pi$ that maps one to the other.
+
+We make the assumption that the number of colors is more than the number of pegs, which is typical in a real-world game.
+
+Suppose there are $p$ pegs. We first list all $p!$ permutations of the pegs. For example, in a 4-peg game, there are 24 peg permutations, $\pi_p^1$ to $\pi_p^{24}$, where $\pi_p^1$ is the identity permutation.
+
+Then, for each peg permutation $\pi_p^i$, we associate with it a \emph{partial permutation} of the colors, $\Pi_c^i$. A partial permutation is an incomplete permutation where the mapping of some colors are specified, but the mapping the rest colors are not specified (i.e. they're free to be specified later). Formally, a partial permutation is a set of permutations. [put the definition in the appendix]
+
+At the beginning of the game, there are no constraints, and all associated partial color permutations $\Pi_c^i$ are fully unspecified. We can conveniently write them as
+\[
+\Pi_c^i = 
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+* & * & * & * & * & * 
+\end{pmatrix} .
+\]
+
+To filter a list of codewords to get canonical guesses, we traverse the list in order.\footnote{Although not essential, it is convenient in practice to construct of list of codewords in lexicographical order, because then a crossing-out operation can be done in constant time by mapping a codeword to its index. Alternatively, it could do this with a bit waste of memory.} 
+The next uncrossed codeword must be a representative of some equivalence class. Suppose this codeword is \cw{1123}. Then, we iterate through each peg permutation $\pi_p^i$. Take for example the first peg permutation,
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 \\
+1 & 2 & 3 & 4
+\end{pmatrix} .
+\]
+The associated partial color permutation is initially
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+* & * & * & * & * & * 
+\end{pmatrix} .
+\]
+For the concerned representative, \cw{1123}, we are free to map its colors (1, 2, 3) to any color. We can therefore do a simple iteration to generate all \emph{specialized} color permutations $\pi_c \in \Pi_c$. There are $6! / 3! = 120$ such permutations. As a result we get 120 codewords equivalent to this representative (including the representative itself). We cross them out.
+
+We then proceed with the second peg permutation,
+\[
+\pi_p^2 = 
+\begin{pmatrix}
+1 & 2 & 3 & 4 \\
+1 & 2 & 4 & 3
+\end{pmatrix} ,
+\] 
+%The resulting codeword is now 1243, but this has already been crossed
+%out in the above step. Therefore we skip it. Similarly, we skip all
+%codewords in this round.
+and repeat the above. Continue the same for all peg permutations. After we finish, we are guaranteed to have found (and cross out) all equivalent codewords to this representative, because we have iterated all peg/color permutations and by property [xx] we know that we can reach all elements in the equivalence class in this way. Therefore, we repeat this process for all (uncrossed) codewords to finish the filtering.
+
+Above is an examine where all color permutations are fully unspecified. Now suppose we have already have some constraints. Without loss of generality, suppose that the constraint consists of just one guess $g_1 = \cw{3445}$. To find all canonical candidates for the second guess, we first need to restrict the partial color permutations associated with each peg permutation. 
+
+Take for example 
+\[
+\pi_p^3 = 
+\begin{pmatrix}
+1 & 2 & 3 & 4 \\
+1 & 3 & 2 & 4
+\end{pmatrix} .
+\] 
+The peg-permuted first guess is $\pi_p^3(g_1) = \cw{3445}$. In order for the permuted constraint to be equivalent, the permuted guess must be equal to $g_1$. This means we must map \cw{3445} to \cw{3445} in the color permutation. Thus we must restrict the associated color permutation as
+\[
+\Pi_c^3 = 
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+* & * & 3 & 4 & 5 & * 
+\end{pmatrix} .
+\]
+
+After restricting the partial permutation, we can apply the previous steps again. Suppose we come again to \cw{1123}. If we apply peg permutation $\pi_p^3$, the permuted representative becomes \cw{1213}. Now to find out what color permutations are eligible, note that the color 3 is already fixed in the partial permutation; only colors 1 and 2 are free to be mapped. We could therefore map them freely among the unrestricted colors, i.e.\ $\{1, 2, 6\}$, and mark all resulting codewords as equivalent to \cw{1123}.
+
+Note that given a set of constraints, not all peg permutations can yield an eligible color permutation. For example, consider the peg permutation
+\[
+\pi_p^2 = 
+\begin{pmatrix}
+1 & 2 & 3 & 4 \\
+1 & 2 & 4 & 3
+\end{pmatrix} .
+\]
+When applied to $g_1 = \cw{3445}$, we get $\pi_p^2(g_1) = \cw{3454}$. However, there is no way whatsoever to map \cw{3445} to \cw{3454}, because 4 would have to be mapped to both 4 and 5, which is impossible. In this case, we call the peg permutation ($\pi_p^2$) \emph{ineligible} and remove it from further consideration.
+
+As we proceed in the game, we are supplied with more constraints. The partial color permutation associated with each peg permutation gets more restrictive with each
+added constraint, and more peg permutations becomes ineligible and gets removed. Finally we will be left with only the identity codeword permutation, where every codeword will become a representative of its own equivalence class.
+%Hence we call it "incremental equivalence detection".
+
+Applying the above constraint equivalence filter, we find the following canonical guesses for the first round of a standard Mastermind game (p4c6r). Listed alongside is the number of canonical guesses in the second round given the initial guess.
+\begin{center}
+\begin{tabular}{c c}
+\hline
+$g_1$ & $\#\{g_2\}$ \\
+\hline
+\cw{0000} & 12 \\
+\cw{0001} & 53 \\
+\cw{0011} & 39 \\
+\cw{0012} & 130 \\
+\cw{0123} & 57 \\
+\hline
+\end{tabular}
+\end{center}
+
+Applying the same filter to the Bulls and cows game (p4c10n) yields only one canonical initial guess, \cw{0123}, and the following 20 canonical guesses for the second round:
+\cw{0123 0124 0132 0134 0145 0214 0231 0234 0245 0456 1032 1034 1045 1204 1230 1234 1245 1435 1456 4567}.
+
+[consistent with all prior guesses]
 
 \subsubsection{Partition equivalence}
 

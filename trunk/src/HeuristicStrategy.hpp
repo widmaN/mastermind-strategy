@@ -130,8 +130,13 @@ struct MinimizeAverage
 	/// of each partition.
 	static score_t compute(const FeedbackFrequencyTable &freq)
 	{
-		//return freq.getSumSquares();
-		return 1;
+		unsigned int s = 0;
+		for (size_t i = 0; i < freq.size(); ++i)
+		{
+			unsigned int f = freq[i];
+			s += f * f;
+		}
+		return s;
 	}
 };
 
@@ -146,18 +151,36 @@ struct MinimizeAverage
 /// estimate of the expected number of further guesses needed. 
 /// As a side note, note that the base of the logrithm doesn't matter 
 /// in computing the score.
+template <bool ApplyCorrection>
 struct MaximizeEntropy
 {
 	/// Data type of the score (double precision).
 	typedef double score_t;
 
 	/// Short identifier of the heuristic function.
-	static std::string name() { return "entropy"; }
+	static std::string name() 
+	{
+		return ApplyCorrection? "entropy*" : "entropy";
+	}
 
 	/// Computes the heuristic score - negative of the entropy.
 	static score_t compute(const FeedbackFrequencyTable &freq)
 	{
-		return freq.entropy();
+		double s = 0.0;
+		for (size_t i = 0; i < freq.size(); ++i)
+		{
+			unsigned int f = freq[i];
+			if (f > 1)
+			{
+				s += std::log((double)f) * (double)f;
+			}
+		}
+		if (ApplyCorrection)
+		{
+			if (freq[freq.size()-1]) // 4A0B
+				s -= 2.0 * std::log(2.0);
+		}
+		return s;
 	}
 };
 

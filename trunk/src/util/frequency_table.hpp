@@ -52,6 +52,7 @@ public:
 		});
 	}
 
+#if 0
 	/// Computes the entropy of the frequencies.
 	double entropy() const
 	{
@@ -64,6 +65,7 @@ public:
 		}
 		return s;
 	}
+#endif
 
 };
 
