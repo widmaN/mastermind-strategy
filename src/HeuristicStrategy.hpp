@@ -98,8 +98,11 @@ namespace Heuristics {
 /// The score to minimize is <code>Max{ n[i] }</code>, where 
 /// <code>n[i]</code> is the number of elements in partition 
 /// <code>i</code>.
+template <int Levels>
 struct MinimizeWorstCase
 {
+	static_assert(Levels == 1, "Only Levels == 1 is supported at present.");
+
 	/// Data type of the score (unsigned integer).
 	typedef unsigned int score_t;
 
@@ -140,6 +143,22 @@ struct MinimizeAverage
 	}
 };
 
+struct wrapped_double
+{
+	double _value;
+	wrapped_double(double value) : _value(value) { }
+
+	bool operator < (wrapped_double x) const 
+	{
+		return _value < x._value - 1.0e-10;
+	}
+
+	bool operator == (wrapped_double x) const 
+	{
+		return std::abs(x._value - _value) < 1.0e-10;
+	}
+};
+
 /// A theoretically advanced heuristic that scores a guess as roughly
 /// the expected number of further guesses needed (Neuwirth, 1982).
 /// The precise definition is to maximize the entropy, defined as
@@ -155,7 +174,11 @@ template <bool ApplyCorrection>
 struct MaximizeEntropy
 {
 	/// Data type of the score (double precision).
+#if 0
 	typedef double score_t;
+#else
+	typedef wrapped_double score_t;
+#endif
 
 	/// Short identifier of the heuristic function.
 	static std::string name() 

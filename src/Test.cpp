@@ -496,7 +496,9 @@ static bool testSumSquares(
 	return 0;
 }
 
-static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
+static void simulate_guessing(
+	Engine &e, Strategy* strats[], size_t n,
+	const CodeBreakerOptions &options)
 {
 	CodewordList all = e.generateCodewords();
 	Rules rules = e.rules();
@@ -517,12 +519,16 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 	// Use an array to store the status of each codebreaker.
 	std::vector<bool> finished(n);
 
-	// Output strategy names.
+	// Create an array of codebreakers and output strategy names.
+	// BUG: when changing from CodeBreaker* to CodeBreaker, there is
+	// a memory error. Find out why.
+	std::vector<CodeBreaker*> breakers;
 	std::cout << std::left << " # ";
 	for (size_t i = 0; i < n; ++i)
 	{
-		std::string name = breakers[i]->strategy()->name();
+		std::string name = strats[i]->name();
 		std::cout << std::setw(10) << name;
+		breakers.push_back(new CodeBreaker(e, strats[i], options));
 	}
 	std::cout << std::right << std::endl;
 
@@ -547,8 +553,8 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 			if (finished[i])
 				continue;
 
-			CodeBreaker *breaker = breakers[i];
-			Codeword guess = breaker->MakeGuess();
+			CodeBreaker &breaker = *breakers[i];
+			Codeword guess = breaker.MakeGuess();
 			if (guess.empty())
 			{
 				std::cout << " FAIL";
@@ -565,7 +571,7 @@ static void simulate_guessing(Engine &e, CodeBreaker* breakers[], size_t n)
 					finished[i] = true;
 					++finished_count;
 				}
-				breaker->AddConstraint(guess, feedback);
+				breaker.AddConstraint(guess, feedback);
 			}
 		}
 		std::cout << std::endl;
@@ -675,7 +681,7 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
-#if 0
+#if 1
 	extern void test_morphism(Engine &);
 	test_morphism(e);
 	system("PAUSE");
@@ -693,26 +699,9 @@ int test(const Rules &rules)
 	//Codeword first_guess = Codeword::emptyValue();
 	//Codeword first_guess = Codeword::Parse("0011", rules);
 
-#if 0
-	CodeBreaker* breakers[] = {
-		new CodeBreaker(e, new SimpleStrategy(e), posonly),
-		new CodeBreaker(e, new HeuristicStrategy<MinimizeWorstCase>(e), posonly),
-		//new CodeBreaker(e, new HeuristicStrategy<MinimizeAverage>(e), posonly),
-		new CodeBreaker(e, new HeuristicStrategy<MaximizeEntropy>(e), posonly),
-		new CodeBreaker(e, new HeuristicStrategy<MaximizePartitions>(e), posonly),
-#if 0
-		new HeuristicCodeBreaker<Heuristics::MinimizeWorstCase>(e, posonly),
-		new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(e, posonly),
-		new HeuristicCodeBreaker<Heuristics::MaximizeEntropy>(e, posonly),
-		new HeuristicCodeBreaker<Heuristics::MaximizePartitions>(e, posonly),
-#endif
-		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
-		//new OptimalCodeBreaker(rules),
-	};
-#endif
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
-		new HeuristicStrategy<MinimizeWorstCase>(e),
+		new HeuristicStrategy<MinimizeWorstCase<1>>(e),
 		new HeuristicStrategy<MinimizeAverage>(e),
 		new HeuristicStrategy<MaximizeEntropy<false>>(e),
 		new HeuristicStrategy<MaximizeEntropy<true>>(e),
@@ -721,9 +710,10 @@ int test(const Rules &rules)
 		//new OptimalCodeBreaker(rules),
 	};
 
-	//simulate_guessing(e, breakers, sizeof(breakers)/sizeof(breakers[0]));
+	//simulate_guessing(e, strats, sizeof(strats)/sizeof(strats[0]), options);
 	test_strategy_tree(e, strats, sizeof(strats)/sizeof(strats[0]), options);
 
+#if 0
 	// Display some statistics.
 	std::cout << std::endl
 		<< "Call statistics" << std::endl
@@ -731,6 +721,7 @@ int test(const Rules &rules)
 
 	std::cout << "** Comparison **" << std::endl
 		<< util::call_counter::get("Comparison") << std::endl;
+#endif
 
 #if 0
 	if (0) {
