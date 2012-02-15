@@ -125,5 +125,8 @@
     <ClInclude Include="src\Permutation.hpp">
       <Filter>Types</Filter>
     </ClInclude>
+    <ClInclude Include="src\Equivalence.hpp">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
