@@ -357,13 +357,12 @@ static void pause_output()
 #endif
 }
 
-// Step 3: build a strategy tree using simple code breaker.
 int main(int argc, char* argv[])
 {
 	using namespace Mastermind;
 
 	// Default argument values.
-#if 1
+#if 0
 	int pegs = 4;
 	int colors = 10;
 	bool repeatable = false;

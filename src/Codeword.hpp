@@ -7,6 +7,7 @@
 #include <emmintrin.h>
 #include <algorithm>
 
+#include "util/intrinsic.hpp"
 #include "Rules.hpp"
 
 namespace Mastermind {
@@ -130,6 +131,59 @@ std::ostream& operator << (std::ostream &os, const Codeword &c);
 /// Inputs a codeword from a stream. No rules are enforced.
 std::istream& operator >> (std::istream &is, Codeword &c);
 
+/// Utility class that computes the lexicographical index of a codeword.
+class CodewordIndexer
+{
+	Rules _rules;
+	int _weights[MM_MAX_COLORS];
+
+public:
+
+	CodewordIndexer(const Rules &rules) : _rules(rules)
+	{
+		if (_rules.repeatable())
+		{
+			int w = 1;
+			for (int i = _rules.pegs() - 1; i >= 0; --i)
+			{
+				_weights[i] = w;
+				w *= _rules.colors();
+			}
+		}
+		else
+		{
+			int w = 1;
+			for (int i = _rules.pegs() - 1; i >= 0; --i)
+			{
+				_weights[i] = w;
+				w *= (_rules.colors() - i);
+			}
+		}
+	}
+
+	int operator()(const Codeword &c) const 
+	{
+		if (_rules.repeatable())
+		{
+			int index = 0;
+			for (int i = 0; i < _rules.pegs(); ++i)
+				index += c[i] * _weights[i];
+			return index;
+		}
+		else
+		{
+			unsigned short bitmask = 0;
+			int index = 0;
+			for (int i = 0; i < _rules.pegs(); ++i)
+			{
+				int t = c[i] - util::intrinsic::pop_count(bitmask & ((1 << c[i]) - 1));
+				index += t * _weights[i];
+				bitmask |= (1 << c[i]);
+			}
+			return index;
+		}
+	}
+};
 
 } // namespace Mastermind
 
