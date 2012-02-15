@@ -3,11 +3,13 @@
 
 #include <malloc.h>
 #include <limits>
+#include <memory>
 
 namespace util {
 
 template <class T, size_t Alignment>
-struct aligned_allocator
+struct aligned_allocator 
+	: public std::allocator<T> // Inherit construct(), destruct() etc.
 {
 	typedef size_t    size_type;
 	typedef ptrdiff_t difference_type;
@@ -26,10 +28,12 @@ struct aligned_allocator
 	aligned_allocator(const aligned_allocator<U,Alignment>&) throw() { }
 	~aligned_allocator() throw() { }
 
-	pointer address(reference value) const { return &value; }
-	const_pointer address(const_reference value) const { return &value; }
+	pointer allocate(size_type n)
+	{
+		return allocate(n, const_pointer(0));
+	}
 
-	pointer allocate(size_type n, const_pointer hint = 0)
+	pointer allocate(size_type n, const_pointer hint)
 	{
 		void *p;
 #ifndef _WIN32
@@ -52,14 +56,20 @@ struct aligned_allocator
 #endif
 	}
 
+#if 0
+	pointer address(reference value) const { return &value; }
+	const_pointer address(const_reference value) const { return &value; }
+
 	size_type max_size () const throw()
 	{
 		return std::numeric_limits<size_type>::max();
 	}
 
+//	typename std::enable_if<std::is_default_constructible<T>::value,void>::type
 	void construct(pointer p)
 	{
-		new (static_cast<void*>(p)) T;
+		//std::allocator<int> a(*this);
+		::new (static_cast<void*>(p)) T();
 	}
 
 	void construct(pointer p, const T &value)
@@ -71,6 +81,7 @@ struct aligned_allocator
 	{
 		p->~T();
 	}
+#endif
 };
 
 template <class T1, size_t A1, class T2, size_t A2>

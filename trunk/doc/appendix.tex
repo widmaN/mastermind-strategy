@@ -18,18 +18,18 @@ See \url{http://en.wikipedia.org/wiki/Equivalence\_relation}.
 
 A \emph{permutation} is a bijection (one-to-one mapping) of a set onto itself.\footnote{
 More details can be found at \url{http://en.wikipedia.org/wiki/Permutation}.}
-For example, consider a set containing six elements. For convenience, label each element with an index starting from one. A possible permutation is the following:
+For example, consider a set containing six elements. You can think of them as the six colors in a Mastermind game. For convenience, label each element with an index starting from one. A possible permutation is the following:
 \[
 \begin{pmatrix}
 1 & 2 & 3 & 4 & 5 & 6 \\
 5 & 2 & 1 & 6 & 3 & 4
 \end{pmatrix} ,
 \]
-where the first row displays the elements in the set, and the second row displays the \emph{images} of the elements under the permutation, i.e.\ the element that each element is mapped to mapped to.
+where the first row displays the elements in the set, and the second row displays the \emph{images} of the elements under the permutation, i.e.\ the element that each element is mapped to.
 
 The above notation for the permutation can be abbreviated into one line by only keeping the second row, which becomes $(5 2 1 6 3 4)$.
 
-A permutation can be decomposed into a \emph{product} of disjoint \emph{cycles}, which partitions the elements of the set into parts where the elements in each part can be permuted independently to complete the overall mapping. For example, the above permutation can be written as
+A permutation can be decomposed into a \emph{product} of disjoint \emph{cycles}, which partitions the elements of the set into parts where the elements in each part can be permuted independently and then combined to form the complete mapping. For example, the above permutation can be decomposed into the product of three cycles:
 \[
 \begin{pmatrix}
 1 & 2 & 3 & 4 & 5 & 6 \\

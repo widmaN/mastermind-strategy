@@ -102,7 +102,40 @@ Introduced by \cite{neuwirth81,koyama93}.
 
 It is easy to see that solving a game only depends on what colors have appeared before, and the relative peg position of the guesses. The particular colors or pegs guessed are not important. From this knowledge, we define the following.
 
-[Definition. Codeword permutation] A codeword permutation, denoted $\pi$, is the combination of a permutation $\pi_p$ of pegs and a permutation $\pi_c$ of colors. We write it as $\pi=(\pi_p,\pi_c)$. Note that the actual sequence of applying the peg permutation first or the color permutation first doesn't matter, so for convenience we always write peg permutation first. Given codeword $g$, we denote the permuted codeword under $\pi$ as $g^\pi$.
+[Definition. Color permutation] A \emph{color permutation}, denoted $\pi_c$, is a permutation of the colors used in a game. For example, in a game with 6 colors, a color permutation could be
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+5 & 2 & 1 & 6 & 3 & 4
+\end{pmatrix} ,
+\]
+which means color 1 replaced by color 5, color 2 unchanged, color 3 replaced by color 1, etc.
+
+[Definition. Peg permutation] A \emph{peg permutation}, denoted $\pi_p$, is a permutation of the pegs used in a game. For example, in a game with 4 pegs, a peg permutation could be
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 \\
+3 & 1 & 2 & 4
+\end{pmatrix} ,
+\]
+which means the color originally associated with peg 1 is now associated with peg 3, the color originally associated with peg 2 is now associated with peg 1, etc.
+
+A somewhat confusing property of a peg permutation is that the second row in the notation, $(3 1 2 4)$, does \emph{not} represent the reordered sequence of the original pegs. The actual sequence of the original pegs after the permutation is $\pi_p^{-1}$, i.e.
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 \\
+2 & 3 & 1 & 4
+\end{pmatrix} .
+\]
+
+[Definition. Codeword permutation] A \emph{codeword permutation}, denoted $\pi$, is the combination of a peg permutation $\pi_p$ and a color permutation $\pi_c$. We write it as $\pi=(\pi_p,\pi_c)$. Note that the actual order of applying the peg permutation first or the color permutation first doesn't matter.
+
+Given codeword $g$, we denote the permuted codeword under $\pi$ as $\pi(g)$ or $g^\pi$. Note that since a codeword usually does not contain all available colors, the mapping of unused colors does not matter when applying a color permutation to a given codeword.
+
+To actually compute the image $h = (h_i)$ of a given codeword $g = (g_i)$ under a given permutation $\pi = (\pi_p, \pi_c)$, use the formula
+\[
+h_i = \pi_c\left(g_{\pi_p^{-1}(i)}\right) .
+\]
 
 [Definition. Codeword equivalence] Two codewords $g$ and $h$ are equivalent if and only if there exists a codeword permutation $\pi=(\pi_p,\pi_c)$ such that $g^\pi = h$.
 

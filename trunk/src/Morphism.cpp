@@ -6,118 +6,43 @@
 
 #include "Engine.hpp"
 #include "Permutation.hpp"
+#include "util/aligned_allocator.hpp"
 #include "util/intrinsic.hpp"
 
 using namespace Mastermind;
-
-typedef permutation<char,MM_MAX_PEGS> peg_perm_t;
-typedef permutation<char,MM_MAX_COLORS> color_perm_t;
-
-#if 0
-static Codeword permute_codeword(
-	const Rules &rules,
-	const Codeword &c,
-	const codeword_permutation &p)
-{
-	Codeword d;
-	for (int i = 0; i < rules.pegs(); ++i)
-		d.set(i, p.color_perm._perm[c[p.peg_perm._perm[i]]]);
-	return d;
-}
-#endif
-
-static Codeword permute_pegs(const Codeword &c, const peg_perm_t &p)
-{
-	Codeword d;
-	for (int i = 0; i < p._size; ++i)
-		d.set(i, c[p._perm[i]]);
-	return d;
-}
-
-static Codeword permute_colors(const Rules &rules, const Codeword &c, const color_perm_t &p)
-{
-	Codeword d;
-	for (int i = 0; i < rules.pegs(); ++i)
-		d.set(i, p[c[i]]);
-	return d;
-}
-
-/// Utility class that computes the lexicographical index of a codeword.
-class CodewordIndexer
-{
-	Rules _rules;
-	int _weights[MM_MAX_COLORS];
-
-public:
-
-	CodewordIndexer(const Rules &rules) : _rules(rules)
-	{
-		if (_rules.repeatable())
-		{
-			int w = 1;
-			for (int i = _rules.pegs() - 1; i >= 0; --i)
-			{
-				_weights[i] = w;
-				w *= _rules.colors();
-			}
-		}
-		else
-		{
-			int w = 1;
-			for (int i = _rules.pegs() - 1; i >= 0; --i)
-			{
-				_weights[i] = w;
-				w *= (_rules.colors() - i);
-			}
-		}
-	}
-
-	int operator()(const Codeword &c) const 
-	{
-		if (_rules.repeatable())
-		{
-			int index = 0;
-			for (int i = 0; i < _rules.pegs(); ++i)
-				index += c[i] * _weights[i];
-			return index;
-		}
-		else
-		{
-			unsigned short bitmask = 0;
-			int index = 0;
-			for (int i = 0; i < _rules.pegs(); ++i)
-			{
-				int t = c[i] - util::intrinsic::pop_count(bitmask & ((1 << c[i]) - 1));
-				index += t * _weights[i];
-				bitmask |= (1 << c[i]);
-			}
-			return index;
-		}
-	}
-};
 
 class ConstraintEquivalenceFilter
 {
 	Engine &e;
 	Rules rules;
-	std::vector<std::pair<peg_perm_t, color_perm_t>> pp;
+	std::vector<
+		CodewordPermutation,
+		util::aligned_allocator<CodewordPermutation,16>
+	> pp;
 
 public:
 
-	/// Initializes an incremental equivalence detector.
+	/// Initializes a constraint equivalence filter.
 	ConstraintEquivalenceFilter(Engine &engine)
 		: e(engine), rules(e.rules())
 	{
 		// Generate all peg permutations, and associate with each peg 
 		// permutation a fully-free partial color permutation.
-		peg_perm_t peg_perm(rules.pegs());
+
+		// Note: the peg permutations are in fact inverse of the 
+		// traditional permutations. But since we generate all such
+		// permutations, we don't need to explicitly compute the
+		// inverse.
+
+		CodewordPermutation p(rules);
+		for (int i = 0; i < rules.pegs(); ++i)
+			p.peg[i] = (char)i;
+
 		do
 		{
-			//pp.push_back(std::make_pair(peg_perm, color_perm_t(rules.colors(), -1)));
-			pp.push_back(std::pair<peg_perm_t, color_perm_t>(
-				peg_perm, color_perm_t(rules.colors(), -1)));
+			pp.push_back(p);
 		} 
-		while (std::next_permutation(peg_perm.begin(), peg_perm.end()));
+		while (std::next_permutation(p.peg + 0, p.peg + rules.pegs()));
 	}
 
 	/// Returns a list of canonical guesses given the current constraints.
@@ -138,14 +63,15 @@ public:
 			if (crossed_out[i])
 				continue;
 
-			Codeword c = all[i];
-			canonical.push_back(c);
+			// An uncrossed codeword is a canonical guess.
+			const Codeword guess = all[i];
+			canonical.push_back(guess);
 			if (verbose)
-				std::cout << "Processing canonical codeword " << c << std::endl;
+				std::cout << "Processing canonical guess " << guess << std::endl;
 
 #ifndef NDEBUG
 			bool debug_stop = false;
-			if (Codeword::pack(c) == 0xffff0234)
+			if (Codeword::pack(guess) == 0xffff0234)
 				debug_stop = true;
 #endif
 
@@ -157,9 +83,7 @@ public:
 					debug_stop = true;
 #endif
 
-				// Permute the pegs in the codeword.
-				Codeword cc = permute_pegs(c, pp[j].first);
-
+#if 0
 				// Note: we should not cross out too early. This is because
 				// when we cross out a codeword, we are only filtering on
 				// the equivalence _given_ a certain peg permutation. It is
@@ -173,28 +97,28 @@ public:
 
 				// Or, we should not skip it if it is crossed out in 
 				// this round.
+#endif
+				CodewordPermutation p = pp[j];
 
-				// Find the colors in the codeword that are not fixed in
+				// Find the colors in the guess that are not mapped in
 				// the partial color mapping. We can freely choose the
 				// colors to map these colors to.
-				color_perm_t partial = pp[j].second;
 				int nfree = 0;
 				int ifree[MM_MAX_PEGS];
 				for (int i = 0; i < rules.colors(); ++i)
 				{
-					if (cc.count(i) && partial[i] == -1)
+					if (guess.count(i) && p.color[i] < 0)
 						ifree[nfree++] = i;
 				}
 
 				// Find the colors that are unmapped to in the partial 
 				// mapping. These are the colors that we can map to.
-				// BUG: this is wrong; instead of finding the colors
-				// unmapped TO, it finds the colors unmapped FROM.
+				CodewordPermutation pinv = p.inverse();
 				int nunmapped = 0;
 				int iunmapped[MM_MAX_COLORS];
 				for (int i = 0; i < rules.colors(); ++i)
 				{
-					if (partial[i] == -1)
+					if (pinv.color[i] < 0)
 						iunmapped[nunmapped++] = i;
 				}
 
@@ -206,14 +130,17 @@ public:
 				generate_permutations<MM_MAX_COLORS>(
 					iunmapped+0, iunmapped+nunmapped, tmp+0, tmp+nfree, [&]()
 				{
+					// Extend the partial color mapping to a complete mapping.
 					for (int i = 0; i < nfree; i++)
-						partial[ifree[i]] = tmp[i];
-					Codeword mapped = permute_colors(rules, cc, partial);
-					crossed_out[index(mapped)] = true;
+						p.color[ifree[i]] = tmp[i];
+
+					//Codeword mapped = permute_colors(rules, cc, partial);
+					Codeword permuted_guess = p.permute(guess);
+					crossed_out[index(permuted_guess)] = true;
 					if (/* Codeword::pack(mapped) == 0xffff3456 || */ verbose)
 					{
-						std::cout << "    Crossed out " << mapped 
-							<< " from " << cc << std::endl;
+						std::cout << "    Crossed out " << permuted_guess 
+							<< " from " << guess << std::endl;
 					}
 				});
 			}
@@ -237,18 +164,18 @@ public:
 		for (size_t i = pp.size(); i > 0; )
 		{
 			--i;
+			CodewordPermutation &p = pp[i];
 
 			// Permute the pegs in the guess.
-			Codeword c = permute_pegs(guess, pp[i].first);
+			Codeword c = p.permute_pegs(guess);
 
 			// Try to map the color on each peg onto itself.
-			color_perm_t &partial = pp[i].second;
 			bool ok = true;
 			for (int j = 0; j < rules.pegs() && ok; ++j)
 			{
-				if (partial[c[j]] == -1)
-					partial[c[j]] = guess[j];
-				else if (partial[c[j]] != guess[j])
+				if (p.color[c[j]] == -1)
+					p.color[c[j]] = guess[j];
+				else if (p.color[c[j]] != guess[j])
 					ok = false;
 			}
 
@@ -257,15 +184,16 @@ public:
 			if (!ok)
 			{
 				if (verbose)
-					std::cout << "Removed peg permutation: " << pp[i].first << std::endl;
+					std::cout << "Removed peg permutation: " << pp[i] << std::endl;
+
 				std::swap(pp[i], pp[pp.size()-1]);
-				pp.resize(pp.size()-1);
+				pp.erase(pp.begin() + pp.size() - 1);
 			}
 			else
 			{
 				if (verbose)
-					std::cout << "Restricted color mapping for peg perm "
-						<< pp[i].first << ": " << pp[i].second << std::endl;
+					std::cout << "Restricted peg permutation: "
+						<< pp[i] << std::endl;
 			}
 		}
 
