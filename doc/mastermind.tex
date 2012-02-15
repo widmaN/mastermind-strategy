@@ -1,6 +1,7 @@
 %\documentclass[8pt,a5paper]{article}
 \documentclass{article}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{hyperref}
 \hypersetup{
 	pdftitle={Mastermind Strategies},
@@ -14,12 +15,17 @@
 
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
 
+\newcommand{\given}{\,|\,}
 \newcommand{\minmax}{\texttt{min-max}}
 \newcommand{\minavg}{\texttt{min-avg}}
 \newcommand{\maxent}{\texttt{max-entropy}}
 \newcommand{\maxpar}{\texttt{max-parts}}
 \newcommand{\cw}[1]{\texttt{#1}}
 \newcommand{\fb}[2]{\texttt{{#1}A{#2}B}}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+%\newtheorem{definition}{Definition}
 
 \begin{document}
 

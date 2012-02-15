@@ -102,7 +102,8 @@ Introduced by \cite{neuwirth81,koyama93}.
 
 It is easy to see that solving a game only depends on what colors have appeared before, and the relative peg position of the guesses. The particular colors or pegs guessed are not important. From this knowledge, we define the following.
 
-[Definition. Color permutation] A \emph{color permutation}, denoted $\pi_c$, is a permutation of the colors used in a game. For example, in a game with 6 colors, a color permutation could be
+\begin{definition}
+(Color permutation) A \emph{color permutation}, denoted $\pi_c$, is a permutation of the colors used in a game. For example, in a game with 6 colors, a color permutation could be
 \[
 \begin{pmatrix}
 1 & 2 & 3 & 4 & 5 & 6 \\
@@ -110,8 +111,10 @@ It is easy to see that solving a game only depends on what colors have appeared 
 \end{pmatrix} ,
 \]
 which means color 1 replaced by color 5, color 2 unchanged, color 3 replaced by color 1, etc.
+\end{definition}
 
-[Definition. Peg permutation] A \emph{peg permutation}, denoted $\pi_p$, is a permutation of the pegs used in a game. For example, in a game with 4 pegs, a peg permutation could be
+\begin{definition}
+(Peg permutation) A \emph{peg permutation}, denoted $\pi_p$, is a permutation of the pegs used in a game. For example, in a game with 4 pegs, a peg permutation could be
 \[
 \begin{pmatrix}
 1 & 2 & 3 & 4 \\
@@ -119,6 +122,7 @@ which means color 1 replaced by color 5, color 2 unchanged, color 3 replaced by 
 \end{pmatrix} ,
 \]
 which means the color originally associated with peg 1 is now associated with peg 3, the color originally associated with peg 2 is now associated with peg 1, etc.
+\end{definition}
 
 A somewhat confusing property of a peg permutation is that the second row in the notation, $(3 1 2 4)$, does \emph{not} represent the reordered sequence of the original pegs. The actual sequence of the original pegs after the permutation is $\pi_p^{-1}$, i.e.
 \[
@@ -128,7 +132,9 @@ A somewhat confusing property of a peg permutation is that the second row in the
 \end{pmatrix} .
 \]
 
-[Definition. Codeword permutation] A \emph{codeword permutation}, denoted $\pi$, is the combination of a peg permutation $\pi_p$ and a color permutation $\pi_c$. We write it as $\pi=(\pi_p,\pi_c)$. Note that the actual order of applying the peg permutation first or the color permutation first doesn't matter.
+\begin{definition}
+(Codeword permutation) A \emph{codeword permutation}, denoted $\pi$, is the combination of a peg permutation $\pi_p$ and a color permutation $\pi_c$. We write it as $\pi=(\pi_p,\pi_c)$. Note that the actual order of applying the peg permutation first or the color permutation first doesn't matter.
+\end{definition}
 
 Given codeword $g$, we denote the permuted codeword under $\pi$ as $\pi(g)$ or $g^\pi$. Note that since a codeword usually does not contain all available colors, the mapping of unused colors does not matter when applying a color permutation to a given codeword.
 
@@ -137,7 +143,9 @@ To actually compute the image $h = (h_i)$ of a given codeword $g = (g_i)$ under 
 h_i = \pi_c\left(g_{\pi_p^{-1}(i)}\right) .
 \]
 
-[Definition. Codeword equivalence] Two codewords $g$ and $h$ are equivalent if and only if there exists a codeword permutation $\pi=(\pi_p,\pi_c)$ such that $g^\pi = h$.
+\begin{definition}
+(Codeword equivalence) Two codewords $g$ and $h$ are \emph{equivalent} if and only if there exists a codeword permutation $\pi=(\pi_p,\pi_c)$ such that $g^\pi = h$.
+\end{definition}
 
 [Properties.] Some usual properties of permutations apply to codeword permutation as well.
 
@@ -145,8 +153,10 @@ h_i = \pi_c\left(g_{\pi_p^{-1}(i)}\right) .
 
 2) The equivalence relation defined above is indeed an \emph{equivalence relation}. Hence, in each equivalence class, there exists one \emph{representative}, also called the \emph{canonical element}. All elements in the same equivalence class are equivalent to this element; i.e.\ for all $g$, there exists $\pi$ such that $g = g_0^\pi$.
 
-[Definition. Constraint equivalence] (see a few references) Let $\mathcal{C}_1$ and $\mathcal{C}_2$ be two ordered sets of constraints of the same size $r$. Let the guesses in $\mathcal{C}_1$ be $(g_1,g_2,\cdots,g_r)$ and the guesses in $\mathcal{C}_2$ be $(h_1,h_2,\cdots,h_r)$. Then constraint sets $\mathcal{C}_1$ and $\mathcal{C}_2$ are equivalent if and only if there exists a codeword permutation $\pi=(\pi_p,\pi_c)$ such that
+\begin{definition}
+(Constraint equivalence) (see a few references) Let $\mathcal{C}_1$ and $\mathcal{C}_2$ be two ordered sets of constraints of the same size $r$. Let the guesses in $\mathcal{C}_1$ be $(g_1,g_2,\cdots,g_r)$ and the guesses in $\mathcal{C}_2$ be $(h_1,h_2,\cdots,h_r)$. Then constraint sets $\mathcal{C}_1$ and $\mathcal{C}_2$ are equivalent if and only if there exists a codeword permutation $\pi=(\pi_p,\pi_c)$ such that
 $g_i^\pi = h_i$ for $1 \le i \le r$.
+\end{definition}
 
 The intuition about equivalent constraints are rather simple: if we rearrange the peg positions and relabel the colors, then the two sets of constraints become exactly the same. Hence for the purpose of devising a strategy, we only need to work with one of them and the other follows automatically.
 
@@ -170,9 +180,10 @@ are obviously not equivalent by definition, but from the first feedback \fb{0}{0
 
 Despite the less-than-ideal properties of such definition, this equivalence relation is still commonly used \cite{neuwirth81,koyama93,francis10} because of its clarity, relative simplicity, and effectiveness for the first few guesses. A more powerful (but also more complex) equivalence definition will be introduced in the next section.
 
-To actually apply a constraint equivalence filter in practice, we implement an \emph{incremental filter}, as described below. An alternative, more generic method, which relies on \emph{graph automorphism}, will be introduced in the next section.
+To actually apply a constraint equivalence filter in practice, we implement an \emph{incremental filter}, as described below.\footnote{The incremental filter described in this section is effectively the same technique used by \cite{francis10} to detect equivalence in the Bulls and cows game.}
+An alternative, more generic method, which relies on \emph{graph automorphism}, will be introduced in the next section.
 
-Given a set of constraints with guesses $(g_1,\cdots,g_r)$, we want to find all canonical guesses $g$ as candidates for the next guess. We could do this by iterating each $g$ and cross out all guesses $h$ equivalent to it. To determine whether two guesses are equivalent, we need to find a permutation $\pi$ that maps one to the other.
+Given a set $\mathcal{C}$ of constraints and a set $S$ of candidate codewords for the next guess, we want to find all canonical codewords $g \in S$ to be used as the next guess. We could do this by iterating each $g \in S$ and cross out all codewords $h \in S$ equivalent to $g$. To determine whether two guesses are equivalent, we need to find a permutation $\pi$ that maps one to the other.
 
 We make the assumption that the number of colors is more than the number of pegs, which is typical in a real-world game.
 
@@ -189,9 +200,10 @@ At the beginning of the game, there are no constraints, and all associated parti
 \end{pmatrix} .
 \]
 
-To filter a list of codewords to get canonical guesses, we traverse the list in order.\footnote{Although not essential, it is convenient in practice to construct of list of codewords in lexicographical order, because then a crossing-out operation can be done in constant time by mapping a codeword to its index. Alternatively, it could do this with a bit waste of memory.} 
-The next uncrossed codeword must be a representative of some equivalence class. Suppose this codeword is \cw{1123}. Then, we iterate through each peg permutation $\pi_p^i$. Take for example the first peg permutation,
+To filter a set of codewords $S$ to obtain canonical guesses, we traverse the set in a certain order.\footnote{The particular order is not important; though it is often convenient to traverse in lexicographical order.} 
+The next uncrossed codeword must be a canonical guess, thus we choose it as the representative of its equivalence class. Suppose this codeword is \cw{1123}. Then, we iterate through each peg permutation $\pi_p^i$. Take for example the first peg permutation,
 \[
+\pi_p^1 = 
 \begin{pmatrix}
 1 & 2 & 3 & 4 \\
 1 & 2 & 3 & 4
@@ -199,12 +211,13 @@ The next uncrossed codeword must be a representative of some equivalence class. 
 \]
 The associated partial color permutation is initially
 \[
+\Pi_c^1 = 
 \begin{pmatrix}
 1 & 2 & 3 & 4 & 5 & 6 \\
 * & * & * & * & * & * 
 \end{pmatrix} .
 \]
-For the concerned representative, \cw{1123}, we are free to map its colors (1, 2, 3) to any color. We can therefore do a simple iteration to generate all \emph{specialized} color permutations $\pi_c \in \Pi_c$. There are $6! / 3! = 120$ such permutations. As a result we get 120 codewords equivalent to this representative (including the representative itself). We cross them out.
+For the concerned representative, \cw{1123}, we are free to map its colors (1, 2, 3) to any color. We can therefore do a simple iteration to generate all complete color permutations $\pi_c \in \Pi_c^1$. There are $6! / 3! = 120$ such permutations. As a result we get 120 codewords equivalent to this representative (including the representative itself). We cross them out.
 
 We then proceed with the second peg permutation,
 \[
@@ -250,6 +263,10 @@ Note that given a set of constraints, not all peg permutations can yield an elig
 \]
 When applied to $g_1 = \cw{3445}$, we get $\pi_p^2(g_1) = \cw{3454}$. However, there is no way whatsoever to map \cw{3445} to \cw{3454}, because 4 would have to be mapped to both 4 and 5, which is impossible. In this case, we call the peg permutation ($\pi_p^2$) \emph{ineligible} and remove it from further consideration.
 
+Formally, let $\mathcal{F} = \left\{(\pi_p^i, \Pi_c^i) \given 1 \le i \le m \right\}$ be an incremental equivalence filter containing $m$ (partial) codeword permutations. Each time a constraint (with guess $g$) is added, we restrict the partial color permutation by requiring $\pi_c^i ( \pi_p^i (g) ) = \pi_p^i (g)$ for all $\pi_c^i \in \Pi_c^i$. 
+
+It can be seen from the above requirement that any color that is mapped from in a partial color partition is also mapped to, and any color that is not mapped in one direction is also not mapped in the other direction. In fact, the unmapped colors are those \emph{unused} in any of the prior constraints. This means this equivalence filter fully considers the ``unguessed color equivalence'' described in the previous section.
+
 As we proceed in the game, we are supplied with more constraints. The partial color permutation associated with each peg permutation gets more restrictive with each
 added constraint, and more peg permutations becomes ineligible and gets removed. Finally we will be left with only the identity codeword permutation, where every codeword will become a representative of its own equivalence class.
 %Hence we call it "incremental equivalence detection".
@@ -257,6 +274,7 @@ added constraint, and more peg permutations becomes ineligible and gets removed.
 Applying the above constraint equivalence filter, we find the following canonical guesses for the first round of a standard Mastermind game (p4c6r). Listed alongside is the number of canonical guesses in the second round given the initial guess.
 \begin{center}
 \begin{tabular}{c c}
+\hline
 \hline
 $g_1$ & $\#\{g_2\}$ \\
 \hline
@@ -266,11 +284,26 @@ $g_1$ & $\#\{g_2\}$ \\
 \cw{0012} & 130 \\
 \cw{0123} & 57 \\
 \hline
+\hline
 \end{tabular}
 \end{center}
 
-Applying the same filter to the Bulls and cows game (p4c10n) yields only one canonical initial guess, \cw{0123}, and the following 20 canonical guesses for the second round:
-\cw{0123 0124 0132 0134 0145 0214 0231 0234 0245 0456 1032 1034 1045 1204 1230 1234 1245 1435 1456 4567}.
+Applying the same filter to the Bulls and cows game (p4c10n) yields only one canonical initial guess, \cw{0123}, and the following 20 canonical guesses for the second round along with the number of canonical guesses for the third round.\footnote{The table on page 7 of \cite{francis10} contains the same information; however their number for \cw{0456} is 373 and their number for \cw{4567} is 218.}
+\begin{center}
+\begin{tabular}{c c | c c | c c | c c}
+\hline
+\hline
+$g_2$ & $\#\{g_3\}$ & $g_2$ & $\#\{g_3\}$ & $g_2$ & $\#\{g_3\}$ & $g_2$ & $\#\{g_3\}$ \\
+\hline
+\cw{0123} & 20  & \cw{0214} & 270  & \cw{1032} & 39  & \cw{1234} & 501  \\
+\cw{0124} & 107 & \cw{0231} & 75   & \cw{1034} & 270 & \cw{1245} & 1045 \\
+\cw{0132} & 67  & \cw{0234} & 501  & \cw{1045} & 295 & \cw{1435} & 541  \\
+\cw{0134} & 270 & \cw{0245} & 1045 & \cw{1204} & 175 & \cw{1456} & 1012 \\
+\cw{0145} & 295 & \cw{0456} & 363  & \cw{1230} & 59  & \cw{4567} & 180  \\
+\hline
+\hline
+\end{tabular}
+\end{center}
 
 [consistent with all prior guesses]
 
