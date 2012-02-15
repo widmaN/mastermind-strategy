@@ -60,7 +60,8 @@ class Engine
 public:
 
 	Engine(const Rules &rules) : _rules(rules),
-		_compare(RoutineRegistry<ComparisonRoutine>::get("generic")),
+		_compare(RoutineRegistry<ComparisonRoutine>::get(
+			_rules.repeatable()? "generic" : "norepeat")),
 		_freq(RoutineRegistry<FrequencyRoutine>::get("generic")),
 		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
 		_mask(RoutineRegistry<MaskRoutine>::get("generic")),

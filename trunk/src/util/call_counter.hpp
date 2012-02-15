@@ -118,7 +118,7 @@ public:
 	static util::call_counter& _call_counter_##id = \
 	util::call_counter::get(#id);
 #define UPDATE_CALL_COUNTER(id,nops) \
-	(_call_counter_##id).add_call(nops);
+	(_call_counter_##id).add_call(nops)
 #else
 #define REGISTER_CALL_COUNTER(id)
 #define UPDATE_CALL_COUNTER(id,nops)

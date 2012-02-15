@@ -8,6 +8,12 @@
 #include "Permutation.hpp"
 #include "util/intrinsic.hpp"
 #include "Equivalence.hpp"
+#include "util/call_counter.hpp"
+
+REGISTER_CALL_COUNTER(ConstraintEquivalence)
+// REGISTER_CALL_COUNTER(ConstraintEquivalenceIdentity)
+REGISTER_CALL_COUNTER(ConstraintEquivalencePermutation)
+REGISTER_CALL_COUNTER(ConstraintEquivalenceCrossout)
 
 using namespace Mastermind;
 
@@ -40,20 +46,28 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 {
 	bool verbose = false;
 
+	// Optimization: if there is only one peg permutation left (in
+	// which case it must be the identity permutation) and the color
+	// permutation is "almost completely" specified, then the color
+	// permutation must be identity too, and there is no codeword
+	// to filter out.
+	if (pp.size() == 1 && pp[0].almost_complete())
+		return CodewordList(candidates.begin(), candidates.end());
+
 	// Create an array to indicate whether a codeword has been crossed out.
-	size_t n = candidates.size();
-	std::vector<bool> crossed_out(n);
 	CodewordIndexer index(e.rules());
-	CodewordList canonical;
+	std::vector<bool> crossed_out(index.size());
 
 	// Check each non-crossed codeword in the list.
+	size_t n = candidates.size();
+	CodewordList canonical;
 	for (size_t i = 0; i < n; ++i)
 	{
-		if (crossed_out[i])
+		const Codeword guess = candidates.begin()[i];
+		if (crossed_out[index(guess)])
 			continue;
 
 		// An uncrossed codeword is a canonical guess.
-		const Codeword guess = candidates.begin()[i];
 		canonical.push_back(guess);
 		if (verbose)
 			std::cout << "Processing canonical guess " << guess << std::endl;
@@ -133,6 +147,11 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 			});
 		}
 	}
+
+	UPDATE_CALL_COUNTER(ConstraintEquivalence, canonical.size());
+	UPDATE_CALL_COUNTER(ConstraintEquivalencePermutation, pp.size());
+	UPDATE_CALL_COUNTER(ConstraintEquivalenceCrossout, (n-canonical.size()+1));
+
 	return canonical;
 }
 
@@ -188,54 +207,4 @@ void ConstraintEquivalenceFilter::add_constraint(
 
 	// After a few constraints, only the identity permutation
 	// will remain.
-}
-
-void display_canonical_guesses(
-	Engine &e,
-	const EquivalenceFilter *filter,
-	int max_level, 
-	int level = 0)
-{
-	CodewordConstRange candidates = e.universe();
-	CodewordList canonical = filter->get_canonical_guesses(candidates);
-
-	// Display each canonical guess, and expand one more level is needed.
-	if (level >= max_level)
-	{
-		std::cout << "[" << level << ":" << canonical.size() << "]";
-#if 1
-		if (canonical.size() > 20)
-		{
-			std::cout << " ... " << std::endl;
-		}
-		else
-#endif
-		{
-			for (size_t i = 0; i < canonical.size(); ++i)
-			{
-				Codeword guess = canonical[i];
-				std::cout << " " << guess;
-			}
-			std::cout << std::endl;
-		}
-	}
-	else
-	{
-		for (size_t i = 0; i < canonical.size(); ++i)
-		{
-			Codeword guess = canonical[i];
-			std::cout << "[" << level << ":" << i << "] " << guess << std::endl;
-
-			std::unique_ptr<EquivalenceFilter> child = filter->clone();
-			child->add_constraint(guess, Feedback(), candidates);
-			display_canonical_guesses(e, child.get(), max_level, level+1);
-			//std::cout << "[" << level << "] Total: " << canonical.size() << std::endl;
-		}
-	}
-}
-
-void test_morphism(Engine &e)
-{
-	ConstraintEquivalenceFilter filter(e);
-	display_canonical_guesses(e, &filter, 1);
 }

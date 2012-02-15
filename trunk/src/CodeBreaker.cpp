@@ -8,6 +8,7 @@ Codeword MakeGuess(
 	Engine &e,
 	State &state,
 	Strategy *strat,
+	EquivalenceFilter *filter,
 	const CodeBreakerOptions &options)
 {
 	CodewordConstRange possibilities = state.possibilities;
@@ -36,7 +37,8 @@ Codeword MakeGuess(
 	// Filter the candidate set to remove "equivalent" guesses.
 	// For now the equivalence is determined by bit-mask of colors.
 	// In the next step, we should determine it by graph isomorphasm.
-	CodewordList canonical = 
+	CodewordList canonical = filter ?
+		filter->get_canonical_guesses(candidates) :
 		CodewordList(candidates.begin(), candidates.end());
 		//candidates.FilterByEquivalence(unguessed_mask, impossible_mask);
 		//CodewordList canonical = e.canonicalize(candidates, filter);
@@ -61,6 +63,7 @@ static void FillStrategy(
 	Engine &e,
 	State &state,
 	Strategy *strat,
+	EquivalenceFilter *filter,
 	const CodeBreakerOptions &options,
 	int *progress)
 {
@@ -68,7 +71,7 @@ static void FillStrategy(
 	StrategyTree::Node node(partial_node);
 		
 	// Make a guess.
-	Codeword guess = MakeGuess(e, state, strat, options);
+	Codeword guess = MakeGuess(e, state, strat, filter, options);
 	if (guess.empty())
 	{
 		tree.append(node);
@@ -112,7 +115,20 @@ static void FillStrategy(
 			// Create a new, child state.
 			State new_state(state);
 			new_state.udpate(e, guess, feedback, cell);
-			FillStrategy(tree, child, e, new_state, strat, options, progress);
+
+			// Create a child filter.
+			EquivalenceFilter *new_filter = 
+				filter ? filter->clone() : NULL;
+			if (new_filter)
+			{
+				new_filter->add_constraint(guess, feedback, cell);
+			}
+
+			// Recursively build the strategy tree.
+			FillStrategy(tree, child, e, new_state, strat, new_filter, options, progress);
+
+			// Clean up resource.
+			delete new_filter;
 		}
 	}
 }
@@ -120,14 +136,15 @@ static void FillStrategy(
 
 #if 1
 StrategyTree BuildStrategyTree(
-	Engine &e, Strategy *strat, const CodeBreakerOptions &options)
+	Engine &e, Strategy *strat, EquivalenceFilter *filter,
+	const CodeBreakerOptions &options)
 {
 	StrategyTree tree(e.rules());
 	CodewordList all = e.generateCodewords();
 	StrategyTree::Node root(0, (uint32_t)-1, 0);
 	State state(e, all);
 	int progress = 0;
-	FillStrategy(tree, root, e, state, strat, options, &progress);
+	FillStrategy(tree, root, e, state, strat, filter, options, &progress);
 	return tree;
 }
 #endif

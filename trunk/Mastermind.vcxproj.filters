@@ -45,16 +45,16 @@
     <ClCompile Include="src\Generation.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\Equivalence.cpp">
-      <Filter>Algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="src\Mask.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\Morphism.cpp">
+    <ClCompile Include="src\ColorEquivalence.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ConstraintEquivalence.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
   </ItemGroup>
