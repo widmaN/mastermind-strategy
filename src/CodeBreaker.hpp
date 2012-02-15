@@ -2,11 +2,13 @@
 #define MASTERMIND_CODE_BREAKER_HPP
 
 #include <string>
+#include <memory>
 #include "Engine.hpp"
 #include "Strategy.hpp"
 #include "ObviousStrategy.hpp"
 #include "StrategyTree.hpp"
 #include "State.hpp"
+#include "Equivalence.hpp"
 
 namespace Mastermind
 {
@@ -27,12 +29,14 @@ Codeword MakeGuess(
 	Engine &e,
 	State &state,
 	Strategy *strat,
+	EquivalenceFilter *filter,
 	const CodeBreakerOptions &options);
 
 // Free-standing function that builds a strategy tree.
 StrategyTree BuildStrategyTree(
 	Engine &e, 
 	Strategy *strat, 
+	EquivalenceFilter *filter,
 	const CodeBreakerOptions &options);
 
 /// Helper class that uses a given strategy to break a code.
@@ -44,6 +48,9 @@ class CodeBreaker
 	/// The strategy used to make guesses.
 	/// @todo Use auto_ptr or smart_ptr.
 	Strategy *strat;
+
+	/// The equivalence filter used to find canonical guesses.
+	std::unique_ptr<	EquivalenceFilter> _filter;
 
 	/// Options.
 	CodeBreakerOptions _options;
@@ -60,9 +67,11 @@ public:
 	CodeBreaker(
 		Engine &engine, 
 		Strategy *strategy, 
+		std::unique_ptr<EquivalenceFilter> filter,
 		const CodeBreakerOptions &options)
 		: e(engine), 
 		strat(strategy), 
+		_filter(std::move(filter)),
 		_options(options),
 		_possibilities(e.universe().begin(), e.universe().end()),
 		_state(e, _possibilities)
@@ -90,7 +99,7 @@ public:
 	/// Makes a guess.
 	Codeword MakeGuess()
 	{
-		return Mastermind::MakeGuess(e, _state, strat, _options);
+		return Mastermind::MakeGuess(e, _state, strat, _filter.get(), _options);
 	}
 };
 

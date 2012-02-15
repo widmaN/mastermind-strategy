@@ -132,6 +132,9 @@ std::ostream& operator << (std::ostream &os, const Codeword &c);
 std::istream& operator >> (std::istream &is, Codeword &c);
 
 /// Utility class that computes the lexicographical index of a codeword.
+/// For performance reason, we ALWAYS computes the index as if repetition
+/// was allowed in the colors. This improves speed at the cost of a little
+/// waste of memory.
 class CodewordIndexer
 {
 	Rules _rules;
@@ -141,14 +144,17 @@ public:
 
 	CodewordIndexer(const Rules &rules) : _rules(rules)
 	{
+#if 0
 		if (_rules.repeatable())
 		{
+#endif
 			int w = 1;
 			for (int i = _rules.pegs() - 1; i >= 0; --i)
 			{
 				_weights[i] = w;
 				w *= _rules.colors();
 			}
+#if 0
 		}
 		else
 		{
@@ -159,16 +165,22 @@ public:
 				w *= (_rules.colors() - i);
 			}
 		}
+#endif
 	}
+
+	int size() const { return _weights[0] * _rules.colors(); }
 
 	int operator()(const Codeword &c) const 
 	{
+#if 0
 		if (_rules.repeatable())
 		{
+#endif
 			int index = 0;
 			for (int i = 0; i < _rules.pegs(); ++i)
 				index += c[i] * _weights[i];
 			return index;
+#if 0
 		}
 		else
 		{
@@ -182,6 +194,7 @@ public:
 			}
 			return index;
 		}
+#endif
 	}
 };
 

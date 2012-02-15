@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cassert>
 #include <bitset>
+#include <emmintrin.h>
 #include "Rules.hpp"
 #include "Codeword.hpp"
 
@@ -67,6 +68,7 @@ public:
 	}
 #endif
 
+#if 0
 	/// Returns the inverse of the permutation.
 	CodewordPermutation inverse() const 
 	{
@@ -82,6 +84,30 @@ public:
 				ret.color[color[i]] = i;
 		}
 		return ret;
+	}
+#endif
+
+	/// Tests whether the permutation is fully specified.
+	bool complete() const 
+	{
+		int unspecified = _mm_movemask_epi8(_perm);
+		int color_mask = (1 << _rules.colors()) - 1;
+		int peg_mask = (1 << _rules.pegs()) - 1;
+		int mask = (peg_mask << MM_MAX_COLORS) | color_mask;
+		return (unspecified & mask) == 0;
+	}
+
+	/// Tests whether the permutation is "almost fully specified", i.e.
+	/// it is fully specified or at most one element is not mapped.
+	/// However, in this case this element has only one choice.
+	bool almost_complete() const 
+	{
+		int unspecified = _mm_movemask_epi8(_perm);
+		int color_mask = (1 << _rules.colors()) - 1;
+		int peg_mask = (1 << _rules.pegs()) - 1;
+		int mask = (peg_mask << MM_MAX_COLORS) | color_mask;
+		int test = (unspecified & mask);
+		return (test & (test - 1)) == 0;
 	}
 
 	/// Returns the mapped value of a peg.
@@ -138,7 +164,6 @@ public:
 		os << ") o (";
 
 		// Output color permutation.
-		os << "(";
 		for (int i = 0; i < p._rules.colors(); ++i)
 		{
 			if (i > 0)

@@ -3,8 +3,9 @@
 
 // This file defines an interface for equivalence filters.
 
-#include <memory>
+// #include <memory>
 #include "Engine.hpp"
+#include "Permutation.hpp"
 #include "util/aligned_allocator.hpp"
 
 namespace Mastermind {
@@ -15,7 +16,7 @@ class EquivalenceFilter
 {
 public:
 
-	virtual std::unique_ptr<EquivalenceFilter> clone() const = 0;
+	virtual EquivalenceFilter* clone() const = 0;
 
 	virtual CodewordList get_canonical_guesses(
 		CodewordConstRange candidates
@@ -27,6 +28,33 @@ public:
 		CodewordConstRange remaining
 		) = 0;
 };
+
+#if 1
+/// Represents a dummy equivalence filter that doesn't filter anything.
+class DummyEquivalenceFilter : public EquivalenceFilter
+{
+public:
+
+	virtual EquivalenceFilter* clone() const 
+	{
+		return new DummyEquivalenceFilter();
+	}
+
+	virtual CodewordList get_canonical_guesses(
+		CodewordConstRange candidates
+		) const 
+	{
+		return CodewordList(candidates.begin(), candidates.end());
+	}
+
+	virtual void add_constraint(
+		const Codeword & /* guess */,
+		Feedback /* response */, 
+		CodewordConstRange /* remaining */)
+	{
+	}
+};
+#endif
 
 /// Represents an incremental constraint equivalence filter.
 class ConstraintEquivalenceFilter : public EquivalenceFilter
@@ -41,10 +69,11 @@ class ConstraintEquivalenceFilter : public EquivalenceFilter
 public:
 	ConstraintEquivalenceFilter(Engine &engine);
 
-	virtual std::unique_ptr<EquivalenceFilter> clone() const
+	virtual EquivalenceFilter* clone() const
 	{
-		return std::unique_ptr<EquivalenceFilter>(
-			new ConstraintEquivalenceFilter(*this));
+		//return std::unique_ptr<EquivalenceFilter>(
+		//	new ConstraintEquivalenceFilter(*this));
+		return new ConstraintEquivalenceFilter(*this);
 	}
 
 	virtual CodewordList get_canonical_guesses(

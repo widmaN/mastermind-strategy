@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <iomanip>
+#include <memory>
 
 #include "util/call_counter.hpp"
 #include "Rules.hpp"
@@ -15,6 +16,7 @@
 #include "CodeBreaker.hpp"
 #include "SimpleStrategy.hpp"
 #include "HeuristicStrategy.hpp"
+#include "Equivalence.hpp"
 
 #include "HRTimer.h"
 
@@ -498,6 +500,7 @@ static bool testSumSquares(
 
 static void simulate_guessing(
 	Engine &e, Strategy* strats[], size_t n,
+	EquivalenceFilter *filter,
 	const CodeBreakerOptions &options)
 {
 	CodewordList all = e.generateCodewords();
@@ -528,7 +531,9 @@ static void simulate_guessing(
 	{
 		std::string name = strats[i]->name();
 		std::cout << std::setw(10) << name;
-		breakers.push_back(new CodeBreaker(e, strats[i], options));
+		breakers.push_back(new CodeBreaker(e, strats[i],
+			std::unique_ptr<EquivalenceFilter>(filter->clone()), 
+			options));
 	}
 	std::cout << std::right << std::endl;
 
@@ -583,6 +588,7 @@ static void test_strategy_tree(
 	Engine &e,
 	Strategy *strategies[],
 	size_t n,
+	EquivalenceFilter *filter,
 	const CodeBreakerOptions &options)
 	// const Codeword& first_guess)
 {
@@ -625,7 +631,9 @@ static void test_strategy_tree(
 
 		// Build a strategy tree of this code breaker
 		timer.start();
-		StrategyTree tree = BuildStrategyTree(e, strat, options);
+		EquivalenceFilter *copy = filter->clone();
+		StrategyTree tree = BuildStrategyTree(e, strat, copy, options);
+		delete copy;
 		double t = timer.stop();
 
 		// Count the steps used to get the answers
@@ -657,6 +665,57 @@ static void test_strategy_tree(
 }
 #endif
 
+static void display_canonical_guesses(
+	Engine &e,
+	const EquivalenceFilter *filter,
+	int max_level, 
+	int level = 0)
+{
+	CodewordConstRange candidates = e.universe();
+	CodewordList canonical = filter->get_canonical_guesses(candidates);
+
+	// Display each canonical guess, and expand one more level is needed.
+	if (level >= max_level)
+	{
+		std::cout << "[" << level << ":" << canonical.size() << "]";
+#if 1
+		if (canonical.size() > 20)
+		{
+			std::cout << " ... " << std::endl;
+		}
+		else
+#endif
+		{
+			for (size_t i = 0; i < canonical.size(); ++i)
+			{
+				Codeword guess = canonical[i];
+				std::cout << " " << guess;
+			}
+			std::cout << std::endl;
+		}
+	}
+	else
+	{
+		for (size_t i = 0; i < canonical.size(); ++i)
+		{
+			Codeword guess = canonical[i];
+			std::cout << "[" << level << ":" << i << "] " << guess << std::endl;
+
+			EquivalenceFilter *child = filter->clone();
+			child->add_constraint(guess, Feedback(), candidates);
+			display_canonical_guesses(e, child, max_level, level+1);
+			delete child;
+			//std::cout << "[" << level << "] Total: " << canonical.size() << std::endl;
+		}
+	}
+}
+
+static void test_initial_guesses_in_equivalence_filter(Engine &e)
+{
+	ConstraintEquivalenceFilter filter(e);
+	display_canonical_guesses(e, &filter, 1);
+}
+
 /// Runs regression and benchmark tests.
 int test(const Rules &rules)
 {
@@ -681,9 +740,8 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
-#if 1
-	extern void test_morphism(Engine &);
-	test_morphism(e);
+#if 0
+	test_initial_guesses_in_equivalence_filter(e);
 	system("PAUSE");
 	return 0;
 #endif
@@ -695,6 +753,15 @@ int test(const Rules &rules)
 	CodeBreakerOptions options;
 	options.optimize_obvious = true;
 	options.possibility_only = false;
+
+	// Choose an equivalence filter.
+	std::unique_ptr<EquivalenceFilter> filter(
+#if 0
+		new DummyEquivalenceFilter()
+#else
+		new ConstraintEquivalenceFilter(e)
+#endif
+		);
 
 	//Codeword first_guess = Codeword::emptyValue();
 	//Codeword first_guess = Codeword::Parse("0011", rules);
@@ -709,9 +776,19 @@ int test(const Rules &rules)
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};
+	int nstrat = sizeof(strats)/sizeof(strats[0]);
 
 	//simulate_guessing(e, strats, sizeof(strats)/sizeof(strats[0]), options);
-	test_strategy_tree(e, strats, sizeof(strats)/sizeof(strats[0]), options);
+	test_strategy_tree(e, strats, nstrat, filter.get(), options);
+
+	std::cout << "Call statistics for ConstraintEquivalence:" << std::endl;
+	std::cout << util::call_counter::get("ConstraintEquivalence") << std::endl;
+
+	std::cout << "Call statistics for ConstraintEquivalencePermutation:" << std::endl;
+	std::cout << util::call_counter::get("ConstraintEquivalencePermutation") << std::endl;
+
+	std::cout << "Call statistics for ConstraintEquivalenceCrossout:" << std::endl;
+	std::cout << util::call_counter::get("ConstraintEquivalenceCrossout") << std::endl;
 
 #if 0
 	// Display some statistics.
