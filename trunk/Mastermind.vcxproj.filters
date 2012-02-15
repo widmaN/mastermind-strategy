@@ -122,5 +122,8 @@
     <ClInclude Include="src\util\call_counter.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\Permutation.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

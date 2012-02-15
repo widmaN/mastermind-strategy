@@ -1,16 +1,78 @@
 \section{Appendix}
 
-\subsection{Information entropy}
+\subsection{Mathematical Background}
+
+\subsubsection{Information entropy}
 
 entropy
 
-\subsection{Permutation}
+\subsubsection{Equivalence relation}
 
-permutation notations, properties
+See \url{http://en.wikipedia.org/wiki/Equivalence\_relation}.
 
-equivalence relation, equivalence class, etc.
+\subsubsection{Permutation}
 
-\subsection{Graph isomorphism}
+[permutation notations, properties]
+
+[equivalence relation, equivalence class, etc.]
+
+A \emph{permutation} is a bijection (one-to-one mapping) of a set onto itself.\footnote{
+More details can be found at \url{http://en.wikipedia.org/wiki/Permutation}.}
+For example, consider a set containing six elements. For convenience, label each element with an index starting from one. A possible permutation is the following:
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+5 & 2 & 1 & 6 & 3 & 4
+\end{pmatrix} ,
+\]
+where the first row displays the elements in the set, and the second row displays the \emph{images} of the elements under the permutation, i.e.\ the element that each element is mapped to mapped to.
+
+The above notation for the permutation can be abbreviated into one line by only keeping the second row, which becomes $(5 2 1 6 3 4)$.
+
+A permutation can be decomposed into a \emph{product} of disjoint \emph{cycles}, which partitions the elements of the set into parts where the elements in each part can be permuted independently to complete the overall mapping. For example, the above permutation can be written as
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+5 & 2 & 1 & 6 & 3 & 4
+\end{pmatrix} 
+= (1 5 3) (2) (4 6) .
+\]
+It is easy to see that the cycles can be commuted and the elements in a cycle can be rotated without changing the overall permutation. Up to these differences, such decomposition is unique.
+
+A permutation can be inverted. To find the inverse of a permutation, simply exchange the two roles in the notation and then sort the upper row. In the above example, the inverse permutation is
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+3 & 2 & 5 & 6 & 1 & 4
+\end{pmatrix} .
+\]
+
+%Two permutations of the same size can be compounded to form a composite permutation. Let @c P be the composite of permutation
+% * <code>P<sub>1</sub></code> and <code>P<sub>2</sub></code>.
+% * The effect of applying @c P is equivalent to first applying
+% * <code>P<sub>1</sub></code> followed by applying <code>P<sub>2</sub></code>.
+% * The notation to write a composite permutation can be confusing,
+% * so we omit it here.
+
+A \emph{partial permutation} on a set is a bijection between two subsets of it.\footnote{For more details, see \url{http://www.maths.qmul.ac.uk/~pjc/odds/partial.pdf}.}
+For example, a partial permutation of the above (complete) permutation could be
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+* & 2 & * & * & 3 & 4
+\end{pmatrix} ,
+\]
+where the asterisks denote unmapped elements, sometimes known as ``holes'' of the permutation. 
+
+It is easy to see that any partial permutation can be \emph{extended} to form a complete permutation. However such extension is not unique. For example, there are $3! = 6$ ways to extend the above partial permutation, one of which that differs from the original example could be
+\[
+\begin{pmatrix}
+1 & 2 & 3 & 4 & 5 & 6 \\
+1 & 2 & 5 & 6 & 3 & 4
+\end{pmatrix} .
+\]
+
+\subsubsection{Graph isomorphism}
 
 \subsection{Optimal strategy tree for Mastermind}
 
