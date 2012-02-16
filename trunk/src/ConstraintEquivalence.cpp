@@ -45,13 +45,21 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 {
 	bool verbose = false;
 
-#if 0
+	// Let u be the number of colors fixed so far.
+	int u = 0;
+	for (u = 0; u < rules.colors(); ++u)
+	{
+		if (pp[0].color[u] < 0)
+			break;
+	}
+
+#if 1
 	// Optimization: if there is only one peg permutation left (in
 	// which case it must be the identity permutation) and the color
 	// permutation is "almost completely" specified, then the color
 	// permutation must be identity too, and there is no codeword
 	// to filter out.
-	if (pp.size() == 1 && pp[0].almost_complete())
+	if (pp.size() == 1 && u >= rules.colors() - 1)
 		return CodewordList(candidates.begin(), candidates.end());
 #endif
 
@@ -82,19 +90,6 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 
 			// Get a bit-mask of the unmapped colors in the permutation.
 			CodewordPermutation p = pp[j];
-			//std::bitset<MM_MAX_COLORS> unmapped_colors = p.unmapped_colors();
-
-			// Create a list of unmapped colors.
-			unsigned short unmapped_colors = p.unmapped_colors();
-#if 0
-			int nunmapped = 0;
-			int iunmapped[MM_MAX_COLORS];
-			for (int c = rules.colors() - 1; c >= 0; --c)
-			{
-				if (p.color[c] < 0)
-					iunmapped[nunmapped++] = c;
-			}
-#endif
 
 			// Permute the pegs and colors of the candidate.
 			// Unmapped colors are kept unchanged.
@@ -106,6 +101,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 			// Check the color on each peg in turn.
 			// Take, for example, 1223. It must be able to map to 1123 and
 			// show that it's not canonical.
+			int free_color = u;
 			for (int k = 0; k < rules.pegs(); ++k)
 			{
 				// Let c be the color on peg k of the permuted candidate.
@@ -115,8 +111,21 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 				// c', and swap c with c' in the permuted candidate.
 				if (p.color[c] < 0)
 				{
-					int cc = util::intrinsic::bit_scan_forward(unmapped_colors);
-					// int cc = iunmapped[--nunmapped];
+					// Find the smallest unmapped color.
+#if 0
+					int cc = -1;
+					for (int l = 0; l < rules.colors(); ++l)
+					{
+						if (p.color[l] < 0) 
+						{
+							cc = l;
+							break;
+						}
+					}
+#else
+					int cc = free_color++;
+#endif
+
 					for (int l = k; l < rules.pegs(); ++l)
 					{
 						if (permuted_candidate[l] == c)
@@ -126,8 +135,6 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 					}
 					p.color[cc] = cc;
 					c = cc;
-					// unmapped_colors.reset(cc);
-					unmapped_colors &= ~(1 << cc);
 				}
 
 				// The color, c, must be lexicographically greater than
@@ -143,6 +150,8 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 					break;
 				}
 			}
+			if (!is_canonical)
+				break;
 		}
 
 		// Append the candidate to the result if it's canonical.
@@ -182,6 +191,8 @@ void ConstraintEquivalenceFilter::add_constraint(
 		Codeword c = p.permute_pegs(guess);
 
 		// Try to map the color on each peg onto itself.
+		// @bug The following code is not correct in some cases;
+		// see the modified version for the correct one.
 		bool ok = true;
 		for (int j = 0; j < rules.pegs() && ok; ++j)
 		{

@@ -713,7 +713,7 @@ static void display_canonical_guesses(
 static void test_initial_guesses_in_equivalence_filter(Engine &e)
 {
 	ConstraintEquivalenceFilter filter(e);
-	display_canonical_guesses(e, &filter, 2);
+	display_canonical_guesses(e, &filter, 1);
 }
 
 /// Runs regression and benchmark tests.
@@ -768,11 +768,18 @@ int test(const Rules &rules)
 
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
+#if 0
+		new SimpleStrategy(e),
+		new SimpleStrategy(e),
+		new SimpleStrategy(e),
+		new SimpleStrategy(e),
+#else
 		new HeuristicStrategy<MinimizeWorstCase<1>>(e),
 		new HeuristicStrategy<MinimizeAverage>(e),
 		new HeuristicStrategy<MaximizeEntropy<false>>(e),
 		new HeuristicStrategy<MaximizeEntropy<true>>(e),
 		new HeuristicStrategy<MaximizePartitions>(e),
+#endif
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};
