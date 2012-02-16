@@ -14,7 +14,18 @@ inline unsigned int rotate_left(unsigned int value, int shift)
 	return _rotl(value, 4);
 }
 
-inline int bit_scan_reverse(unsigned int value)
+inline int bit_scan_forward(unsigned long value)
+{
+	unsigned long pos = 0;
+//#ifdef _WIN32
+	_BitScanForward(&pos, value);
+//#else
+//	pos = 31 - __builtin_clz(value);
+//#endif
+	return pos;
+}
+
+inline int bit_scan_reverse(unsigned long value)
 {
 	unsigned long pos = 0;
 #ifdef _WIN32

@@ -68,6 +68,14 @@ public:
 	}
 #endif
 
+	unsigned short unmapped_colors() const
+	{
+		int unspecified = _mm_movemask_epi8(_perm);
+		int color_mask = (1 << _rules.colors()) - 1;
+		//return std::bitset<MM_MAX_COLORS>(unspecified & color_mask);
+		return (unsigned short)(unspecified & color_mask);
+	}
+
 #if 0
 	/// Returns the inverse of the permutation.
 	CodewordPermutation inverse() const 
@@ -127,7 +135,11 @@ public:
 	{
 		Codeword ret;
 		for (int i = 0; i < _rules.pegs(); ++i)
-			ret.set(i, color[w[peg[i]]]);
+		{
+			int c1 = w[peg[i]];
+			int c2 = color[c1];
+			ret.set(i, (c2 >= 0 ? c2 : c1));
+		}
 		return ret;
 	}
 

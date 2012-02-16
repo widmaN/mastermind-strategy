@@ -24,10 +24,9 @@ ConstraintEquivalenceFilter::ConstraintEquivalenceFilter(Engine &engine)
 	// Generate all peg permutations, and associate with each peg 
 	// permutation a fully-free partial color permutation.
 
-	// Note: the peg permutations are in fact inverse of the 
-	// traditional permutations. But since we generate all such
-	// permutations, we don't need to explicitly compute the
-	// inverse.
+	// Note: the peg permutations stored are in fact the inverse of 
+	// the traditional permutations. But since we generate all such
+	// permutations, we don't need to explicitly compute the inverse.
 
 	CodewordPermutation p(rules);
 	for (int i = 0; i < rules.pegs(); ++i)
@@ -46,6 +45,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 {
 	bool verbose = false;
 
+#if 0
 	// Optimization: if there is only one peg permutation left (in
 	// which case it must be the identity permutation) and the color
 	// permutation is "almost completely" specified, then the color
@@ -53,104 +53,108 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 	// to filter out.
 	if (pp.size() == 1 && pp[0].almost_complete())
 		return CodewordList(candidates.begin(), candidates.end());
-
-	// Create an array to indicate whether a codeword has been crossed out.
-	CodewordIndexer index(e.rules());
-	std::vector<bool> crossed_out(index.size());
+#endif
 
 	// Check each non-crossed codeword in the list.
 	size_t n = candidates.size();
 	CodewordList canonical;
+	canonical.reserve(n);
 	for (size_t i = 0; i < n; ++i)
 	{
-		const Codeword guess = candidates.begin()[i];
-		if (crossed_out[index(guess)])
-			continue;
+		const Codeword candidate = candidates.begin()[i];
+		bool is_canonical = true;
 
-		// An uncrossed codeword is a canonical guess.
-		canonical.push_back(guess);
-		if (verbose)
-			std::cout << "Processing canonical guess " << guess << std::endl;
-
-#ifndef NDEBUG
+#if 0
 		bool debug_stop = false;
 		if (Codeword::pack(guess) == 0xffff0234)
 			debug_stop = true;
 #endif
 
-		// Check each peg permutation.
+		// Check each peg permutation to see if there exists a peg/color
+		// permutation that maps the candidate to a lexicographically
+		// smaller equivalent codeword.
 		for (size_t j = 0; j < pp.size(); ++j)
 		{
-#ifndef NDEBUG
+#if 0
 			if (debug_stop && j == 3)
 				debug_stop = true;
 #endif
 
-#if 0
-			// Note: we should not cross out too early. This is because
-			// when we cross out a codeword, we are only filtering on
-			// the equivalence _given_ a certain peg permutation. It is
-			// not exhaustive.
-			//if (crossed_out[get_codeword_index(cc, rules)])
-			//	continue;
-
-			// Maybe we could traverse the list from larger to smaller,
-			// and only cross out lexicographically larger equivalent
-			// codewords.
-
-			// Or, we should not skip it if it is crossed out in 
-			// this round.
-#endif
+			// Get a bit-mask of the unmapped colors in the permutation.
 			CodewordPermutation p = pp[j];
+			//std::bitset<MM_MAX_COLORS> unmapped_colors = p.unmapped_colors();
 
-			// Find the unmapped colors in the codeword mapping. 
-			// These are essentially "unguessed" colors, i.e. they
-			// have never appeared in any constraints so far.
+			// Create a list of unmapped colors.
+			unsigned short unmapped_colors = p.unmapped_colors();
+#if 0
 			int nunmapped = 0;
 			int iunmapped[MM_MAX_COLORS];
-
-			// If an unmapped color is present in the guess, then
-			// we call it "free" because we can map it to any of
-			// of the unmapped colors to generate a group of 
-			// equivalent codewords.
-			int nfree = 0;
-			int ifree[MM_MAX_PEGS];
-
-			for (int i = 0; i < rules.colors(); ++i)
+			for (int c = rules.colors() - 1; c >= 0; --c)
 			{
-				if (p.color[i] < 0)
+				if (p.color[c] < 0)
+					iunmapped[nunmapped++] = c;
+			}
+#endif
+
+			// Permute the pegs and colors of the candidate.
+			// Unmapped colors are kept unchanged.
+			// Optimization: if this is the identity permutation,
+			// then needn't permute.
+			Codeword permuted_candidate = 
+				(j == 0)? candidate : p.permute(candidate);
+
+			// Check the color on each peg in turn.
+			// Take, for example, 1223. It must be able to map to 1123 and
+			// show that it's not canonical.
+			for (int k = 0; k < rules.pegs(); ++k)
+			{
+				// Let c be the color on peg k of the permuted candidate.
+				int c = permuted_candidate[k];
+
+				// If c is not mapped, find the smallest, unmapped color
+				// c', and swap c with c' in the permuted candidate.
+				if (p.color[c] < 0)
 				{
-					iunmapped[nunmapped++] = i;
-					if (guess.count(i))
-						ifree[nfree++] = i;
+					int cc = util::intrinsic::bit_scan_forward(unmapped_colors);
+					// int cc = iunmapped[--nunmapped];
+					for (int l = k; l < rules.pegs(); ++l)
+					{
+						if (permuted_candidate[l] == c)
+							permuted_candidate.set(l, cc);
+						else if (permuted_candidate[l] == cc)
+							permuted_candidate.set(l, c);
+					}
+					p.color[cc] = cc;
+					c = cc;
+					// unmapped_colors.reset(cc);
+					unmapped_colors &= ~(1 << cc);
+				}
+
+				// The color, c, must be lexicographically greater than
+				// or equal to the corresponding color in the candidate
+				// for the candidate to be canonical.
+				if (c < candidate[k])
+				{
+					is_canonical = false;
+					break;
+				}
+				else if (c > candidate[k])
+				{
+					break;
 				}
 			}
-
-			// Generate all possible mappings for the free colors
-			// in the guess, and cross out every resulting codeword
-			// because they are equivalent to the guess.
-			int tmp[MM_MAX_PEGS];
-			generate_permutations<MM_MAX_COLORS>(
-				iunmapped+0, iunmapped+nunmapped, tmp+0, tmp+nfree, [&]()
-			{
-				// Extend the partial color mapping to a complete mapping.
-				for (int i = 0; i < nfree; i++)
-					p.color[ifree[i]] = tmp[i];
-
-				Codeword permuted_guess = p.permute(guess);
-				crossed_out[index(permuted_guess)] = true;
-				if (/* Codeword::pack(mapped) == 0xffff3456 || */ verbose)
-				{
-					std::cout << "    Crossed out " << permuted_guess 
-						<< " from " << guess << std::endl;
-				}
-			});
 		}
+
+		// Append the candidate to the result if it's canonical.
+		if (is_canonical)
+			canonical.push_back(candidate);
 	}
 
+#if 1
 	UPDATE_CALL_COUNTER(ConstraintEquivalence, canonical.size());
 	UPDATE_CALL_COUNTER(ConstraintEquivalencePermutation, pp.size());
 	UPDATE_CALL_COUNTER(ConstraintEquivalenceCrossout, (n-canonical.size()+1));
+#endif
 
 	return canonical;
 }
