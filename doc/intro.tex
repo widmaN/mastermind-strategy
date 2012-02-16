@@ -1,6 +1,6 @@
-\section{Introduction}
+\chapter{Introduction}
 
-\subsection{Overview}
+\section{Overview}
 
 [history, rules, variations, etc]
 
@@ -10,11 +10,11 @@ For each guess, the code maker responds with a \emph{feedback} in the form of xA
 
 The standard Mastermind game is played on a board with four pegs and using six colors. A codeword can contain the same color more than once. A popular variation of the rules is called GuessNumber, also known as Bulls-n-Cows. Under these rules, no repetition of colors is allowed in the codeword.
 
-\subsection{Examples}
+\section{Examples}
 
 (Interactive) Examples
 
-\subsection{Overview of strategies}
+\section{Overview of strategies}
 
 [introduce the strategies, and introduce a table that describes how many codewords need to be solved in how many steps). [secrets be revealed]
 
@@ -26,13 +26,13 @@ Heuristic strategy. (Ch03) The code breaker evaluates each potential guess accor
 
 Optimal strategy. (Ch04) Since the number of possible secrets as well as sequence of guesses are finite, the code breaker can employ a depth-first search to find out the optimal guessing strategy. The optimal strategy minimizes the expected number of guesses, optionally subject to a maximum-guesses constraint. Finding such a strategy involves exhaustive search, and therefore is too slow to be suitable for real-time application. For more details on the implementation, see optimal strategies.
 
-\subsection{A Simple Strategy}
+\section{A Simple Strategy}
 
 Chooses the \emph{first} possibility. Here first depends on the order of the list. We can let it be lexicographical first. 
 
 However, an algorithm that depends on lexicographical ordering is not very ideal. See comparision of heuristics in chapter 2 for a discussion.
  
-\subsection{Strategy tree}
+\section{Strategy tree}
 
 A standard strategy tree contains the strategy starting from the initial state.
 
@@ -40,7 +40,7 @@ An extended (or adaptive, full) strategy tree contains a strategy for every poss
 
 Introduce the notations (Irving) to aid the reader in reading the classical papers.
   
-\subsection{Lower-bound of the number of guesses}
+\section{Lower-bound of the number of guesses}
 
 % -------------------------------- %
 
