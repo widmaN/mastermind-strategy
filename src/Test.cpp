@@ -713,7 +713,7 @@ static void display_canonical_guesses(
 static void test_initial_guesses_in_equivalence_filter(Engine &e)
 {
 	ConstraintEquivalenceFilter filter(e);
-	display_canonical_guesses(e, &filter, 1);
+	display_canonical_guesses(e, &filter, 2);
 }
 
 /// Runs regression and benchmark tests.
