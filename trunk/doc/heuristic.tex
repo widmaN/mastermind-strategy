@@ -1,15 +1,6 @@
-\section{Heuristic Strategies}
+\chapter{Heuristic Strategies}
 
-%   - Overview [How it works]
-%   - The MinMax heuristic
-%   - The MinAverage heuristic
-%   - The Max Entropy heuristic
-%   - The Max Parts heuristic
-%   - The Min Steps heuristic
-%   - Hybrid heuristics (e.g. WideDev, LongRect)
-%   - Comparison of heuristics
-
-\subsection{Overview}
+\section{Overview}
 
 Heuristic strategies are interesting to study because they tend to uncover some interesting links between an optimal strategy and the immediate step. Good heuristics have an intuitive rationale as why the heuristic is constructed that way.
 
@@ -19,7 +10,7 @@ It is fair to expect that a tailored-heuristic to one configuration of the rules
 
 See \cite{pepperdine10} for a list of heuristic functions.
 
-\subsection{The Min-Max heuristic}
+\section{The Min-Max heuristic}
 
 Knuth \cite{knuth76} published the first paper on Mastermind, where he introduced a heuristic strategy aiming at minimizing the worst-case number of remaining possibilities.
 
@@ -31,11 +22,11 @@ Note that this strategy does not need an assumption on the distribution of the s
 
 Note: If two guesses yield the same worst-case partition, the second-to-worst partition size is compared, etc.
 
-\subsection{The Min-Average heuristic}
+\section{The Min-Average heuristic}
 
 Rationale: fewer remaining possibilities is better. We want to minimize the expected partition size.
 
-\subsection{The Max-Entropy heuristic}
+\section{The Max-Entropy heuristic}
 
 Rationale: we want a guess to provide as much information as possible as to determine what is the secret.
 
@@ -101,7 +92,7 @@ Thus the assumptions of applying the entropy theory do not exactly hold. Consequ
 
 
 
-\subsection{The Max-Parts Heuristic}
+\section{The Max-Parts Heuristic}
 
 Rationale is problematic. Subject to choice of equal heuristic element. (We can perform a randomized test to permute the codeword list.)
 
@@ -117,7 +108,7 @@ where $r$ is the number of n(on-empty) partitions.
 
 For Bulls and cows, the \maxpar{} strategy might have been tested in as early as 1969 by Ken Thompson \cite{ritchie01}. However, it is apparent that this strategy doesn't perform as well as the other heuristic strategies. See appendix [???] for an table.
 
-\subsection{Other heuristics}
+\section{Other heuristics}
 
 %http://mercury.webster.edu/aleshunas/Support\%20Materials/Analysis/Dowelll\%20-\%20Mastermind%20v2-0.doc
 
@@ -156,7 +147,7 @@ More examples can be found in his document.
 
 In addition, some hybrid strategies are used.
 
-\subsection{Comparison of heuristics}
+\section{Comparison of heuristics}
 
 When several candidate guesses yield the same heuristic value, a choice must be made as to pick which one as the guess. Standard way is to choose the ``first'' candidate as it appears in the list, or the lexicographically minima. However, some evidence (where??) shows that the performance of a heuristic does depend on which choice is made. This is not ideal.
 

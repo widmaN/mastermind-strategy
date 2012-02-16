@@ -1,6 +1,6 @@
-\section{C++ Implementation}
+\chapter{C++ Implementation}
 
-\subsection{Overview}
+\section{Overview}
 
 The program in this project plays the role of the code breaker. The goal is to find out the secret using as few guesses as possible. The program supports both the Mastermind rules and the GuessNumber rules, subject to the following limits:
 
@@ -18,26 +18,26 @@ Codeword comparison. This is the most intensive operation in the program, accoun
 
 Feedback frequency counting. The heuristic code breaker relies heavily on these routines to count statistics on partitions. This is an intensive operation which accounts for about 20\% of all CPU time. The program uses an ASM implementation to maximize performance. See Frequency.cpp.
 
-\subsection{Data Structure}
+\section{Data Structure}
 
-\subsubsection{Codeword}
+\subsection{Codeword}
 
-\subsubsection{Feedback}
+\subsection{Feedback}
 
-\subsubsection{Strategy Tree}
+\subsection{Strategy Tree}
 
-\subsection{Basic operations}
+\section{Basic operations}
 
-\subsubsection{Codeword comparison}
+\subsection{Codeword comparison}
 
-\subsubsection{Frequency table generation}
+\subsection{Frequency table generation}
 
-\subsubsection{Codeword set partitioning}
+\subsection{Codeword set partitioning}
 
-\subsection{Implementing Heuristic Strategies}
+\section{Implementing Heuristic Strategies}
 
  Obvious guesses
  
-\subsection{Implementing Optimal Strategies}
+\section{Implementing Optimal Strategies}
  
-\subsection{Implementing randomized strategies}
+\section{Implementing randomized strategies}
