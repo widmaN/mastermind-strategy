@@ -29,15 +29,16 @@ shuffle(const simd_t<uint8_t,16> &a, const simd_t<int8_t,16> &perm)
 namespace Mastermind {
 
 /**
- * Permutation that reorders the pegs and remaps the colors in a codeword.
+ * Permutation that permutes the pegs and colors in a codeword.
+ * It is the composition of a peg permutation and a color permutation.
  *
- * A codeword permutation consists of two parts: peg permutation and color
- * permutation. Here we actually store the inverse of the peg permutation
- * because it's easier to compute a permuted codeword using that.
+ * // A codeword permutation consists of two parts: peg permutation and color
+ * // permutation. Here we actually store the inverse of the peg permutation
+ * // because it's easier to compute a permuted codeword using that.
  */
 struct CodewordPermutation
 {
-	Rules _rules;
+	// Rules _rules;
 
 	union
 	{
@@ -55,9 +56,17 @@ struct CodewordPermutation
 
 public:
 
-	/// Creates an empty permutation, i.e. all elements are unmapped.
-	CodewordPermutation(const Rules &rules)
-		: _rules(rules), _perm(_mm_set1_epi8((char)-1)) { }
+	/// Creates an identity permutation.
+	CodewordPermutation()
+	{
+		for (int i = 0; i < MM_MAX_COLORS; ++i)
+			color[i] = i;
+		for (int i = 0; i < MM_MAX_PEGS; ++i)
+			peg[i] = i;
+	}
+
+	//CodewordPermutation(const Rules &rules)
+	//	: _rules(rules), _perm(_mm_set1_epi8((char)-1)) { }
 
 #if 0
 	CodewordPermutation& operator = (const CodewordPermutation &p)
@@ -68,6 +77,7 @@ public:
 	}
 #endif
 
+#if 0
 	unsigned short unmapped_colors() const
 	{
 		int unspecified = _mm_movemask_epi8(_perm);
@@ -75,6 +85,7 @@ public:
 		//return std::bitset<MM_MAX_COLORS>(unspecified & color_mask);
 		return (unsigned short)(unspecified & color_mask);
 	}
+#endif
 
 #if 0
 	/// Returns the inverse of the permutation.
@@ -95,6 +106,7 @@ public:
 	}
 #endif
 
+#if 0
 	/// Tests whether the permutation is fully specified.
 	bool complete() const 
 	{
@@ -117,6 +129,7 @@ public:
 		int test = (unspecified & mask);
 		return (test & (test - 1)) == 0;
 	}
+#endif
 
 	/// Returns the mapped value of a peg.
 	//char peg(size_t i) const { return _peg[i]; }
@@ -131,14 +144,13 @@ public:
 	/// Returns an end iterator to the peg permutation.
 	//char* peg_end() { return _peg + _rules.pegs(); }
 
+	/// Permutes a codeword.
 	Codeword permute(const Codeword &w) const
 	{
 		Codeword ret;
-		for (int i = 0; i < _rules.pegs(); ++i)
+		for (int i = 0; i < MM_MAX_PEGS && w[i] != 0xFF; ++i)
 		{
-			int c1 = w[peg[i]];
-			int c2 = color[c1];
-			ret.set(i, (c2 >= 0 ? c2 : c1));
+			ret.set(peg[i], color[w[i]]);
 		}
 		return ret;
 	}
@@ -146,11 +158,12 @@ public:
 	Codeword permute_pegs(const Codeword &w) const
 	{
 		Codeword ret;
-		for (int i = 0; i < _rules.pegs(); ++i)
-			ret.set(i, w[peg[i]]);
+		for (int i = 0; i < MM_MAX_PEGS && w[i] != 0xFF; ++i)
+			ret.set(peg[i], w[i]);
 		return ret;
 	}
 
+#if 0
 	Codeword permute_colors(const Codeword &w) const
 	{
 		Codeword ret;
@@ -158,32 +171,27 @@ public:
 			ret.set(i, color[w[i]]);
 		return ret;
 	}
+#endif
 
 	friend std::ostream& operator << (
 		std::ostream& os, const CodewordPermutation &p) 
 	{
 		// Output peg permutation.
 		os << "(";
-		for (int i = 0; i < p._rules.pegs(); ++i)
+		for (int i = 0; i < MM_MAX_PEGS; ++i)
 		{
 			if (i > 0)
 				os << ' ';
-			if (p.peg[i] < 0)
-				os << '*';
-			else
-				os << (size_t)p.peg[i];
+			os << (size_t)p.peg[i];
 		}
 		os << ") o (";
 
 		// Output color permutation.
-		for (int i = 0; i < p._rules.colors(); ++i)
+		for (int i = 0; i < MM_MAX_COLORS; ++i)
 		{
 			if (i > 0)
 				os << ' ';
-			if (p.color[i] < 0)
-				os << '*';
-			else
-				os << (size_t)p.color[i];
+			os << (size_t)p.color[i];
 		}
 		os << ")";
 		return os;

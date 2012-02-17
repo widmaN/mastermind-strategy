@@ -712,8 +712,9 @@ static void display_canonical_guesses(
 
 static void test_initial_guesses_in_equivalence_filter(Engine &e)
 {
-	ConstraintEquivalenceFilter filter(e);
-	display_canonical_guesses(e, &filter, 1);
+	EquivalenceFilter *filter = CreateConstraintEquivalenceFilter(e);
+	display_canonical_guesses(e, filter, 1);
+	delete filter;
 }
 
 /// Runs regression and benchmark tests.
@@ -759,7 +760,7 @@ int test(const Rules &rules)
 #if 0
 		new DummyEquivalenceFilter()
 #else
-		new ConstraintEquivalenceFilter(e)
+		CreateConstraintEquivalenceFilter(e)
 #endif
 		);
 
