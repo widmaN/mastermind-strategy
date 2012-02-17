@@ -1,5 +1,5 @@
-#ifndef MASTERMIND_UTIL_SIMD_HPP
-#define MASTERMIND_UTIL_SIMD_HPP
+#ifndef UTILITIES_SIMD_HPP
+#define UTILITIES_SIMD_HPP
 
 #include <cstdint>
 #include <emmintrin.h>
@@ -172,4 +172,22 @@ inline int sum_low(const simd_t<uint8_t,16> &a)
 
 } } // namespace util::simd
 
-#endif // MASTERMIND_UTIL_SIMD_HPP
+
+#if 0
+#include <tmmintrin.h>
+
+namespace util { namespace simd {
+	
+#define SIMD_REQUIRE(version)
+
+SIMD_REQUIRE("SSSE3")
+inline simd_t<uint8_t,16> 
+shuffle(const simd_t<uint8_t,16> &a, const simd_t<int8_t,16> &perm)
+{
+	return _mm_shuffle_epi8(a, perm);
+}
+
+} } // namespace util::simd
+#endif
+
+#endif // UTILITIES_SIMD_HPP

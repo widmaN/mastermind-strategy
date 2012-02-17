@@ -2,7 +2,6 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
-#include <bitset>
 
 #include "Engine.hpp"
 #include "Permutation.hpp"
@@ -10,7 +9,6 @@
 
 #include "util/intrinsic.hpp"
 #include "util/call_counter.hpp"
-#include "util/aligned_allocator.hpp"
 
 REGISTER_CALL_COUNTER(ConstraintEquivalence)
 // REGISTER_CALL_COUNTER(ConstraintEquivalenceIdentity)
@@ -87,10 +85,7 @@ class ConstraintEquivalenceFilter : public EquivalenceFilter
 	Engine &e;
 	MyColorMask free_colors;
 
-	std::vector<
-		CodewordPermutation,
-		util::aligned_allocator<CodewordPermutation,16>
-	> pp;
+	std::vector<	CodewordPermutation> pp;
 
 public:
 
@@ -149,23 +144,11 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 		const Codeword candidate = candidates.begin()[i];
 		bool is_canonical = true;
 
-#if 0
-		bool debug_stop = false;
-		if (Codeword::pack(guess) == 0xffff0234)
-			debug_stop = true;
-#endif
-
 		// Check each peg permutation to see if there exists a peg/color
 		// permutation that maps the candidate to a lexicographically
 		// smaller equivalent codeword.
 		for (size_t j = 0; j < pp.size(); ++j)
 		{
-#if 0
-			if (debug_stop && j == 3)
-				debug_stop = true;
-#endif
-
-
 			// Permute the pegs and colors of the candidate.
 			// Free colors are kept unchanged.
 			// Optimization: if this is the identity permutation,
@@ -178,7 +161,6 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 			// Take, for example, 1223. It must be able to map to 1123 and
 			// show that it's not canonical.
 			MyColorMask free_from = free_colors, free_to = free_colors;
-			//int free_color = u;
 			for (int k = 0; k < e.rules().pegs(); ++k)
 			{
 				// Let c be the color on peg k of the peg-permuted candidate.
@@ -223,7 +205,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 			canonical.push_back(candidate);
 	}
 
-#if 1
+#if 0
 	UPDATE_CALL_COUNTER(ConstraintEquivalence, canonical.size());
 	UPDATE_CALL_COUNTER(ConstraintEquivalencePermutation, pp.size());
 	UPDATE_CALL_COUNTER(ConstraintEquivalenceCrossout, (n-canonical.size()+1));
@@ -255,8 +237,6 @@ void ConstraintEquivalenceFilter::add_constraint(
 		Codeword permuted = p.permute_pegs(guess);
 
 		// Try to map the color on each peg onto itself.
-		// @bug The following code is not correct in some cases;
-		// see the modified version for the correct one.
 		MyColorMask free_from = free_colors, free_to = free_colors;
 		bool ok = true;
 		for (int j = 0; j < e.rules().pegs() && ok; ++j)

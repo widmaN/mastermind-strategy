@@ -128,5 +128,8 @@
     <ClInclude Include="src\Equivalence.hpp">
       <Filter>Algorithms</Filter>
     </ClInclude>
+    <ClInclude Include="src\util\choose.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
