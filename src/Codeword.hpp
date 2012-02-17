@@ -131,6 +131,7 @@ std::ostream& operator << (std::ostream &os, const Codeword &c);
 /// Inputs a codeword from a stream. No rules are enforced.
 std::istream& operator >> (std::istream &is, Codeword &c);
 
+#if 0
 /// Utility class that computes the lexicographical index of a codeword.
 /// For performance reason, we ALWAYS computes the index as if repetition
 /// was allowed in the colors. This improves speed at the cost of a little
@@ -197,6 +198,7 @@ public:
 #endif
 	}
 };
+#endif
 
 } // namespace Mastermind
 
