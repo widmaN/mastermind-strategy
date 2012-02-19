@@ -16,6 +16,9 @@
     <Filter Include="Program">
       <UniqueIdentifier>{7709fbe0-4060-4931-bf27-aa14d15d557d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Equivalence Filters">
+      <UniqueIdentifier>{6b147083-c8e5-4a0e-8de0-7199f0ebe6d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CodeBreaker.cpp">
@@ -51,11 +54,11 @@
     <ClCompile Include="src\Engine.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\ColorEquivalence.cpp">
-      <Filter>Algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="src\ConstraintEquivalence.cpp">
-      <Filter>Algorithms</Filter>
+      <Filter>Equivalence Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ColorEquivalence.cpp">
+      <Filter>Equivalence Filters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -125,11 +128,11 @@
     <ClInclude Include="src\Permutation.hpp">
       <Filter>Types</Filter>
     </ClInclude>
-    <ClInclude Include="src\Equivalence.hpp">
-      <Filter>Algorithms</Filter>
-    </ClInclude>
     <ClInclude Include="src\util\choose.hpp">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Equivalence.hpp">
+      <Filter>Equivalence Filters</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
