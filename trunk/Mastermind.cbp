@@ -5,7 +5,7 @@
 		<Option title="Mastermind" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="Types/;Algorithms/;Strategies/;Utilities/;Program/;" />
+		<Option virtualFolders="Types/;Algorithms/;Strategies/;Utilities/;Program/;Equivalence Filters/;" />
 		<Build>
 			<Target title="Debug">
 				<Option output="build/Debug/Mastermind" prefix_auto="1" extension_auto="1" />
@@ -40,12 +40,6 @@
 		<Unit filename="src/Algorithm.hpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/CallCounter.cpp">
-			<Option virtualFolder="Utilities/" />
-		</Unit>
-		<Unit filename="src/CallCounter.h">
-			<Option virtualFolder="Utilities/" />
-		</Unit>
 		<Unit filename="src/CodeBreaker.cpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
@@ -58,8 +52,14 @@
 		<Unit filename="src/Codeword.hpp">
 			<Option virtualFolder="Types/" />
 		</Unit>
+		<Unit filename="src/ColorEquivalence.cpp">
+			<Option virtualFolder="Equivalence Filters/" />
+		</Unit>
 		<Unit filename="src/Compare.cpp">
 			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/ConstraintEquivalence.cpp">
+			<Option virtualFolder="Equivalence Filters/" />
 		</Unit>
 		<Unit filename="src/Engine.cpp">
 			<Option virtualFolder="Algorithms/" />
@@ -69,6 +69,9 @@
 		</Unit>
 		<Unit filename="src/Equivalence.cpp">
 			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Equivalence.hpp">
+			<Option virtualFolder="Equivalence Filters/" />
 		</Unit>
 		<Unit filename="src/Feedback.hpp">
 			<Option virtualFolder="Types/" />
@@ -97,6 +100,9 @@
 		<Unit filename="src/ObviousStrategy.hpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
+		<Unit filename="src/Permutation.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
 		<Unit filename="src/Registry.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
@@ -122,6 +128,12 @@
 			<Option virtualFolder="Program/" />
 		</Unit>
 		<Unit filename="src/util/aligned_allocator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/call_counter.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/choose.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/util/frequency_table.hpp">

@@ -17,11 +17,11 @@ inline unsigned int rotate_left(unsigned int value, int shift)
 inline int bit_scan_forward(unsigned long value)
 {
 	unsigned long pos = 0;
-//#ifdef _WIN32
+#ifdef _WIN32
 	_BitScanForward(&pos, value);
-//#else
-//	pos = 31 - __builtin_clz(value);
-//#endif
+#else
+	pos = __builtin_ctz(value);
+#endif
 	return pos;
 }
 
