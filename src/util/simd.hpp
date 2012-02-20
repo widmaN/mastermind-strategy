@@ -1,3 +1,8 @@
+/**
+ * @defgroup SIMD SIMD Operations
+ * @ingroup util
+ */
+
 #ifndef UTILITIES_SIMD_HPP
 #define UTILITIES_SIMD_HPP
 
@@ -10,10 +15,11 @@ namespace util { namespace simd {
  * Represents a fixed-size vector of elements wrapped in an SIMD data type.
  *
  * The type of the element must be one of <code>char, short, int, long, 
- * single, double</code> and their unsigned counterparts.
- *
+ * single, double</code> or their unsigned counterparts.
  * The total size of the vector must be 64 (for MMX), 128 (for XMM), or
  * 256 (for AVX).
+ *
+ * @ingroup SIMD
  */
 template <class T, int N>
 struct simd_t 
@@ -31,6 +37,7 @@ struct simd_t
 };
 
 /// Element-wise bit-AND.
+/// @ingroup SIMD
 template <class T, int N>
 simd_t<T,N> operator & (const simd_t<T,N> &a, const simd_t<T,N> &b)
 {
@@ -50,24 +57,28 @@ simd_t<T,N>& operator &= (simd_t<T,N> &a, T b)
 }
 
 /// Element-wise bit-OR.
+/// @ingroup SIMD
 template <class T, int N>
 simd_t<T,N>& operator |= (simd_t<T,N> &a, const simd_t<T,N> &b)
 {
 	return (a = _mm_or_si128(a, b));
 }
 
-/// Element-wise equality testing. 
-/// Equal elements are set to -1.
-/// Unequal elements are set to 0.
+/// Element-wise equality testing of two @c char vectors.
+/// @returns A result vector where equal elements are set to @c -1
+///      and unequal elements are set to @c 0.
+/// @ingroup SIMD
 inline simd_t<char,16> 
 operator == (const simd_t<char,16> &a, const simd_t<char,16> &b)
 {
 	return _mm_cmpeq_epi8(a, b);
 }
 
-/// Element-wise equality testing. 
-/// Equal elements are set to 0xFF.
-/// Unequal elements are set to 0.
+/// Element-wise equality testing of two <code>unsigned char</code>
+/// vectors.
+/// @returns A result vector where equal elements are set to @c 0xFF
+///      and unequal elements are set to @c 0.
+/// @ingroup SIMD
 inline simd_t<uint8_t,16> 
 operator == (const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 {
@@ -76,6 +87,7 @@ operator == (const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 
 /// Creates a 16-bit mask from the most significant bits of the 16 bytes,
 /// and zero extends the upper bits in the result.
+/// @ingroup SIMD
 inline int byte_mask(const simd_t<char,16> &a)
 {
 	return _mm_movemask_epi8(a);
@@ -83,12 +95,14 @@ inline int byte_mask(const simd_t<char,16> &a)
 
 /// Creates a 16-bit mask from the most significant bits of the 16 bytes,
 /// and zero extends the upper bits in the result.
+/// @ingroup SIMD
 inline int byte_mask(const simd_t<uint8_t,16> &a)
 {
 	return _mm_movemask_epi8(a);
 }
 
 /// Shift elements (not bits) left.
+/// @ingroup SIMD
 template <int Count>
 simd_t<uint8_t,16> shift_elements_left(const simd_t<uint8_t,16> &a)
 {
@@ -96,20 +110,23 @@ simd_t<uint8_t,16> shift_elements_left(const simd_t<uint8_t,16> &a)
 }
 
 /// Shift elements (not bits) right.
+/// @ingroup SIMD
 template <int Count>
 simd_t<uint8_t,16> shift_elements_right(const simd_t<uint8_t,16> &a)
 {
 	return _mm_srli_si128(a, Count);
 }
 
-/// Fill the left @c Count bytes with <code>b</code>.
+/// Fills the left @c Count bytes with <code>b</code>.
+/// @ingroup SIMD
 template <int Count>
 simd_t<uint8_t,16> fill_left(uint8_t b)
 {
 	return _mm_slli_si128(_mm_set1_epi8(b), 16-Count);
 }
 
-/// Fill the right @c Count bytes with <code>b</code>.
+/// Fills the right @c Count bytes with <code>b</code>.
+/// @ingroup SIMD
 template <int Count>
 simd_t<uint8_t,16> fill_right(uint8_t b)
 {
@@ -118,6 +135,7 @@ simd_t<uint8_t,16> fill_right(uint8_t b)
 
 /// Keeps @c Count bytes on the right, and sets the remaining bytes on 
 /// the left to zero.
+/// @ingroup SIMD
 template <int Count>
 simd_t<char,16> keep_right(const simd_t<char,16> &a)
 {
@@ -125,6 +143,7 @@ simd_t<char,16> keep_right(const simd_t<char,16> &a)
 }
 
 /// Extracts the selected 16-bit word, and zero extends the result.
+/// @ingroup SIMD
 template <int Index>
 int extract(const simd_t<uint16_t,8> &a)
 {
@@ -135,6 +154,7 @@ int extract(const simd_t<uint16_t,8> &a)
 /// and stores the result in the upper quadword; computes the same
 /// for the lower 8 unsigned bytes and stores the result in the 
 /// lower quadword.
+/// @ingroup SIMD
 inline simd_t<uint16_t,8> 
 sad(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 {
@@ -142,6 +162,7 @@ sad(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 }
 
 /// Element-wise minimum.
+/// @ingroup SIMD
 inline simd_t<uint8_t,16>
 min(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 {
@@ -149,6 +170,7 @@ min(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 }
 
 /// Returns the sum of bytes.
+/// @ingroup SIMD
 inline int sum(const simd_t<uint8_t,16> &a)
 {
 	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
@@ -156,6 +178,7 @@ inline int sum(const simd_t<uint8_t,16> &a)
 }
 
 /// Returns the sum of the upper half bytes.
+/// @ingroup SIMD
 inline int sum_high(const simd_t<uint8_t,16> &a)
 {
 	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
@@ -163,12 +186,12 @@ inline int sum_high(const simd_t<uint8_t,16> &a)
 }
 
 /// Returns the sum of the lower half bytes.
+/// @ingroup SIMD
 inline int sum_low(const simd_t<uint8_t,16> &a)
 {
 	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
 	return extract<0>(t);
 }
-
 
 } } // namespace util::simd
 

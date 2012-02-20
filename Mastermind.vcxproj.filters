@@ -60,6 +60,9 @@
     <ClCompile Include="src\ColorEquivalence.cpp">
       <Filter>Equivalence Filters</Filter>
     </ClCompile>
+    <ClCompile Include="src\DummyEquivalenceFilter.cpp">
+      <Filter>Equivalence Filters</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\OptimalCodeBreaker.hpp">

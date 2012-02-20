@@ -1,3 +1,17 @@
+/**
+ * @defgroup type Data Types
+ *
+ * @defgroup algo Basic Operations
+ *
+ * @defgroup equiv Equivalence Filters
+ *
+ * @defgroup strat Strategies
+ *
+ * @defgroup prog Program
+ *
+ * @defgroup util Utility Routines
+ */
+
 #include <iostream>
 #include <vector>
 

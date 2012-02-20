@@ -1,12 +1,21 @@
+/**
+ * @defgroup AlignedAllocator Aligned Allocator
+ * @ingroup util
+ */
+
 #ifndef UTILITIES_ALIGNED_ALLOCATOR_HPP
 #define UTILITIES_ALIGNED_ALLOCATOR_HPP
 
 #include <malloc.h>
-#include <limits>
+//#include <limits>
 #include <memory>
 
 namespace util {
 
+/**
+ * STL-compliant allocator that allocates aligned memory.
+ * @ingroup AlignedAllocator
+ */
 template <class T, size_t Alignment>
 struct aligned_allocator 
 	: public std::allocator<T> // Inherit construct(), destruct() etc.
@@ -84,12 +93,26 @@ struct aligned_allocator
 #endif
 };
 
+/**
+ * Checks whether two aligned allocators are equal.
+ * Two allocators are equal if the memory allocated using one allocator
+ * can be deallocated by the other.
+ * @returns This function always returns <code>true</code>.
+ * @ingroup AlignedAllocator
+ */
 template <class T1, size_t A1, class T2, size_t A2>
 bool operator == (const aligned_allocator<T1,A1> &, const aligned_allocator<T2,A2> &)
 {
 	return true;
 }
 
+/**
+ * Checks whether two aligned allocators are not equal.
+ * Two allocators are equal if the memory allocated using one allocator
+ * can be deallocated by the other.
+ * @returns This function always returns <code>false</code>.
+ * @ingroup AlignedAllocator
+ */
 template <class T1, size_t A1, class T2, size_t A2>
 bool operator != (const aligned_allocator<T1,A1> &, const aligned_allocator<T2,A2> &)
 {

@@ -31,6 +31,17 @@
 %\newtheorem{definition}{Definition}
 \newtheorem*{note}{Note}
 
+\theoremstyle{plain}
+\newtheorem*{theorem}{Theorem}
+
+\newcommand{\vF}{\mathcal{F}}
+\newcommand{\vG}{\mathcal{G}}
+\newcommand{\vS}{\mathcal{S}}
+\newcommand{\vu}{\mathbf{u}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+
+
 \begin{document}
 
 \title{Introduction to Mastermind Strategies}
@@ -43,6 +54,7 @@
 
 \input{abstract}
 
+\setcounter{tocdepth}{1}
 \tableofcontents
 
 %[*] entries marked with an asterisk are advanced topics. Skipping these topics doesn't affect a basic understanding of the subject. However they are needed for a practical implementation of the strategies.
@@ -112,6 +124,7 @@
 %   - Comparison of different strategiesStrategy tree
 
 \include{intro}
+\include{equiv}
 \include{heuristic}
 \include{optimal}
 \include{random}

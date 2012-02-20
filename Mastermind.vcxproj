@@ -136,6 +136,7 @@
     <ClCompile Include="src\ColorEquivalence.cpp" />
     <ClCompile Include="src\Compare.cpp" />
     <ClCompile Include="src\ConstraintEquivalence.cpp" />
+    <ClCompile Include="src\DummyEquivalenceFilter.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\Frequency.cpp" />
     <ClCompile Include="src\Generation.cpp" />
