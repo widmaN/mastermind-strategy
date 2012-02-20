@@ -712,7 +712,8 @@ static void display_canonical_guesses(
 
 static void test_initial_guesses_in_equivalence_filter(Engine &e)
 {
-	EquivalenceFilter *filter = CreateConstraintEquivalenceFilter(e);
+	EquivalenceFilter *filter = 
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e);
 	display_canonical_guesses(e, filter, 1);
 	delete filter;
 }
@@ -758,9 +759,9 @@ int test(const Rules &rules)
 	// Choose an equivalence filter.
 	std::unique_ptr<EquivalenceFilter> filter(
 #if 0
-		new DummyEquivalenceFilter()
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Dummy")(e)
 #else
-		CreateConstraintEquivalenceFilter(e)
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
 #endif
 		);
 
@@ -769,18 +770,11 @@ int test(const Rules &rules)
 
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
-#if 0
-		new SimpleStrategy(e),
-		new SimpleStrategy(e),
-		new SimpleStrategy(e),
-		new SimpleStrategy(e),
-#else
 		new HeuristicStrategy<MinimizeWorstCase<1>>(e),
 		new HeuristicStrategy<MinimizeAverage>(e),
 		new HeuristicStrategy<MaximizeEntropy<false>>(e),
 		new HeuristicStrategy<MaximizeEntropy<true>>(e),
 		new HeuristicStrategy<MaximizePartitions>(e),
-#endif
 		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
 		//new OptimalCodeBreaker(rules),
 	};
@@ -789,6 +783,7 @@ int test(const Rules &rules)
 	//simulate_guessing(e, strats, sizeof(strats)/sizeof(strats[0]), options);
 	test_strategy_tree(e, strats, nstrat, filter.get(), options);
 
+#if 0
 	std::cout << "Call statistics for ConstraintEquivalence:" << std::endl;
 	std::cout << util::call_counter::get("ConstraintEquivalence") << std::endl;
 
@@ -797,6 +792,7 @@ int test(const Rules &rules)
 
 	std::cout << "Call statistics for ConstraintEquivalenceCrossout:" << std::endl;
 	std::cout << util::call_counter::get("ConstraintEquivalenceCrossout") << std::endl;
+#endif
 
 #if 0
 	// Display some statistics.

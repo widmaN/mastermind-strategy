@@ -1,3 +1,8 @@
+/**
+ * @defgroup Intrinsic Intrinsic Functions
+ * @ingroup util
+ */
+
 #ifndef UTILITIES_INTRINSIC_HPP
 #define UTILITIES_INTRINSIC_HPP
 
@@ -9,13 +14,23 @@
 
 namespace util { namespace intrinsic {
 
+/// Rotates the bits in @c value left by @c shift bits.
+/// @ingroup Intrinsic
 inline unsigned int rotate_left(unsigned int value, int shift)
 {
 	return _rotl(value, 4);
 }
 
+/// Returns the position of the least significant one bit in @c value.
+/// @param value An integer.
+/// @returns The (zero-based) position of the least significant one bit
+///      in @c value, or <code>-1</code> if @c value is zero.
+/// @ingroup Intrinsic
 inline int bit_scan_forward(unsigned long value)
 {
+	if (value == 0)
+		return -1;
+
 	unsigned long pos = 0;
 #ifdef _WIN32
 	_BitScanForward(&pos, value);
@@ -25,8 +40,16 @@ inline int bit_scan_forward(unsigned long value)
 	return pos;
 }
 
+/// Returns the position of the most significant one bit in @c value.
+/// @param value An integer.
+/// @returns The (zero-based) position of the most significant one bit
+///      in @c value, or <code>-1</code> if @c value is zero.
+/// @ingroup Intrinsic
 inline int bit_scan_reverse(unsigned long value)
 {
+	if (value == 0)
+		return -1;
+
 	unsigned long pos = 0;
 #ifdef _WIN32
 	_BitScanReverse(&pos, value);
@@ -36,23 +59,26 @@ inline int bit_scan_reverse(unsigned long value)
 	return pos;
 }
 
-inline int pop_count(unsigned short a)
+/// Counts the number of one bits in a 16-bit integer.
+/// @param value An integer.
+/// @returns The number of one bits in @c value.
+/// @ingroup Intrinsic
+inline int pop_count(unsigned short value)
 {
 #ifdef _WIN32
-#if ENABLE_SSE2
-	return __popcnt16(a);
-#else /* ENABLE_SSE2 */
+#ifndef WITHOUT_POPCOUNT
+	return __popcnt16(value);
+#else /* WITHOUT_POPCOUNT */
 	int n = 0;
-	for (; a; a >>= 1)
+	for (; value; value >>= 1)
 	{
-		n += (a & 1);
+		n += (value & 1);
 	}
 	return n;
 #endif
 #else /* _WIN32 */
-	return  __builtin_popcount(a);
+	return  __builtin_popcount(value);
 #endif
-
 }
 
 } } // namespace util::intrinsic

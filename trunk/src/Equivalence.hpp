@@ -4,12 +4,11 @@
 // This file defines an interface for equivalence filters.
 
 #include "Engine.hpp"
-#include "Permutation.hpp"
 
 namespace Mastermind {
 
-/// Represents an equivalence filter which filters canonical guesses
-/// from a set of candidate codewords.
+/// Defines the interface for an equivalence filter which filters
+/// canonical guesses from a set of candidate codewords.
 class EquivalenceFilter
 {
 public:
@@ -27,34 +26,9 @@ public:
 		) = 0;
 };
 
-#if 1
-/// Represents a dummy equivalence filter that doesn't filter anything.
-class DummyEquivalenceFilter : public EquivalenceFilter
-{
-public:
-
-	virtual EquivalenceFilter* clone() const 
-	{
-		return new DummyEquivalenceFilter();
-	}
-
-	virtual CodewordList get_canonical_guesses(
-		CodewordConstRange candidates
-		) const 
-	{
-		return CodewordList(candidates.begin(), candidates.end());
-	}
-
-	virtual void add_constraint(
-		const Codeword & /* guess */,
-		Feedback /* response */, 
-		CodewordConstRange /* remaining */)
-	{
-	}
-};
-#endif
-
-EquivalenceFilter* CreateConstraintEquivalenceFilter(Engine &e);
+/// Typedef of pointer to function that creates an equivalence filter.
+/// @ingroup equiv
+typedef EquivalenceFilter* (*CreateEquivalenceFilterRoutine)(Engine &e);
 
 } // namespace Mastermind
 

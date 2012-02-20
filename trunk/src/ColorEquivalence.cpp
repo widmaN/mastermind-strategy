@@ -6,7 +6,7 @@
 #include "Algorithm.hpp"
 #include "util/intrinsic.hpp"
 
-using namespace Mastermind;
+namespace Mastermind {
 
 #if 0
 // Returns n!/r!
@@ -43,55 +43,6 @@ int NComb(int n, int r)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////
-// Codeword conversion routines
-//
-
-#if 0
-
-static unsigned long codeword_to_dword(__m128i from)
-{
-	unsigned long cw = 0xffffffff;
-	const unsigned char *src = (const unsigned char *)&from;
-	for (int i = 0; i < MM_MAX_PEGS; i++) {
-		unsigned char d = src[MM_MAX_COLORS + i];
-		if (d == 0xFF)
-			break;
-		cw <<= 4;
-		cw |= d;
-	}
-	return cw;
-}
-
-static __m128i dword_to_codeword(unsigned long from)
-{
-#if (MM_MAX_COLORS + MM_MAX_PEGS) != 16
-# error Invalid combination of MM_MAX_COLORS and MM_MAX_PEGS
-#endif
-#if MM_MAX_PEGS > 8
-# error Too many pegs
-#endif
-
-	// byte0-byte9 : number of appearance of 0-9
-	// byte 15,14,13,12,11,10: the code word
-	__m128i ret;
-	unsigned char *result = (unsigned char *)&ret;
-
-	memset(result, 0, MM_MAX_COLORS);
-	for (int j = 0; j < MM_MAX_PEGS; j++) {
-		unsigned char d = (from & 0xf);
-		if (d < MM_MAX_COLORS) {
-			++result[d];
-			result[MM_MAX_COLORS + j] = d;
-		} else {
-			result[MM_MAX_COLORS + j] = 0xFF;
-		}
-		from >>= 4;
-	}
-
-	return ret;
-}
-
-////////////////////////////////////////////////////////////////////////////
 // Filter routines
 
 // Filters the codeword list _src_ by removing duplicate elements according
@@ -108,6 +59,8 @@ static __m128i dword_to_codeword(unsigned long from)
 // This function keeps the lexicographical-minimum codeword of all codewords
 // equivalent to it. Therefore, this minimum codeword must exist in _src_ for
 // the function to work correctly.
+
+#if 0
 
 static size_t FilterByEquivalenceClass_norep_v1(
 	const Codeword *first,
@@ -430,3 +383,5 @@ int FilterByEquivalence_Rep(
 }
 
 #endif
+
+} // namespace Mastermind

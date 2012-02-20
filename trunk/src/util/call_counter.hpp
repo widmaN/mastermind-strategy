@@ -1,8 +1,16 @@
+/**
+ * @defgroup CallCounter Call Counter
+ * Utilities to collect function call statistics.
+ *
+ * @ingroup util
+ */
+
 #ifndef UTILITIES_CALL_COUNTER_HPP
 #define UTILITIES_CALL_COUNTER_HPP
 
 /// Define <code>ENABLE_CALL_COUNTER = 1</code> to enable call counter
 /// support at run time. You can also use the -D compiler option.
+/// @ingroup CallCounter
 #ifndef ENABLE_CALL_COUNTER
 #define ENABLE_CALL_COUNTER 1
 #endif
@@ -17,9 +25,13 @@ namespace util {
 
 #if ENABLE_CALL_COUNTER
 
-///
-/// It supports to up to (2^32-1) operations per call.
-/// The total number of calls (or operations) is up to (2^64-1).
+/**
+ * Represents a counter that collects function call statistics.
+ * It supports to up to <code>2<sup>32</sup>-1</code> operations per
+ * call. 
+ * The total number of calls (or operations) is up to (2^64-1).
+ * @ingroup CallCounter
+ */
 class call_counter
 {
 	//std::string _name; // name of the function being profiled
@@ -44,6 +56,7 @@ public:
 
 	//std::string name() const { return _name; }
 
+	/// Returns the total number of calls recorded by this counter.
 	unsigned long long total_calls() const 
 	{
 		unsigned long long total = 0;
@@ -52,6 +65,7 @@ public:
 		return total;
 	}
 
+	/// Returns the total number of operations recorded by this counter.
 	unsigned long long total_ops() const 
 	{
 		unsigned long long total = 0;
@@ -60,6 +74,8 @@ public:
 		return total;
 	}
 
+	/// Records one function call with a given number of operations.
+	/// @param ops Number of operations in this call.
 	void add_call(unsigned int ops)
 	{
 		if (ops)
@@ -71,6 +87,10 @@ public:
 		}
 	}
 
+	/// Outputs the call counter statistics to a stream.
+	/// @param os The stream.
+	/// @param cc The call counter.
+	/// @returns The stream.
 	friend std::ostream& operator << (std::ostream &os, const call_counter &cc)
 	{
 		unsigned long long ncalls = cc.total_calls();
@@ -114,11 +134,17 @@ public:
 #endif // ENABLE_CALL_COUNTER
 
 #if ENABLE_CALL_COUNTER
+
+/// Registers a call counter.
+/// @ingroup CallCounter
 #define REGISTER_CALL_COUNTER(id) \
-	static util::call_counter& _call_counter_##id = \
-	util::call_counter::get(#id);
+	static util::call_counter& _call_counter_##id = 	util::call_counter::get(#id);
+
+/// Updates the call statistics for a call counter.
+/// @ingroup CallCounter
 #define UPDATE_CALL_COUNTER(id,nops) \
 	(_call_counter_##id).add_call(nops)
+
 #else
 #define REGISTER_CALL_COUNTER(id)
 #define UPDATE_CALL_COUNTER(id,nops)
