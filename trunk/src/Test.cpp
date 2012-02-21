@@ -710,12 +710,65 @@ static void display_canonical_guesses(
 	}
 }
 
-static void test_initial_guesses_in_equivalence_filter(Engine &e)
+static void test_initial_guesses_in_equivalence_filter(Engine &e, const char *name)
 {
 	EquivalenceFilter *filter = 
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e);
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get(name)(e);
 	display_canonical_guesses(e, filter, 1);
 	delete filter;
+}
+
+static void display_partition_size(
+	Engine &e, CodewordRange secrets, const Codeword &guess)
+{
+	FeedbackFrequencyTable freq = e.partition(secrets, guess);
+	for (size_t i = 0; i < freq.size(); ++i)
+	{
+		if (i > 0)
+			std::cout << ",";
+		std::cout << freq[i];
+	}
+}
+
+static void test_partition_size(Engine &e, const char *name)
+{
+	auto filter = std::unique_ptr<EquivalenceFilter>(
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get(name)(e));
+
+	// Get an initial canonical guess.
+	CodewordList all = e.generateCodewords();
+	CodewordList initials = filter->get_canonical_guesses(e.universe());
+	Codeword g1 = initials[0];
+	// std::cout << g1 << std::endl;
+
+	// Partition the codeword set by g1.
+	FeedbackFrequencyTable freq = e.partition(all, g1);
+	int k = 0;
+	for (size_t i = 0; i < freq.size(); ++i)
+	{
+		if (freq[i] > 0)
+		{
+			// Add constraint.
+			auto child = std::unique_ptr<EquivalenceFilter>(filter->clone());
+			CodewordRange part(all.begin() + k, all.begin() + k + freq[i]);
+			child->add_constraint(g1, i, part);
+			CodewordList canonical = child->get_canonical_guesses(e.universe());
+			std::cout << "Feedback: " << Feedback(i) << ", #remaining = "
+				<< part.size() <<  ", #{g2} = " << canonical.size() << std::endl;
+
+			if (1)
+			{
+				// Display how each guess partitions the remaining secrets.
+				for (size_t j = 0; j < canonical.size() && j < 5; ++j)
+				{
+					std::cout << canonical[j] << ": ";
+					display_partition_size(e, part, canonical[j]);
+					std::cout << std::endl;
+				}
+			}
+			k += freq[i];
+		}
+	}
 }
 
 /// Runs regression and benchmark tests.
@@ -742,8 +795,17 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
+	//const char *filter_name = "Constraint";
+	const char *filter_name = "Color";
+
 #if 0
-	test_initial_guesses_in_equivalence_filter(e);
+	test_initial_guesses_in_equivalence_filter(e, filter_name);
+	system("PAUSE");
+	return 0;
+#endif
+
+#if 0
+	test_partition_size(e, filter_name);
 	system("PAUSE");
 	return 0;
 #endif
@@ -758,10 +820,11 @@ int test(const Rules &rules)
 
 	// Choose an equivalence filter.
 	std::unique_ptr<EquivalenceFilter> filter(
-#if 0
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Dummy")(e)
+#if 1
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get(filter_name)(e)
 #else
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
+		//new CompositeEquivalenceFilter(e, "Constraint", "Color")
+		new CompositeEquivalenceFilter(e, "Color", "Constraint")
 #endif
 		);
 
@@ -794,14 +857,10 @@ int test(const Rules &rules)
 	std::cout << util::call_counter::get("ConstraintEquivalenceCrossout") << std::endl;
 #endif
 
-#if 0
+#if 1
 	// Display some statistics.
-	std::cout << std::endl
-		<< "Call statistics" << std::endl
-		<< "-----------------" << std::endl;
-
-	std::cout << "** Comparison **" << std::endl
-		<< util::call_counter::get("Comparison") << std::endl;
+	std::cout << "Call statistics for Comparison:" << std::endl;
+	std::cout << util::call_counter::get("Comparison") << std::endl;
 #endif
 
 #if 0
