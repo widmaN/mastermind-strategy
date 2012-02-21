@@ -143,6 +143,7 @@
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mask.cpp" />
+    <ClCompile Include="src\OptimalCodeBreaker.cpp" />
     <ClCompile Include="src\StrategyTree.cpp" />
     <ClCompile Include="src\Test.cpp" />
   </ItemGroup>

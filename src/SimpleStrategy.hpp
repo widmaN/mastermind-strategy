@@ -31,7 +31,7 @@ public:
 	/// <code>Codeword::emptyValue()</code>.
 	virtual Codeword make_guess(
 		CodewordConstRange possibilities, 
-		CodewordConstRange /* candidates */)
+		CodewordConstRange /* candidates */) const
 	{
 		if (possibilities.empty())
 			return Codeword::emptyValue();

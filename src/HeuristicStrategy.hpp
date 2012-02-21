@@ -59,7 +59,7 @@ public:
 
 	virtual Codeword make_guess(
 		CodewordConstRange possibilities, 
-		CodewordConstRange candidates)
+		CodewordConstRange candidates) const
 	{
 		if (candidates.empty())
 			return Codeword::emptyValue();

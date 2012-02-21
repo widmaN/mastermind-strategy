@@ -1,4 +1,5 @@
 
+#if 0
 
 ///////////////////////////////////////////////////////////////////////////
 // OptimalCodeBreaker implementation
@@ -458,3 +459,4 @@ StrategyTree* OptimalCodeBreaker::BuildStrategyTree(const Codeword& first_guess)
 	return (StrategyTree*)node;
 }
 
+#endif
