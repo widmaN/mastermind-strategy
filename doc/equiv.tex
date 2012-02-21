@@ -4,7 +4,7 @@
 
 Just as a human would be easy to identify equivalent guesses, we use that in computer as well.
 
-[]Isomorphism of guesses]
+[Isomorphism of guesses]
 
 \section{Color equivalence}
 
@@ -415,34 +415,95 @@ It is therefore useful in practice to chain multiple equivalence filters togethe
 Below we discuss some issues in implementing such a filter chain.
 
 \begin{definition}
-(Composite equivalence) Let $R_1$ and $R_2$ be two equivalence relations defined on the codeword set $\vS_0$. Then $R$ is a \emph{composite equivalence relation} of $R_1$ and $R_2$ if for any $g_1, g_2 \in \vS_0$, $g_1 R g_2$ if and only if $g_1 R_1 g_2$ or $g_1 R_2 g_2$. We denote it as $R = R_1 \vee R_2$.
+(Composite equivalence) Let $R_1$ and $R_2$ be two equivalence relations defined on the codeword set $\vS_0$. Then $R$ is a \emph{composite equivalence relation} of $R_1$ and $R_2$ if for any $g_1, g_2 \in \vS_0$, $g_1 R g_2$ if and only if $g_1 R_1 g_2$ or $g_1 R_2 g_2$. We denote it as $R = R_1 \vee R_2$. The $\vee$ operator is commonly known as the \emph{join} of the partitions induced by the two equivalence relations.\footnote{See \url{http://en.wikipedia.org/wiki/Lattice\_(order)}.}
 \end{definition}
 
-[Colarary] If $R_1$ is \emph{finer} than $R_2$, then $R = R_1$.
+\begin{definition}
+(Equivalence refinement) For two equivalence relations $R_1$ and $R_2$, $R_1$ is called \emph{finer} than $R_2$ (and $R_2$ \emph{coarser} than $R_1$) if any pair of elements that are equivalent under $R_1$ are also equivalent under $R_2$. It is easy to see that if $R_1$ is finer than $R_2$, then $R_1 \vee R_2 = R_2$.
+\end{definition}
 
-Following this, we can define a compound equivalence filter $\mathcal{F}$ given two filters $\mathcal{F}_1$ and $\mathcal{F}_2$ by filtering the candidates using the compound equivalence relation.
+\begin{definition}
+(Compatible relations) Let $R_1$ and $R_2$ be two equivalence relations defined on the set $S$. Then $R_1$ and $R_2$ are called \emph{compatible} if for any $g \in \vS$, $[g]_{R_1} \subseteq [g]_{R_2}$ or $[g]_{R_2} \subseteq [g]_{R_1}$. Intuitively, this means $R_1$ is a refinement or $R_2$ for part of the set, and $R_2$ is a refinement of $R_1$ for the rest part of the set. In particular, any equivalence relation is compatible with its refinement.
+\end{definition}
 
-To actually implement a composite equivalence filter, one possibility is to implement it using \emph{disjoint sets}. That is, we separately partition the candidate set $G$ by $E_1$ and $E_2$, and then merge the equivalence classes.
+\begin{definition}
+(Discrete equivalence) A \emph{discrete} equivalence relation is an equivalence relation where every element is equivalent only to itself. A discrete equivalence relation is finer than any other equivalence relation defined on the same set.
+\end{definition}
 
-However, this approach is only useful when the two equivalence relations are not finer or coarser; if one equivalence relation is finer than the other, then there is no need to do this anyway. It doesn't reduce the computational overhead.
+\begin{definition}
+(Unit equivalence) A \emph{unit} equivalence relation is an equivalence relation where all elements are equivalent. A unit equivalence relation is coarser than any other equivalence relation defined on the same set.
+\end{definition}
 
-So, we instead use chaining. That is, given two filters, we first filter to get $G_1 = \text{filter}(G; \mathcal{F}_1)$, then we do $G_2 = \text{filter}(G_1; \mathcal{F}_2)$.
+\begin{definition}
+(Trivial equivalence) Discrete and unit equivalence relations are collectively called \emph{trivial} equivalence relations.
+\end{definition}
 
-This works under some important conditions. Let's give a counter-example. Suppose there are four elements, $1, 2, 3, 4$, and two equivalence relations $R_1$ and $R_2$, such that
+\begin{definition}
+(Simple filter) Let $R$ be an equivalence relation defined on a set $S$. A \emph{simple filter} of $\vS$ with respect to $R$ is a function that takes as input a subset $\vG \subseteq \vS$ and produces as output a set containing a representative for each class of equivalent elements in $\vG$.\footnote{Such output is known as the set of \emph{class representatives} of $\vG$; see \url{http://mathworld.wolfram.com/ClassRepresentative.html}. }
+\end{definition}
+
+One way to implement a composite equivalence filter is using \emph{disjoint sets}.\footnote{See \url{http://en.wikipedia.org/wiki/Disjoint-set\_data\_structure}.} However, this approach does not reduce the computational complexity of the second filter, and is not useful when one equivalence is finer than the other. In addition, the data structure is more complex to implement.
+
+Therefore, we prefer to implement a composite filter by \emph{chaining} the individual filters. That is, given candidate set $\vG$, we first apply the first filter to get $\vG_1 = \vF_{R_1}(\vG)$, and then apply the second filter to get $\vG_2 = \vF_{R_2}(\vG_1)$. If we can ensure $\vG_2 = \vF_{R_1 \vee R_2}(\vG)$, then this method is a simple and efficient way to compute the composite.
+
+However, arbitrary equivalence filters for arbitrary equivalence relations \emph{cannot} be chained in the above manner to produce the correct result. Let's look at a counter-example. Take a set of three elements, $X = \{1, 2, 3\}$, and take the following equivalence relations:
+\begin{align}
+R_1 &= \{ \{1, 2\}, \{3\}  \} , \notag \\
+R_2 &= \{ \{1\}, \{2,3\}  \} . \notag 
+\end{align}
+It follows that the composite equivalence relation is $R_1 \vee R_2 = \{ \{ 1, 2, 3 \} \}$.
+
+Now suppose we use a ``natural'' filter $\vF$ that keeps elements in the input sequence that are not equivalent to any of the prior elements. Then we have $\vF_{R_1}(X) = \{ 1, 3 \}$. If we in turn feed this output to the next filter, we get $\vF_{R_2}(\{1,3\}) = \{1,3 \}$. However, this result is not desired because $\vF_{R_1 \vee R_2}(X) = \{1\}$.
+
+This counter-example can be generalized to show that for arbitrary choices of equivalence relations and simple filters, we are not guaranteed to get the desired result by simply chaining individual filters. This is formalized by the following theorem.
+
+\begin{theorem}
+Let $R_1$ be a non-trivial equivalence relation defined on a set $\vS$, and let $\vF_{R_1}$ be a simple filter. Then there exists equivalence relation $R_2$ and set $\vG \subseteq \vS$ such that for any simple filter $\vF_{R_1 \vee R_2}$ and $\vF_{R_2}$, $\vF_{R_1 \vee R_2}(\vG) \ne \vF_{R_2}(\vF_{R_1}(\vG))$.
+\end{theorem}
+
+\begin{proof}
+Since $R_1$ is non-trivial, there must exist a set of three distinct elements $\vG = \{ g_1, g_2, g_3 \} \subseteq \vS$ such that $R_1$ partitions $\vG$ as
 \[
-R_1 = \{ \{ 1, 2 \}, \{ 3, 4 \} \} ,
+\vG / R_1 = \{ \{ g_1, g_2 \}, \{ g_3 \} \} .
 \]
-and
+It follows that $\vF_{R_1} (\vG) = \{ g, g_3 \}$ where $g$ is one of $g_1$ and $g_2$. 
+Now define equivalence relation $R_2$ on $\vS$ as
 \[
-R_2 = \{ \{ 1, 3 \}, \{ 2, 4 \} \} .
+\vS / R_2 = \{ \{g\}, \vS \setminus \{g\} \} .
 \]
-A composite equivalence $R$ can be defined. Obviously we have
-\[
-R = \{ \{ 1, 2, 3, 4 \} \} .
-\]
-Suppose filter 1 returns $\{ [2], [3] \}$, and this is fed to filter 2. Which will natually return $\{ [2], [3] \}$. However, it should have returned only one element.
+It is easy to see that $R_1 \vee R_2$ is the unit equivalence $\{ \vS \}$, so $\vF_{R_1 \vee R_2}(\vG)$ contains only one element. However, $\vF_{R_2}(\vF_{R_1}(\vG)) = \vF_{R_2}(\{ g, g_3 \}) = \{ g, g_3 \}$.
+\end{proof}
 
-This counter-example means we must put some requirement on how a filter returns representative elements. We have the following requirement:
+The above theorem implies that for a non-trivial equivalence relation $R_1$, it is impossible to implement a ``universal'' simple filter that can be chained to an arbitrary equivalence relation $R_2$. However, for specific choices of $R_2$, in particular those compatible with $R_1$, this actually is possible. This is shown by the following theorem.
+
+\begin{theorem}
+Let $R_1$ and $R_2$ be two compatible equivalence relations defined on a set $\vS$, and let $\vF_{R_1}$, $\vF_{R_2}$, and $\vF_{R_1 \vee R_2}$ be simple filters. Then $\vF_{R_1 \vee R_2}(\vG) = \vF_{R_2}(\vF_{R_1}(\vG))$ for all $\vG \subseteq \vS$.
+\end{theorem}
+
+This is quite obvious, so we are not going to elaborate the proof here.
+
+\begin{theorem}
+Let $R_1$ and $R_2$ be two non-compatible equivalence relations defined on a set $\vS$, and let $\vF_R$ denote a simple filter for $R$. Then for any $\vF_{R_2}$, there exists $\vF_{R_1}$ and $\vG \subseteq \vS$ such that $\vF_{R_2}(\vF_{R_1}(\vG)) \ne \vG / (R_1 \vee R_2)$.
+\end{theorem}
+
+\begin{proof}
+Since $R_1$ and $R_2$ are not compatible, there must exist a set of three distinct elements $\vG = \{ g_1, g_2, g_3 \} \subseteq \vS$ such that $R_1$ and $R_2$ partitions $\vG$ as
+\[
+\begin{array}{ r l }
+R_1: & \{ g_1, g_2 \}, \{ g_3 \} , \\
+R_2: & \{ g_1 \}, \{ g_2, g_3 \} .
+\end{array}
+\]
+It is easy to see that $g_1, g_2, g_3$ are all equivalent under $R_1 \vee R_2$, so $\vG / (R_1 \vee R_2)$ contains only one element.
+Now define $\vF_{R_1} (\vG) = \{ g_1, g_3 \}$. It then follows that
+\[
+\vF_{R_2}(\vF_{R_1}(\vG)) = \vF_{R_2}(\{ g_1, g_3 \}) = \{ g_1, g_3 \} \ne \vG / (R_1 \vee R_2) .
+\]
+\end{proof}
+
+%The above theorem shows that natural filters cannot be chained for arbitrary equivalence relations and arbitrary input. However, for specific pairs of equivalence relations, they may still be chained. In particular, if one equivalence is finer than the other, then it is easy to see that they can be chained.\footnote{This is why we require $R_1$ to be non-trivial in the above theorem, since a discrete relation is finer than any relation, and any relation is finer than a unit relation.}
+
+The counter-example and the theorem above means in order to chain filters on arbitrary relations, we must impose additional restriction on how a filter returns representative elements. For practical usefulness, we define a class of \emph{canonical} filters which satisfy this.
 
 \begin{definition}
 (Canonical filter) A \emph{canonical filter} is an equivalence filter that only returns representatives that are minimum in their respective equivalence classes. Formally, let $\prec$ be a total order on the set $\vS_0$ of all codewords.\footnote{A convenient example of such total order is the lexicographical order.}
@@ -460,7 +521,7 @@ Let $\mathcal{F}_1$ and $\mathcal{F}_2$ be the canonical filters for equivalence
 \end{theorem}
 
 \begin{proof}
-Before going into details, we illustrate the idea using an example of 7 codewords. A $\times$ sign indicates a representative of one of the canonical filters, and a $\otimes$ sign indicates a representative of both filters.
+Before going into details, we illustrate the idea with an example of 7 codewords. A $\times$ sign indicates a representative of one of the canonical filters, and a $\otimes$ sign indicates a representative of both filters.
 \[
 \begin{array}{r c c c c c c c }
       & g_1 & g_2 & g_3 & g_4 & g_5 & g_6 & g_7 \\
