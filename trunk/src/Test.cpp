@@ -531,7 +531,8 @@ static void simulate_guessing(
 	{
 		std::string name = strats[i]->name();
 		std::cout << std::setw(10) << name;
-		breakers.push_back(new CodeBreaker(e, strats[i],
+		breakers.push_back(new CodeBreaker(e, 
+			std::unique_ptr<Strategy>(strats[i]),
 			std::unique_ptr<EquivalenceFilter>(filter->clone()), 
 			options));
 	}
@@ -556,7 +557,10 @@ static void simulate_guessing(
 		for (size_t i = 0; i < n; ++i)
 		{
 			if (finished[i])
+			{
+				std::cout << "          ";
 				continue;
+			}
 
 			CodeBreaker &breaker = *breakers[i];
 			Codeword guess = breaker.MakeGuess();
@@ -710,11 +714,10 @@ static void display_canonical_guesses(
 	}
 }
 
-static void test_initial_guesses_in_equivalence_filter(Engine &e, const char *name)
+static void test_initial_guesses_in_equivalence_filter(
+	Engine &e, const EquivalenceFilter *filter)
 {
-	EquivalenceFilter *filter = 
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get(name)(e);
-	display_canonical_guesses(e, filter, 1);
+	display_canonical_guesses(e, filter, 2);
 	delete filter;
 }
 
@@ -795,11 +798,20 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
-	//const char *filter_name = "Constraint";
-	const char *filter_name = "Color";
+	// Choose an equivalence filter.
+	std::unique_ptr<EquivalenceFilter> filter(
+#if 0
+		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e)
+#else
+		new CompositeEquivalenceFilter(
+			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e),
+			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e))
+#endif
+		);
 
 #if 0
-	test_initial_guesses_in_equivalence_filter(e, filter_name);
+	test_initial_guesses_in_equivalence_filter(e, filter.get());
 	system("PAUSE");
 	return 0;
 #endif
@@ -810,27 +822,16 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
-	using namespace Mastermind::Heuristics;
 
-	// todo: we can use "optimize obvious" to reduce the strategy tree size.
-	// todo: output strategy tree size info.
+	// @todo output strategy tree size info.
 	CodeBreakerOptions options;
 	options.optimize_obvious = true;
 	options.possibility_only = false;
 
-	// Choose an equivalence filter.
-	std::unique_ptr<EquivalenceFilter> filter(
-#if 1
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get(filter_name)(e)
-#else
-		//new CompositeEquivalenceFilter(e, "Constraint", "Color")
-		new CompositeEquivalenceFilter(e, "Color", "Constraint")
-#endif
-		);
-
 	//Codeword first_guess = Codeword::emptyValue();
 	//Codeword first_guess = Codeword::Parse("0011", rules);
 
+	using namespace Mastermind::Heuristics;
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
 		new HeuristicStrategy<MinimizeWorstCase<1>>(e),
@@ -843,8 +844,10 @@ int test(const Rules &rules)
 	};
 	int nstrat = sizeof(strats)/sizeof(strats[0]);
 
-	//simulate_guessing(e, strats, sizeof(strats)/sizeof(strats[0]), options);
-	test_strategy_tree(e, strats, nstrat, filter.get(), options);
+	// Note: Only one of the following can be invoked because 
+	// a code breaker makes a unique pointer of the strategy.
+	simulate_guessing(e, strats, nstrat, filter.get(), options);
+	//test_strategy_tree(e, strats, nstrat, filter.get(), options);
 
 #if 0
 	std::cout << "Call statistics for ConstraintEquivalence:" << std::endl;

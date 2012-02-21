@@ -44,7 +44,7 @@ struct Strategy
 	 */
 	virtual Codeword make_guess(
 		CodewordConstRange possibilities, 
-		CodewordConstRange candidates) = 0;
+		CodewordConstRange candidates) const = 0;
 };
 
 } // namespace Mastermind

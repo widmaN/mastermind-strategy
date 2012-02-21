@@ -63,6 +63,9 @@
     <ClCompile Include="src\DummyEquivalenceFilter.cpp">
       <Filter>Equivalence Filters</Filter>
     </ClCompile>
+    <ClCompile Include="src\OptimalCodeBreaker.cpp">
+      <Filter>Strategies</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\OptimalCodeBreaker.hpp">

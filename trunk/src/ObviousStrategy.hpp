@@ -69,7 +69,7 @@ public:
 	 */
 	virtual Codeword make_guess(
 		CodewordConstRange possibilities, 
-		CodewordConstRange /* candidates */)
+		CodewordConstRange /* candidates */) const
 	{
 		size_t count = possibilities.size();
 		if (count == 0)

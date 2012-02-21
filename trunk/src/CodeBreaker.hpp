@@ -7,36 +7,46 @@
 #include "Strategy.hpp"
 #include "ObviousStrategy.hpp"
 #include "StrategyTree.hpp"
-#include "State.hpp"
+// #include "State.hpp"
 #include "Equivalence.hpp"
 
 namespace Mastermind
 {
 
+/// Stores options to control the behavior of a code breaker routine.
 struct CodeBreakerOptions
 {
-	bool optimize_obvious; // make an obvious guess first
-	bool possibility_only; // only make a guess from possibilities
+	/// Indicates whether to make an obvious guess first.
+	bool optimize_obvious; 
+
+	/// Indicates whether to make a guess only from the remaining
+	/// possibilities.
+	bool possibility_only; 
 	
+	/// Creates a default set of "best" options.
 	CodeBreakerOptions()
-		: optimize_obvious(true), 
-		possibility_only(false)
-	{ }
+		: optimize_obvious(true), possibility_only(false) { }
+};
+
+/// Stores statistics about a code breaker routine.
+struct CodeBreakerStatistics
+{
 };
 
 // Free-standing function that makes a guess.
 Codeword MakeGuess(
 	Engine &e,
-	State &state,
+	CodewordConstRange secrets,
+	// State &state,
 	Strategy *strat,
-	EquivalenceFilter *filter,
+	const EquivalenceFilter *filter,
 	const CodeBreakerOptions &options);
 
 // Free-standing function that builds a strategy tree.
 StrategyTree BuildStrategyTree(
 	Engine &e, 
 	Strategy *strat, 
-	EquivalenceFilter *filter,
+	const EquivalenceFilter *filter,
 	const CodeBreakerOptions &options);
 
 /// Helper class that uses a given strategy to break a code.
@@ -46,8 +56,7 @@ class CodeBreaker
 	Engine &e;
 
 	/// The strategy used to make guesses.
-	/// @todo Use auto_ptr or smart_ptr.
-	Strategy *strat;
+	std::unique_ptr<Strategy> _strategy;
 
 	/// The equivalence filter used to find canonical guesses.
 	std::unique_ptr<	EquivalenceFilter> _filter;
@@ -58,28 +67,24 @@ class CodeBreaker
 	/// Set of possibilities. This set is updated on the way.
 	CodewordList _possibilities;
 
-	/// State of the game.
-	State _state;
-
 public:
 
 	/// Creates a code breaker using the given engine and strategy.
 	CodeBreaker(
 		Engine &engine, 
-		Strategy *strategy, 
+		std::unique_ptr<Strategy> strategy, 
 		std::unique_ptr<EquivalenceFilter> filter,
 		const CodeBreakerOptions &options)
 		: e(engine), 
-		strat(strategy), 
+		_strategy(std::move(strategy)),
 		_filter(std::move(filter)),
 		_options(options),
-		_possibilities(e.universe().begin(), e.universe().end()),
-		_state(e, _possibilities)
+		_possibilities(e.universe().begin(), e.universe().end())
 	{ 
 	}
 
 	/// Returns the strategy used.
-	const Strategy* strategy() const { return strat; }
+	const Strategy* strategy() const { return _strategy.get(); }
 
 	/// Adds a constraint (guess:feedback pair). Updates the state of
 	/// the game.
@@ -93,13 +98,14 @@ public:
 	void AddConstraint(const Codeword &guess, Feedback feedback)
 	{
 		_possibilities = e.filterByFeedback(_possibilities, guess, feedback);
-		_state.udpate(e, guess, feedback, _possibilities);
+		_filter->add_constraint(guess, feedback, _possibilities);
 	}
 
 	/// Makes a guess.
 	Codeword MakeGuess()
 	{
-		return Mastermind::MakeGuess(e, _state, strat, _filter.get(), _options);
+		return Mastermind::MakeGuess(
+			e, _possibilities, _strategy.get(), _filter.get(), _options);
 	}
 };
 
