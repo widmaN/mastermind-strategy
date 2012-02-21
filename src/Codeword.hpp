@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <emmintrin.h>
 #include <algorithm>
+#include <cassert>
 
 #include "util/intrinsic.hpp"
 #include "Rules.hpp"
@@ -49,11 +50,17 @@ public:
 	bool empty() const { return _digit[0] == 0xFF; }
 
 	/// Returns the color on a given peg.
-	unsigned char operator [] (int peg) const { return _digit[peg]; }
+	unsigned char operator [] (int peg) const 
+	{
+		assert(peg >= 0 && peg < MM_MAX_PEGS);
+		return _digit[peg]; 
+	}
 
 	/// Sets the color on a given peg.
 	void set(int peg, int color)
 	{
+		assert(peg >= 0 && peg < MM_MAX_PEGS);
+		assert(color == 0xFF || (color >= 0 && color < MM_MAX_COLORS));
 		if (_digit[peg] != 0xFF)
 			--_counter[_digit[peg]];
 		if ((_digit[peg] = color) != 0xFF)
@@ -63,6 +70,7 @@ public:
 	/// Returns the number of occurrences of a given color.
 	int count(int color) const 
 	{
+		assert(color >= 0 && color < MM_MAX_COLORS);
 		return _counter[color];
 	}
 

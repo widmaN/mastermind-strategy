@@ -407,6 +407,22 @@ This is the finest-grained definition of equivalence, but is complex in implemen
 
 [Can we show that partition equivalence is the \emph{finest} equivalence relation that preserves the \emph{structure} of a strategy tree?] Of course we need to define the motivation and what is a ``structure'' first.
 
+\section{Spacial Equivalence}
+
+The codewords can be thought of as points in a space. The comparison feedback between two codewords can be thought as the distance between the points. For a formal treatment on distance, see \cite{stuckman06}.
+
+Can we define guess equivalence based on the guess's relative position to all the remaining secrets or the whole secret space?
+
+For example, for Bulls and cows, at the beginning of the game all guesses are equivalent as the first guess. This is because the entire codeword set is completely symmetric.
+
+However, for the Mastermind game, there are a few distinct initial guesses. It looks like right that these guesses have different relative spacial position relative to the codeword space.
+
+Consider again when there is one secret left. Obviously [?] two guesses are equivalent if they yield the same feedback against this potential secret (if no repetition of digit is allowed). How about for Mastermind which allows repetition?
+
+Also need to consider when two secrets are left, etc.
+
+[And is such equivalence correct? Is it equivalent to partition equivalence? Is it weaker than partition equivalence? How to implement?]
+
 \section{Chaining Multiple Filters}
 
 The equivalence filters described above vary in complexity and performance. More complex filters tend to produce fewer canonical guesses, but at the cost of higher computational overhead. If the computational overhead is too high, the benefit of filtering could be offset.

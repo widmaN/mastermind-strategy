@@ -2,9 +2,11 @@
 #include <malloc.h>
 #include <emmintrin.h>
 #include <memory.h>
+#include <array>
 
 #include "Algorithm.hpp"
 #include "util/intrinsic.hpp"
+#include "Equivalence.hpp"
 
 namespace Mastermind {
 
@@ -41,6 +43,149 @@ int NComb(int n, int r)
 	return NPermute(n,r)/NPermute(r,r);
 }
 #endif
+
+/// Represents a dummy equivalence filter that doesn't filter anything.
+class ColorEquivalenceFilter : public EquivalenceFilter
+{
+	unsigned short _unguessed;
+	unsigned short _excluded;
+	std::array<unsigned char,16> eqclass;
+	Engine &e;
+
+	CodewordList filter_norep(CodewordConstRange candidates) const;
+
+	void update_eqclass()
+	{
+		for (int i = 0; i < 16; ++i)
+		{
+			eqclass[i] = i;
+		}
+
+		for (int last = -1, i = 0; i < e.rules().colors(); ++i)
+		{
+			if (_unguessed & (1 << i))
+			{
+				if (last >= 0)
+				{
+					eqclass[i] = eqclass[last];
+					eqclass[last] = i;
+				}
+				last = i;
+			}
+		}
+
+		for (int last = -1, i = 0; i < e.rules().colors(); ++i)
+		{
+			if (_excluded & (1 << i))
+			{
+				if (last >= 0)
+				{
+					eqclass[i] = eqclass[last];
+					eqclass[last] = i;
+				}
+				last = i;
+			}
+		}
+	}
+
+public:
+
+	ColorEquivalenceFilter(Engine &engine) : e(engine) 
+	{
+		_unguessed = (1 << e.rules().colors()) - 1;
+		_excluded = 0;
+		update_eqclass();
+	}
+	
+	virtual EquivalenceFilter* clone() const 
+	{
+		return new ColorEquivalenceFilter(*this);
+	}
+
+	virtual CodewordList get_canonical_guesses(
+		CodewordConstRange candidates) const
+	{
+		if (e.rules().repeatable())
+			return CodewordList(candidates.begin(), candidates.end());
+		else
+			return filter_norep(candidates);
+	}
+
+	virtual void add_constraint(
+		const Codeword & guess,
+		Feedback /* response */, 
+		CodewordConstRange remaining)
+	{
+		if (remaining.size() == 1)
+		{
+			int kk = 1;
+		}
+		unsigned short all = (1 << e.rules().colors()) - 1;
+		_excluded = all & ~e.colorMask(remaining).to_ulong();
+		_unguessed &= ~e.colorMask(guess).to_ulong();
+		_unguessed &= ~_excluded;
+		update_eqclass();
+	}
+};
+
+CodewordList ColorEquivalenceFilter::filter_norep(
+	CodewordConstRange candidates) const
+{
+	// Find out the largest digit each digit is equivalent to.
+	// This information is stored in the variable _head_.
+	// For example, if head[5]=3, this means the smallest digit
+	// equivalent to 5 is 3.
+	std::array<unsigned char,16> head;
+	std::fill(head.begin(), head.end(), (unsigned char)0xFF);
+	for (int i = 0; i < 16; i++) 
+	{
+		if (i < head[i])
+			head[i] = i;
+		int c = 0; // counter to avoid dead loop in case _eqclass_ is malformed.
+		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++) 
+		{
+			if (i < head[p])
+				head[p] = i;
+		}
+		assert(c <= 16); // check bad loop
+	}
+
+	// Find out the minimum equivalent codeword of each codeword. If it is
+	// equal to the codeword itself, keep it.
+	CodewordList canonical;
+	canonical.reserve(candidates.size());
+	for (CodewordConstIterator it = candidates.begin(); it != candidates.end(); ++it)
+	{
+		Codeword guess = *it;
+		std::array<unsigned char,16> chain(head);
+		bool ok = true;
+		for (int j = 0; j < e.rules().pegs(); j++) 
+		{
+			unsigned char d = guess[j];
+			unsigned char d0 = head[d];
+			if (chain[d0] != d) 
+			{
+				ok = false;
+				break;
+			}
+			chain[d0] = eqclass[d];
+		}
+		if (ok) 
+		{
+			canonical.push_back(guess);
+		}
+	}
+	return std::move(canonical);
+}
+
+static EquivalenceFilter* CreateColorEquivalenceFilter(Engine &e)
+{
+	return new ColorEquivalenceFilter(e);
+}
+
+REGISTER_ROUTINE(CreateEquivalenceFilterRoutine,
+				 "Color",
+				 CreateColorEquivalenceFilter)
 
 ////////////////////////////////////////////////////////////////////////////
 // Filter routines
