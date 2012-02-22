@@ -5,8 +5,6 @@
 
 namespace Mastermind {
 
-//typedef void ProgressReport(double percentage, void *tag);
-
 /**
  * Strategy that makes the guess that produces the optimal score for
  * a heuristic function.
@@ -42,6 +40,8 @@ class HeuristicStrategy : public Strategy
 
 public:
 
+	typedef typename Heuristic::score_t score_type;
+
 	/// Constructs the strategy.
 	HeuristicStrategy(Engine &engine) : e(engine) { }
 
@@ -57,9 +57,12 @@ public:
 		return Heuristic::name();
 	}
 
-	virtual Codeword make_guess(
+	/// Makes the guess that produces the lowest heuristic score.
+	/// Optionally stores the score of all candidates in an array.
+	Codeword make_guess(
 		CodewordConstRange possibilities, 
-		CodewordConstRange candidates) const
+		CodewordConstRange candidates,
+		score_type *scores) const
 	{
 		if (candidates.empty())
 			return Codeword::emptyValue();
@@ -77,7 +80,14 @@ public:
 			FeedbackFrequencyTable freq = 
 				e.frequency(e.compare(guess, possibilities));
 
-			typename Heuristic::score_t score = Heuristic::compute(freq);
+			// Compute a score of the partition.
+			score_type score = Heuristic::compute(freq);
+
+			// Store the score if requested.
+			if (scores)
+				*(scores++) = score;
+			
+			// Keep track of the guess that produces the lowest score.
 			if ((it == candidates.begin()) || (score < choice_score) || 
 				(score == choice_score && !choice_ispos && freq[target] > 0)) 
 			{
@@ -85,9 +95,15 @@ public:
 				choice_score = score;
 				choice_ispos = (freq[target] > 0);
 			}
-			// std::cout << (it - candidates.begin()) << std::endl;
 		}
 		return choice;
+	}
+
+	virtual Codeword make_guess(
+		CodewordConstRange possibilities, 
+		CodewordConstRange candidates) const
+	{
+		return make_guess(possibilities, candidates, NULL);
 	}
 };
 

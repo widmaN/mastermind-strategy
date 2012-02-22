@@ -172,6 +172,7 @@
     <ClInclude Include="src\util\pool_allocator.hpp" />
     <ClInclude Include="src\util\range.hpp" />
     <ClInclude Include="src\util\simd.hpp" />
+    <ClInclude Include="src\util\zip_iterator.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

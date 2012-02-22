@@ -1,3 +1,389 @@
+#include <iostream>
+#include <iomanip>
+#include <cassert>
+#include <algorithm>
+#include <vector>
+#include <array>
+
+#include "Engine.hpp"
+#include "Strategy.hpp"
+#include "Equivalence.hpp"
+#include "ObviousStrategy.hpp"
+#include "HeuristicStrategy.hpp"
+#include "StrategyTree.hpp"
+#include "util/zip_iterator.hpp"
+#include "util/call_counter.hpp"
+
+using namespace Mastermind;
+
+REGISTER_CALL_COUNTER(OptimalRecursion)
+
+// Returns an estimate of the minimum total number of steps required
+// to reveal all the supplied secrets.
+static int estimate_lower_bound(Engine &e, CodewordConstRange secrets, int look_ahead)
+{
+	int n = (int)secrets.size();
+
+	// If look_ahead < 0, provide a dummy lower bound.
+	if (look_ahead < 0)
+		return n;
+
+	// If look_ahead == 0, assume the branching factor is p(p+3)/2-1 always.
+	// Then:
+	//    1 secret  can be revealed with 1 guess,
+	//   13 secrets can be revealed with 2 guesses,
+	//  169 secrets can be revealed with 3 guesses, etc.
+	if (look_ahead == 0)
+	{
+		int p = e.rules().pegs();
+		int m = p*(p+3)/2-1;
+		int cost = 0;
+		for (int step=1, factor=1, count=0; n > count; )
+		{
+			cost += (n - count) * step;
+			count += factor;
+			factor *= m;
+		}
+		return cost;
+	}
+
+	return 0;
+}
+
+/// Represents the partition of a set.
+#if 0
+template <class TKey, size_t Capacity, class Iter>
+class partition
+{
+public:
+
+	struct cell
+	{
+		TKey key;
+		Iter begin;
+		Iter end;
+
+		size_t size() const { return end - begin; }
+	};
+
+	std::array<cell,Capacity> _cells;
+	int _ncells;
+
+	template <class TVal>
+	partition(
+		const util::frequency_table<TKey,TVal,Capacity> &freq,
+		Iter first, Iter last) : _ncells(0)
+	{
+		util::range<Iter> r(first, first);
+		for (size_t i = 0; i < freq.size(); ++i)
+		{
+			if (freq[i] > 0)
+			{
+				r = util::range<Iter>(r.end(), r.end() + freq[j]);
+				cell c;
+				c.key = TKey(i);
+				c.begin = r.begin();
+				c.end = r.end();
+				_cells[_ncells++] = c;
+			}
+		}
+	}
+
+	size_t size() const { return _ncells; }
+
+	typename std::array<cell,Capacity>::iterator begin()
+	{ 
+		return _cells.begin(); 
+	}
+
+	typename std::array<cell,Capacity>::iterator end()
+	{
+		return _cells.begin() + _ncells;
+	}
+};
+#endif
+
+//typedef partition<Feedback,256,CodewordRange> CodewordPartition;
+struct CodewordCell : public CodewordRange
+{
+	Feedback feedback;
+	CodewordCell(Feedback fb, CodewordIterator first, CodewordIterator last)
+		: feedback(fb), CodewordRange(first, last) { }
+};
+
+typedef std::vector<CodewordCell> CodewordPartition;
+
+static CodewordPartition
+partition(Engine &e, CodewordRange secrets, const Codeword &guess)
+{
+	FeedbackFrequencyTable freq = e.partition(secrets, guess);
+	CodewordRange range(secrets.begin(), secrets.begin());
+	CodewordPartition cells;
+	for (size_t j = 0; j < freq.size(); ++j)
+	{
+		if (freq[j] > 0)
+		{
+			range = CodewordRange(range.end(), range.end() + freq[j]);
+			cells.push_back(CodewordCell(j, range.begin(), range.end()));
+		}
+	}
+	return cells;
+}
+
+#define VERBOSE_COUT if (verbose) std::cout << std::setw(depth*2) << "" \
+	<< "[" << (depth+1) << "] "
+
+// Finds the optimal strategy for a given set of remaining secrets.
+// Returns the optimal (least) total number of steps needed to reveal
+// all the secrets, or -1 if such optimal will not be less than _best_.
+static int fill_strategy_tree(
+	Engine &e,
+	CodewordRange secrets,
+	EquivalenceFilter *filter,
+	int depth,     // Number of guesses already made
+	int max_depth, // Maximum number of guesses allowed to make
+	int best,      // Upper bound of additional cost; used for pruning
+	StrategyTree &tree // Strategy tree that stores the best strategy
+	)
+{
+	UPDATE_CALL_COUNTER(OptimalRecursion, secrets.size());
+
+	// Note: Branch pruning is done based on the supplied cut-off 
+	// threshold _best_. It is set to an upper bound of the total 
+	// number of steps needed to reveal all the secrets, ignoring
+	// the current depth of the tree.
+
+	//const bool verbose = true;
+	const bool verbose = (depth < 1);
+	
+	VERBOSE_COUT << "Checking " << secrets.size() << " remaining secrets" 
+		<< std::endl;
+
+	if (secrets.empty())
+		return 0;
+
+	const Feedback perfect = Feedback::perfectValue(e.rules());
+
+	// Optimize when there are only a few secrets.
+	Codeword obvious = ObviousStrategy(e).make_guess(secrets, secrets);
+	if (!obvious.empty())
+	{
+		VERBOSE_COUT << "Found obvious guess: " << obvious << std::endl;
+
+		int n = secrets.size();
+		int extra = 2*n - 1;
+		if (extra >= best)
+		{
+			VERBOSE_COUT << "Pruned because the exact cost (" << extra
+				<< ") >= best (" << best << ")" << std::endl;
+			return -1;
+		}
+
+		FeedbackList fbs = e.compare(obvious, secrets);
+		for (size_t i = 0; i < fbs.size(); ++i)
+		{
+			StrategyTree::Node node(depth+1, Codeword::pack(obvious), fbs[i].value());
+			//node.npossibilities = 1;
+			tree.append(node);
+			if (fbs[i] != perfect)
+			{
+				StrategyTree::Node leaf(
+					depth+2, Codeword::pack(secrets.begin()[i]), perfect.value());
+				tree.append(leaf);
+			}
+		}
+		return extra;
+	}
+	// @todo: try guesses from non-secrets.
+
+	// For a Mastermind game, all secrets can be revealed within five
+	// guesses (though an optimal strategy requires 6 guesses in one
+	// case). This means when we are about to make the 5th guess, we
+	// must have already determined the secret, i.e. there is only one
+	// possibility left. This in turn means when we are about to make 
+	// the 4th guess, this guess must be able to partition the remaining
+	// secrets into a discrete partition. If this condition is not
+	// satisfied, we do not need to proceed no more.
+	if (depth >= max_depth - 2)
+	{
+		VERBOSE_COUT << "Pruned because this branch is not possible to "
+			<< "finish within in " << max_depth << " steps." << std::endl;
+		return -1;
+	}
+
+	// Filter canonical guesses as candidates.
+	CodewordList candidates = filter->get_canonical_guesses(e.universe());
+	VERBOSE_COUT << "Found " << candidates.size() << " canonical guesses."
+		<< std::endl;
+
+	// Sort the candidates by a heuristic value, so that more "promising"
+	// candidates are processed first. This helps to find a good upper
+	// bound quickly.
+	typedef HeuristicStrategy<Heuristics::MinimizeAverage> heuristic_type;
+	std::vector<heuristic_type::score_type> scores(candidates.size());
+#if 0
+	heuristic_type h(e);
+	h.make_guess(secrets, candidates, &scores[0]);
+#else
+	heuristic_type(e).make_guess(secrets, candidates, &scores[0]);
+#endif
+	std::sort(
+		util::make_zip(scores.begin(), candidates.begin()),
+		util::make_zip(scores.end(), candidates.end()));
+
+	// @todo Instead of sorting by a heuristic, we could instead
+	// sort directly by the estimated lower bound of the cost.
+	// This has two benefits:
+	// 1, if the estimate is good enough, the sorting would be
+	//    more "promising".
+	// 2, once we find the lower bound of one guess to be greater
+	//    than the current best, we can ignore all guesses that
+	//    follows.
+
+	// Initialize some state variables to store the best guess
+	// so far and related cut-off thresholds.
+	// int best = std::numeric_limits<int>::max();
+
+	// Try each candidate guess.
+	for (auto it = candidates.begin(); it != candidates.end(); ++it)
+	{
+		Codeword guess = *it;
+
+		VERBOSE_COUT << "Checking guess " << (it-candidates.begin()+1) 
+			<< " of " << candidates.size() << " (" << guess << ") -> ";
+		//	<< std::endl;
+
+		// Partition the remaining secrets using this guess.
+		CodewordPartition cells = partition(e, secrets, guess);
+
+		// Skip this guess if it generates only one partition.
+		if (cells.size() == 1)
+		{
+			if (verbose)
+				std::cout << "Skipped: guess produces unit partition"
+				<< std::endl;
+			continue;
+		}
+
+		// Sort the partitions by their size, so that smaller 
+		// partitions are processed first. This makes sure we can
+		// update more lower bounds earlier.
+		std::sort(cells.begin(), cells.end(), 
+			[](const CodewordCell &c1, const CodewordCell &c2) -> bool
+		{
+			return c1.size() < c2.size();
+		});
+
+		// Estimate a lower bound of the number of steps required 
+		// to reveal the secrets in each partition. If the total
+		// lower bound is greater than the cut-off threshold, we 
+		// can skip this guess.
+		int lb_part[256];
+		int lb = (int)secrets.size(); // each secret takes 1 initial guess
+		for (size_t j = 0; j < cells.size(); ++j)
+		{
+			if (cells[j].feedback == perfect)
+				lb_part[j] = 0;
+			else
+				lb_part[j] = estimate_lower_bound(e, cells[j], 0);
+			lb += lb_part[j];
+		}
+		if (lb >= best)
+		{
+			if (verbose)
+				std::cout << "Pruned: lower bound (" << lb 
+				<< ") >= best (" << best << ")" 	<< std::endl;
+			continue;
+		}
+
+		if (verbose)
+			std::cout << cells.size() << " cells" << std::endl;
+
+		// Find the best guess for each partition.
+		bool pruned = false;
+		for (size_t j = 0; j < cells.size() && !pruned; ++j)
+		{
+			CodewordCell cell = cells[j];
+
+			// Add this node to the strategy tree.
+			StrategyTree::Node node(depth+1, Codeword::pack(guess), cell.feedback.value());
+			tree.append(node);
+
+			// Do not recurse for a perfect match.
+			if (cell.feedback == Feedback::perfectValue(e.rules()))
+				continue;
+
+			VERBOSE_COUT << "Checking cell " << cell.feedback << std::endl;
+
+			std::unique_ptr<EquivalenceFilter> new_filter(filter->clone());
+			new_filter->add_constraint(guess, cell.feedback, cell);
+
+			int cell_size = (int)cell.size();
+			int best_part = fill_strategy_tree(e, cell, new_filter.get(), 
+				depth + 1, max_depth, best - (lb - lb_part[j]), tree);
+			
+			if (best_part < 0) // The branch was pruned.
+			{
+				VERBOSE_COUT << "Pruned this guess because the recursion returns -1."
+					<< std::endl;
+				pruned = true;
+				break;
+			}
+
+			// Refine the lower bound estimate.
+			lb += (best_part - lb_part[j]);
+			lb_part[j] = best_part;
+			if (lb >= best)
+			{
+				VERBOSE_COUT << "Skipping " << (cells.size()-j-1) << " remaining "
+					<< "partitions because lower bound (" << lb << ") >= best ("
+					<< best << ")" << std::endl;
+				pruned = true;
+				break;
+			}
+		}
+
+		// Now the guess is either pruned, or is the best guess so far.
+		if (!pruned)
+		{
+			best = lb;
+			VERBOSE_COUT << "Improved upper bound to " << best << std::endl;
+		}
+	}
+	return best;
+}
+
+static void build_optimal_strategy_tree(Engine &e)
+{
+	CodewordList all = e.generateCodewords();
+
+	// Create a "suitable" equivalence filter.
+	std::unique_ptr<EquivalenceFilter> filter(
+#if 0
+		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Dummy")(e)
+		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e)
+#else
+		new CompositeEquivalenceFilter(
+			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e),
+			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e))
+#endif
+		);
+
+	// Create a strategy tree and add a level-0 root node.
+	StrategyTree tree(e.rules());
+	StrategyTree::Node root(0, 0, 0);
+	tree.append(root);
+
+	// Recursively find an optimal strategy.
+	int best = fill_strategy_tree(e, all, filter.get(), 0, 10, 1000000, tree);
+	std::cout << "OPTIMAL: " << best << std::endl;
+}
+
+void test_optimal_strategy(Engine &e)
+{
+	build_optimal_strategy_tree(e);
+}
 
 #if 0
 
