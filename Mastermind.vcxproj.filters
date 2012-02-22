@@ -125,9 +125,6 @@
     <ClInclude Include="src\HeuristicStrategy.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
-    <ClInclude Include="src\State.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
     <ClInclude Include="src\util\call_counter.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -139,6 +136,9 @@
     </ClInclude>
     <ClInclude Include="src\Equivalence.hpp">
       <Filter>Equivalence Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\bitmask.hpp">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -801,8 +801,8 @@ int test(const Rules &rules)
 	// Choose an equivalence filter.
 	std::unique_ptr<EquivalenceFilter> filter(
 #if 0
-		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e)
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
+		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e)
 #else
 		new CompositeEquivalenceFilter(
 			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e),
@@ -846,8 +846,8 @@ int test(const Rules &rules)
 
 	// Note: Only one of the following can be invoked because 
 	// a code breaker makes a unique pointer of the strategy.
-	simulate_guessing(e, strats, nstrat, filter.get(), options);
-	//test_strategy_tree(e, strats, nstrat, filter.get(), options);
+	//simulate_guessing(e, strats, nstrat, filter.get(), options);
+	test_strategy_tree(e, strats, nstrat, filter.get(), options);
 
 #if 0
 	std::cout << "Call statistics for ConstraintEquivalence:" << std::endl;
