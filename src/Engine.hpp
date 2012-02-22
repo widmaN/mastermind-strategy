@@ -178,7 +178,7 @@ public:
 	/// Returns a bit-mask of the colors that are present in the codeword.
 	ColorMask colorMask(const Codeword &c) const
 	{
-		return _mask(&c, &c + 1);
+		return ColorMask(_mask(&c, &c + 1));
 	}
 
 	/// Returns a bit-mask of the colors that are present in a list of
@@ -187,12 +187,12 @@ public:
 	{
 		if (codewords.empty())
 		{
-			return 0;
+			return ColorMask();
 		}
 		else
 		{
 			const Codeword *first = &(*codewords.begin());
-			return _mask(first, first + codewords.size());
+			return ColorMask(_mask(first, first + codewords.size()));
 		}
 	}
 };
