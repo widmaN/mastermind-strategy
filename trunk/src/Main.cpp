@@ -344,39 +344,21 @@ static void usage()
 		"";
 }
 
-// Latest profiling results:
-// compare_long_codeword_v4():          28%
-// FilterByEquivalenceClass_norep_v2(): 22%
-// Unknown frames:                      17%
-// count_freq_v6:                       16%
-// GetSumOfSquares:                      5%
-// __VEC_memzero:                        5%
-
-// TODO: Test whether ordinal feedback or direct feedback performs better.
-// TODO: Improve strategy tree to save memory (pointer) and be thread-safe
-//       to prepare for multithreading.
 // TODO: Refactor MakeGuess() code to make each call longer and fewer calls
 //       to take advantage of OpenMP.
 // TODO: Add progress display to OptimalCodeBreaker
 // TODO: Output strategy tree after finishing a run
-// TODO: Refactor StrategyTree() to speed up Destroy() and clean up memory
 
 extern int interactive(const Rules &rules);
 extern int test(const Rules &rules);
-
-static void pause_output()
-{
-#ifdef _WIN32
-	system("PAUSE");
-#endif
-}
+extern void pause_output();
 
 int main(int argc, char* argv[])
 {
 	using namespace Mastermind;
 
 	// Default argument values.
-#if 1
+#if 0
 	int pegs = 4;
 	int colors = 10;
 	bool repeatable = false;

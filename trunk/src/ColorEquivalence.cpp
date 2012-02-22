@@ -10,49 +10,16 @@
 
 namespace Mastermind {
 
-#if 0
-// Returns n!/r!
-int NPermute(int n, int r)
-{
-	assert(n >= r);
-	if (n < r)
-		return 0;
-
-	int p = 1;
-	for (int k = n - r + 1; k <= n; k++) {
-		p *= k;
-	}
-	return p;
-}
-
-// Returns n^r
-int NPower(int n, int r)
-{
-	assert(r >= 0);
-
-	int p = 1;
-    for (int k = 1; k <= r; k++) {
-        p *= n;
-    }
-    return p;
-}
-
-// Returns n!/r!/(n-r)!
-int NComb(int n, int r)
-{
-	return NPermute(n,r)/NPermute(r,r);
-}
-#endif
-
-/// Represents a dummy equivalence filter that doesn't filter anything.
+/// Represents a color equivalence filter.
 class ColorEquivalenceFilter : public EquivalenceFilter
 {
-	unsigned short _unguessed;
-	unsigned short _excluded;
-	std::array<unsigned char,16> eqclass;
 	Engine &e;
+	ColorMask _unguessed;
+	ColorMask _excluded;
+	std::array<unsigned char,16> eqclass;
 
 	CodewordList filter_norep(CodewordConstRange candidates) const;
+	CodewordList filter_rep(CodewordConstRange candidates) const;
 
 	void update_eqclass()
 	{
@@ -63,7 +30,7 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 
 		for (int last = -1, i = 0; i < e.rules().colors(); ++i)
 		{
-			if (_unguessed & (1 << i))
+			if (_unguessed[i])
 			{
 				if (last >= 0)
 				{
@@ -76,7 +43,7 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 
 		for (int last = -1, i = 0; i < e.rules().colors(); ++i)
 		{
-			if (_excluded & (1 << i))
+			if (_excluded[i])
 			{
 				if (last >= 0)
 				{
@@ -90,10 +57,9 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 
 public:
 
-	ColorEquivalenceFilter(Engine &engine) : e(engine) 
+	ColorEquivalenceFilter(Engine &engine) 
+		: e(engine), _unguessed(ColorMask::fill(e.rules().colors()))
 	{
-		_unguessed = (1 << e.rules().colors()) - 1;
-		_excluded = 0;
 		update_eqclass();
 	}
 	
@@ -106,7 +72,7 @@ public:
 		CodewordConstRange candidates) const
 	{
 		if (e.rules().repeatable())
-			return CodewordList(candidates.begin(), candidates.end());
+			return filter_rep(candidates);
 		else
 			return filter_norep(candidates);
 	}
@@ -116,10 +82,10 @@ public:
 		Feedback /* response */, 
 		CodewordConstRange remaining)
 	{
-		unsigned short all = (1 << e.rules().colors()) - 1;
-		_excluded = all & ~e.colorMask(remaining).value();
-		_unguessed &= ~e.colorMask(guess).value();
-		_unguessed &= ~_excluded;
+		_excluded = ColorMask::fill(e.rules().colors());
+		_excluded.reset(e.colorMask(remaining));
+		_unguessed.reset(e.colorMask(guess));
+		_unguessed.reset(_excluded);
 		update_eqclass();
 	}
 };
@@ -171,7 +137,42 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 			canonical.push_back(guess);
 		}
 	}
-	return std::move(canonical);
+	return canonical;
+}
+
+CodewordList ColorEquivalenceFilter::filter_rep(
+	CodewordConstRange candidates) const
+{
+	// For codewords with repeated colors, we only apply color equivalence
+	// on excluded colors.
+	if (_excluded.empty())
+		return CodewordList(candidates.begin(), candidates.end());
+
+	int first = _excluded.smallest();
+
+	// Find out the minimum equivalent codeword of each codeword. If it is
+	// equal to the codeword itself, keep it.
+	CodewordList canonical;
+	canonical.reserve(candidates.size());
+	for (CodewordConstIterator it = candidates.begin(); it != candidates.end(); ++it)
+	{
+		Codeword guess = *it;
+		bool ok = true;
+		for (int j = 0; j < e.rules().pegs(); j++) 
+		{
+			unsigned char c = guess[j];
+			if (_excluded[c] && c > first)
+			{
+				ok = false;
+				break;
+			}
+		}
+		if (ok) 
+		{
+			canonical.push_back(guess);
+		}
+	}
+	return canonical;
 }
 
 static EquivalenceFilter* CreateColorEquivalenceFilter(Engine &e)

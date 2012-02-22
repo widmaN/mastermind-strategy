@@ -23,6 +23,13 @@
 using namespace Mastermind;
 using namespace Utilities;
 
+void pause_output()
+{
+#ifdef _WIN32
+	system("PAUSE");
+#endif
+}
+
 // Dummy test driver that does nothing in the test and always returns success.
 template <class Routine>
 struct TestDriver
@@ -801,8 +808,9 @@ int test(const Rules &rules)
 	// Choose an equivalence filter.
 	std::unique_ptr<EquivalenceFilter> filter(
 #if 0
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
-		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e)
+		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Dummy")(e)
+		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e)
 #else
 		new CompositeEquivalenceFilter(
 			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e),

@@ -36,7 +36,7 @@ public:
 	bitmask() : _value(0) { }
 
 	/// Creates a bitmask using the supplied mask.
-	bitmask(value_type value) : _value(value) { }
+	explicit bitmask(value_type value) : _value(value) { }
 
 	/// Gets the internal value of the mask.
 	value_type value() const { return _value; }
@@ -48,14 +48,20 @@ public:
 		return (_value & ((value_type)1 << bit)) != 0;
 	}
 
-	/// Sets a given bit to zero.
+	/// Resets a given bit to zero.
 	void reset(int bit)
 	{
 		assert(bit >= 0 && bit <= Bits);
 		_value &= ~((value_type)1 << bit);
 	}
 
-	/// Sets all bits to zero.
+	/// Resets the bits corresponding to the set bits in the given mask.
+	void reset(const bitmask<Bits> &m)
+	{
+		_value &= ~ m.value();
+	}
+
+	/// Resets all bits to zero.
 	void reset() { _value = 0; }
 
 	/// Returns @c true if there is exactly one bit set.
@@ -97,7 +103,7 @@ public:
 	static bitmask<Bits> fill(size_t count)
 	{
 		assert(count >= 0 && count <= Bits);
-		return ((value_type)1 << count) - 1;
+		return bitmask<Bits>(((value_type)1 << count) - 1);
 	}
 };
 
