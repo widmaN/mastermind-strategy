@@ -830,6 +830,19 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
+#if 1
+	extern void test_optimal_strategy(Engine &);
+	test_optimal_strategy(e);
+
+	std::cout << "Call statistics for OptimalRecursion:" << std::endl;
+	std::cout << util::call_counter::get("OptimalRecursion") << std::endl;
+	
+	std::cout << "Call statistics for Comparison:" << std::endl;
+	std::cout << util::call_counter::get("Comparison") << std::endl;
+
+	pause_output();
+	return 0;
+#endif
 
 	// @todo output strategy tree size info.
 	CodeBreakerOptions options;

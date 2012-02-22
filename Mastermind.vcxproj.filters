@@ -140,5 +140,8 @@
     <ClInclude Include="src\util\bitmask.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\util\zip_iterator.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

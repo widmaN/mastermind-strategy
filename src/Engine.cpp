@@ -1,6 +1,6 @@
 #include "Engine.hpp"
 
-using namespace Mastermind;
+namespace Mastermind {
 
 // TODO: Does this function take a lot of time?
 CodewordList Engine::filterByFeedback(
@@ -119,3 +119,5 @@ void Engine::countFrequencies(
 		freq.resize(0);
 	}
 }
+
+} // namespace Mastermind
