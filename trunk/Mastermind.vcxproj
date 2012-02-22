@@ -162,9 +162,9 @@
     <ClInclude Include="src\Registry.hpp" />
     <ClInclude Include="src\Rules.hpp" />
     <ClInclude Include="src\SimpleStrategy.hpp" />
-    <ClInclude Include="src\State.hpp" />
     <ClInclude Include="src\Strategy.hpp" />
     <ClInclude Include="src\util\aligned_allocator.hpp" />
+    <ClInclude Include="src\util\bitmask.hpp" />
     <ClInclude Include="src\util\call_counter.hpp" />
     <ClInclude Include="src\util\choose.hpp" />
     <ClInclude Include="src\util\frequency_table.hpp" />

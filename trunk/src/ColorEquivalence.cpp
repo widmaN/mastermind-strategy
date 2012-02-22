@@ -116,13 +116,9 @@ public:
 		Feedback /* response */, 
 		CodewordConstRange remaining)
 	{
-		if (remaining.size() == 1)
-		{
-			int kk = 1;
-		}
 		unsigned short all = (1 << e.rules().colors()) - 1;
-		_excluded = all & ~e.colorMask(remaining).to_ulong();
-		_unguessed &= ~e.colorMask(guess).to_ulong();
+		_excluded = all & ~e.colorMask(remaining).value();
+		_unguessed &= ~e.colorMask(guess).value();
 		_unguessed &= ~_excluded;
 		update_eqclass();
 	}

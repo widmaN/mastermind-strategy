@@ -11,11 +11,12 @@
 #include "Algorithm.hpp"
 
 #include <vector>
-#include <bitset>
+//#include <bitset>
 #include "util/aligned_allocator.hpp"
 #include "util/pool_allocator.hpp"
 #include "util/frequency_table.hpp"
 #include "util/range.hpp"
+#include "util/bitmask.hpp"
 
 namespace Mastermind {
 
@@ -43,7 +44,7 @@ typedef util::frequency_table<Feedback,unsigned int,256> FeedbackFrequencyTable;
 ///////////////////////////////////////////////////////////////////////////
 // Definition of ColorMask.
 
-typedef std::bitset<MM_MAX_COLORS> ColorMask;
+typedef util::bitmask<MM_MAX_COLORS> ColorMask;
 
 ///////////////////////////////////////////////////////////////////////////
 // Definition of Engine.
