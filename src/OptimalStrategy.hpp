@@ -140,6 +140,18 @@ public:
 
 } // namespace Mastermind::Heuristics
 
+/// Options for finding an optimal strategy.
+struct OptimalStrategyOptions
+{
+	int max_depth;  // maximum number of steps to reveal a secret
+	bool find_last; // find the last optimal strategy
+	bool min_worst; // minimize the number of secrets revealed using
+	                // the worst-case number of steps
+
+	OptimalStrategyOptions() 
+		: max_depth(1000), find_last(false), min_worst(false) { }
+};
+
 /// Real-time optimal strategy. To be practical, the search space
 /// must be small. For example, it works with Mastermind rules (p4c10r),
 /// but probably not larger.
