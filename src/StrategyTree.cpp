@@ -53,15 +53,16 @@ unsigned int StrategyTree::getDepthInfo(
 	unsigned int depth_freq[], 
 	unsigned int count) const
 {
-	unsigned char target = Feedback::perfectValue(_rules).value();
+	Feedback perfect = Feedback::perfectValue(_rules);
 	unsigned int total = 0;
 	std::fill(depth_freq + 0, depth_freq + count, 0);
 	for (size_t i = 0; i < _nodes.size(); ++i)
 	{
-		if (_nodes[i].feedback == target)
+		if (_nodes[i].response() == perfect)
 		{
-			total += _nodes[i].depth;
-			++depth_freq[std::min((unsigned int)_nodes[i].depth, count)-1];
+			unsigned int d = _nodes[i].depth();
+			total += d;
+			++depth_freq[std::min(d, count) - 1];
 		}
 	}
 	return total;
@@ -147,26 +148,26 @@ void WriteToFile<XmlFormat>(std::ostream &os, const StrategyTree &tree)
 		const StrategyTree::Node &node = tree.nodes()[i];
 
 		// Close deeper branches.
-		for (; level > node.depth; --level)
+		for (; level > node.depth(); --level)
 		{
 			os << std::setw(indent*level) << "" << "</case>" << std::endl;
 		}
-		level = node.depth;
+		level = node.depth();
 
-		if (node.feedback == target)
+		if (node.response() == target)
 		{
 			os << std::setw(indent*level) << "" << "<state guess=\"" 
-				<< Codeword::unpack(node.guess) << "\" feedback=\"" 
-				<< Feedback(node.feedback) << "\"/>" << std::endl;
+				<< node.guess() << "\" feedback=\"" << node.response()
+				<< "\"/>" << std::endl;
 		}
 		else 
 		{
 			os << std::setw(indent*level) << "" << "<state "
-				<< "guess=\"" << Codeword::unpack(node.guess) << "\" "
-				<< "feedback=\"" << Feedback(node.feedback) << "\" "
-				<< "npos=\"" << node.npossibilities << "\" "
-				<< "ncand=\"" << node.ncandidates << "\" "
-				<< "next=\"" << node.suggestion << "\">"
+				<< "guess=\"" << node.guess() << "\" "
+				<< "feedback=\"" << node.response() << "\" "
+				//<< "npos=\"" << node.npossibilities << "\" "
+				//<< "ncand=\"" << node.ncandidates << "\" "
+				//<< "next=\"" << node.suggestion << "\">"
 				<< std::endl;
 		}
 	}

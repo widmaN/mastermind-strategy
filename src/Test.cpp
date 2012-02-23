@@ -838,18 +838,18 @@ int test(const Rules &rules)
 	extern void test_optimal_strategy(Engine &);
 	test_optimal_strategy(e);
 
-	std::cout << "Time: " << t1.stop() << std::endl;
+	std::cout << std::endl << "Time: " << t1.stop() << std::endl << std::endl;
 
+#if 0
 	std::cout << "Call statistics for OptimalRecursion:" << std::endl;
 	std::cout << util::call_counter::get("OptimalRecursion") << std::endl;
 	
-#if 1
 	std::cout << "Call statistics for Comparison:" << std::endl;
 	std::cout << util::call_counter::get("Comparison") << std::endl;
 #endif
 
-	pause_output();
-	return 0;
+	//pause_output();
+	//return 0;
 #endif
 
 	// @todo output strategy tree size info.

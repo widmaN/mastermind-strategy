@@ -122,13 +122,12 @@ static int fill_obviously_optimal_strategy(
 	int depth = tree.currentDepth();
 	for (size_t i = 0; i < fbs.size(); ++i)
 	{
-		StrategyTree::Node node(depth+1, Codeword::pack(guess), fbs[i].value());
+		StrategyTree::Node node(depth + 1, guess, fbs[i]);
 		//node.npossibilities = 1;
 		tree.append(node);
 		if (fbs[i] != perfect)
 		{
-			StrategyTree::Node leaf(
-				depth+2, Codeword::pack(secrets[i]), perfect.value());
+			StrategyTree::Node leaf(depth + 2, secrets[i], perfect);
 			tree.append(leaf);
 		}
 	}
@@ -203,7 +202,6 @@ static int fill_strategy_tree(
 	// "promising" candidates are processed first. This helps to
 	// improve the upper bound as early as possible.
 	std::vector<int> scores(candidates.size());
-	//estimator.make_guess(candidates, secrets, &scores[0]);
 	estimator.make_guess(secrets, candidates, &scores[0]);
 
 	std::vector<int> order(candidates.size());
@@ -219,6 +217,7 @@ static int fill_strategy_tree(
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
 	int best = -1;
+	size_t best_pos = tree.nodes().size();
 
 	// Try each candidate guess.
 	size_t candidate_count = candidates.size();
@@ -231,7 +230,6 @@ static int fill_strategy_tree(
 		// and we sort the candidates by their lower bound,
 		// we need to check here whether the remaining candidates
 		// are still worth checking.
-#if 1
 		if (scores[i] >= cut_off)
 		{
 			VERBOSE_COUT("Pruned " << (candidate_count - index)
@@ -246,7 +244,6 @@ static int fill_strategy_tree(
 #endif
 			break;
 		}
-#endif
 
 		VERBOSE_COUT("Checking guess " << (i+1) << " of " 
 			<< candidate_count << " (" << guess << ") -> ");
@@ -303,12 +300,13 @@ static int fill_strategy_tree(
 
 		// Find the best guess for each partition.
 		bool pruned = false;
+		int node_pos = tree.nodes().size(); // -1;
 		for (size_t j = 0; j < cells.size() && !pruned; ++j)
 		{
 			const CodewordCell &cell = cells[j];
 
 			// Add this node to the strategy tree.
-			StrategyTree::Node node(depth+1, Codeword::pack(guess), cell.feedback.value());
+			StrategyTree::Node node(depth + 1, guess, cell.feedback);
 			tree.append(node);
 
 			// Do not recurse for a perfect match.
@@ -383,12 +381,20 @@ static int fill_strategy_tree(
 			best = lb;
 			cut_off = best;
 			VERBOSE_COUT("Improved cut-off to " << best);
+
+			// Remove the previous best tree.
+			tree.erase(best_pos, node_pos);
+		}
+		else
+		{
+			// Remove all nodes added just now.
+			tree.erase(node_pos, tree.size());
 		}
 	}
 	return best;
 }
 
-static void build_optimal_strategy_tree(Engine &e)
+static StrategyTree build_optimal_strategy_tree(Engine &e)
 {
 	CodewordList all = e.generateCodewords();
 
@@ -407,7 +413,7 @@ static void build_optimal_strategy_tree(Engine &e)
 
 	// Create a strategy tree and add a level-0 root node.
 	StrategyTree tree(e.rules());
-	StrategyTree::Node root(0, 0, 0);
+	StrategyTree::Node root;
 	tree.append(root);
 
 	// Recursively find an optimal strategy.
@@ -415,10 +421,38 @@ static void build_optimal_strategy_tree(Engine &e)
 	int best = fill_strategy_tree(e, all, filter.get(), estimator,
 		0, 100, 1000000, tree);
 	std::cout << "OPTIMAL: " << best << std::endl;
+	return tree;
 }
 
 void test_optimal_strategy(Engine &e)
 {
-	build_optimal_strategy_tree(e);
+	StrategyTree tree = 	build_optimal_strategy_tree(e);
+	double t = 0.0;
+
+	std::cout << std::endl
+		<< "Frequency Table" << std::endl
+		<< "-----------------" << std::endl
+		<< "Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time" << std::endl;
+
+	// Count the steps used to get the answers
+	const int max_depth = 10;
+	unsigned int freq[max_depth];
+	unsigned int total = tree.getDepthInfo(freq, max_depth);
+	size_t count = e.rules().size();
+
+	// Display statistics
+	std::cout << "\r" << std::setw(8) << "optimal" << ":"
+		<< std::setw(6) << total << " "
+		<< std::setw(5) << std::setprecision(3)
+		<< std::fixed << (double)total / count << ' ';
+
+	for (int i = 1; i <= max_depth; i++) {
+		if (freq[i-1] > 0)
+			std::cout << std::setw(4) << freq[i-1] << ' ';
+		else
+			std::cout << "   - ";
+	}
+	std::cout << std::fixed << std::setw(6) << std::setprecision(2) << t << std::endl;
+	
 }
 
