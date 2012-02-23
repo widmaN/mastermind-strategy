@@ -71,9 +71,9 @@ static void FillStrategy(
 	}
 
 	// Fill strategy-related fields and output this node/state.
-	node.npossibilities = secrets.size();
-	node.ncandidates = 0; // TBD
-	node.suggestion = Codeword::pack(guess);
+	//node.npossibilities = secrets.size();
+	//node.ncandidates = 0; // TBD
+	//node.suggestion = Codeword::pack(guess);
 	tree.append(node);
 
 	// Partition the possibility set using this guess.
@@ -92,7 +92,7 @@ static void FillStrategy(
 		cell = CodewordRange(cell.end(), cell.end() + freq[k]);
 
 		// Prepare a node for the child state.
-		StrategyTree::Node child(node.depth + 1, node.suggestion, feedback.value());
+		StrategyTree::Node child(node.depth() + 1, guess, feedback);
 
 		if (feedback == perfect)
 		{
@@ -122,7 +122,7 @@ StrategyTree BuildStrategyTree(
 {
 	StrategyTree tree(e.rules());
 	CodewordList all = e.generateCodewords();
-	StrategyTree::Node root(0, (uint32_t)-1, 0);
+	StrategyTree::Node root;
 	int progress = 0;
 	FillStrategy(tree, root, e, all, strat, filter, options, &progress);
 	return tree;

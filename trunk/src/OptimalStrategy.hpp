@@ -14,6 +14,7 @@ namespace Heuristics {
 /// A special-purpose heuristic used by an optimal strategy to score
 /// candidate guesses by the lower bound of the total cost.
 /// This heuristic could also be used by a heuristic strategy.
+/// @todo Improve the lower-bound estimate.
 class MinimizeLowerBound
 {
 	Engine &e;

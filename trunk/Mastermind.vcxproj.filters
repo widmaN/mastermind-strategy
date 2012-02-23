@@ -146,5 +146,8 @@
     <ClInclude Include="src\OptimalStrategy.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
+    <ClInclude Include="src\StrategyTree.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
