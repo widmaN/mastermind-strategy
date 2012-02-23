@@ -37,24 +37,28 @@ template <class Heuristic>
 class HeuristicStrategy : public Strategy
 {		
 	Engine &e;
+	Heuristic h;
 
 public:
 
 	typedef typename Heuristic::score_t score_type;
 
 	/// Constructs the strategy.
-	HeuristicStrategy(Engine &engine) : e(engine) { }
+	HeuristicStrategy(Engine &engine, const Heuristic &heuristic = Heuristic())
+		: e(engine), h(heuristic) { }
+
+	Heuristic& heuristic() { return h; }
 
 	/// Returns the name of the strategy.
 	virtual std::string name() const
 	{
-		 return Heuristic::name();
+		 return h.name();
 	}
 
 	/// Returns a description of the strategy.
 	virtual std::string description() const
 	{
-		return Heuristic::name();
+		return h.name();
 	}
 
 	/// Makes the guess that produces the lowest heuristic score.
@@ -81,7 +85,7 @@ public:
 				e.frequency(e.compare(guess, possibilities));
 
 			// Compute a score of the partition.
-			score_type score = Heuristic::compute(freq);
+			score_type score = h.compute(freq);
 
 			// Store the score if requested.
 			if (scores)
@@ -123,10 +127,10 @@ struct MinimizeWorstCase
 	typedef unsigned int score_t;
 
 	/// Short identifier of the heuristic function.
-	static std::string name() { return "minmax"; }
+	std::string name() const { return "minmax"; }
 
 	/// Computes the heuristic score - size of the largest partition.
-	static score_t compute(const FeedbackFrequencyTable &freq)
+	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
 		return freq.max();
 	}
@@ -143,11 +147,11 @@ struct MinimizeAverage
 	typedef unsigned int score_t;
 
 	/// Short identifier of the heuristic function.
-	static std::string name() { return "minavg"; }
+	std::string name() const { return "minavg"; }
 
 	/// Computes the heuristic score - sum of squares of the size
 	/// of each partition.
-	static score_t compute(const FeedbackFrequencyTable &freq)
+	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
 		unsigned int s = 0;
 		for (size_t i = 0; i < freq.size(); ++i)
@@ -197,7 +201,7 @@ struct MaximizeEntropy
 #endif
 
 	/// Short identifier of the heuristic function.
-	static std::string name() 
+	std::string name() const
 	{
 		return ApplyCorrection? "entropy*" : "entropy";
 	}
@@ -242,23 +246,6 @@ struct MaximizePartitions
 	}
 };
 
-#if 0
-class MinimizeSteps
-{
-public:
-	/// Data type of the score (signed integer).
-	typedef int score_t;
-
-	/// Short identifier of the heuristic function.
-	static std::string name() { return "	minsteps"; }
-
-	/// Computes the heuristic score
-	static score_t compute(const FeedbackFrequencyTable &freq);
-
-public:
-	static int partition_score[10000];
-};
-#endif
 
 } // namespace Heuristics
 

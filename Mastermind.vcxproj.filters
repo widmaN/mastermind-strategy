@@ -143,5 +143,8 @@
     <ClInclude Include="src\util\zip_iterator.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\OptimalStrategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
