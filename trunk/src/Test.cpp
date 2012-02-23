@@ -16,6 +16,7 @@
 #include "CodeBreaker.hpp"
 #include "SimpleStrategy.hpp"
 #include "HeuristicStrategy.hpp"
+#include "OptimalStrategy.hpp"
 #include "Equivalence.hpp"
 
 #include "HRTimer.h"
@@ -842,7 +843,7 @@ int test(const Rules &rules)
 	std::cout << "Call statistics for OptimalRecursion:" << std::endl;
 	std::cout << util::call_counter::get("OptimalRecursion") << std::endl;
 	
-#if 0
+#if 1
 	std::cout << "Call statistics for Comparison:" << std::endl;
 	std::cout << util::call_counter::get("Comparison") << std::endl;
 #endif
@@ -867,7 +868,7 @@ int test(const Rules &rules)
 		new HeuristicStrategy<MaximizeEntropy<false>>(e),
 		new HeuristicStrategy<MaximizeEntropy<true>>(e),
 		new HeuristicStrategy<MaximizePartitions>(e),
-		//new HeuristicCodeBreaker<Heuristics::MinimizeSteps>(rules, posonly),
+		new HeuristicStrategy<MinimizeLowerBound>(e, MinimizeLowerBound(e))
 		//new OptimalCodeBreaker(rules),
 	};
 	int nstrat = sizeof(strats)/sizeof(strats[0]);
