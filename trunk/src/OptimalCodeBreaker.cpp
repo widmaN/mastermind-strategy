@@ -155,8 +155,8 @@ static int fill_strategy_tree(
 	EquivalenceFilter *filter,
 	LowerBoundEstimator &estimator,
 	int depth,     // Number of guesses already made
-	int max_depth, // Maximum number of guesses allowed to make
 	int cut_off,       // Upper bound of additional cost; used for pruning
+	const OptimalStrategyOptions &options,
 	StrategyTree &tree // Strategy tree that stores the best strategy
 	)
 {
@@ -175,6 +175,11 @@ static int fill_strategy_tree(
 		return 0;
 
 	const Feedback perfect = Feedback::perfectValue(e.rules());
+
+	// If find_last is true, then we only cut-off a guess when it's
+	// strictly worse than the current best; otherwise, we cut-off
+	// a guess as long as it's no better than the current best.
+	int cut_off_delta = (options.find_last? 1 : 0);
 
 	// For a Mastermind game, all secrets can be revealed within five
 	// guesses (though an optimal strategy requires 6 guesses in one
@@ -230,7 +235,7 @@ static int fill_strategy_tree(
 		// and we sort the candidates by their lower bound,
 		// we need to check here whether the remaining candidates
 		// are still worth checking.
-		if (scores[i] >= cut_off)
+		if (scores[i] >= cut_off + cut_off_delta)
 		{
 			VERBOSE_COUT("Pruned " << (candidate_count - index)
 				<< " remaining guesses: lower bound (" << scores[i]
@@ -341,7 +346,7 @@ static int fill_strategy_tree(
 
 				int cell_size = (int)cell.size();
 				cell_cost = fill_strategy_tree(e, cell, new_filter.get(), estimator,
-					depth + 1, max_depth, cut_off - (lb - lb_part[j]), tree);			
+					depth + 1, cut_off - (lb - lb_part[j]), options, tree);			
 			}
 
 			if (cell_cost < 0) // The branch was pruned.
@@ -363,7 +368,7 @@ static int fill_strategy_tree(
 			// Refine the lower bound estimate.
 			lb += (cell_cost - lb_part[j]);
 			lb_part[j] = cell_cost;
-			if (lb >= cut_off)
+			if (lb >= cut_off + cut_off_delta)
 			{
 				VERBOSE_COUT("Skipping " << (cells.size()-j-1) << " remaining "
 					<< "partitions because lower bound (" << lb << ") >= best ("
@@ -376,8 +381,8 @@ static int fill_strategy_tree(
 		// Now the guess is either pruned, or is the best guess so far.
 		if (!pruned)
 		{
-			assert(lb < cut_off);
-			assert(best < 0 || lb < best);
+			assert(lb < cut_off + cut_off_delta);
+			assert(best < 0 || lb < best + cut_off_delta);
 			best = lb;
 			cut_off = best;
 			VERBOSE_COUT("Improved cut-off to " << best);
@@ -416,13 +421,39 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 	StrategyTree::Node root;
 	tree.append(root);
 
+	// Set options.
+	OptimalStrategyOptions options;
+	options.max_depth = 1000;
+	options.min_worst = false;
+	options.find_last = true;
+
 	// Recursively find an optimal strategy.
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
 	int best = fill_strategy_tree(e, all, filter.get(), estimator,
-		0, 100, 1000000, tree);
+		0, 1000000, options, tree);
 	std::cout << "OPTIMAL: " << best << std::endl;
 	return tree;
 }
+
+// Call statistics for optimal Mastermind (p4c6r) that finds the FIRST:
+// Total # of calls : 5832
+// Total # of ops   : 59209
+// Avg ops per call : 10.15
+// Time: 1.21 s
+// Total   Avg    1    2    3    4    5    6
+//  5625 4.340    1    8   92  648  542    5
+//
+// Call statistics for optimal Mastermind (p4c6r) that finds the LAST:
+// Total # of calls : 12029
+// Total # of ops   : 89738
+// Avg ops per call : 7.46
+// Time: 2.45
+// Total   Avg    1    2    3    4    5    6
+//  5625 4.340    1    8   90  648  548    1
+//
+// This gives a lower bound and upper bound of the time needed.
+// And FIND_LAST happens to return a strategy with the least worst-case
+// secrets.
 
 void test_optimal_strategy(Engine &e)
 {
