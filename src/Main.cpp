@@ -358,9 +358,9 @@ int main(int argc, char* argv[])
 	using namespace Mastermind;
 
 	// Default argument values.
-#if 1
+#if 0 // (3,5)
 	int pegs = 4;
-	int colors = 6;
+	int colors = 3;
 	bool repeatable = true;
 #elif 0
 	int pegs = 4;

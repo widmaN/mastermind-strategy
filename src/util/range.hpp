@@ -2,6 +2,7 @@
 #define UTILITIES_RANGE_HPP
 
 #include <utility>
+#include <iterator>
 
 namespace util {
 
@@ -23,6 +24,10 @@ struct range : private std::pair<RanIt,RanIt>
 	RanIt end() const { return std::pair<RanIt,RanIt>::second; }
 	size_t size() const { return end() - begin(); }
 	bool empty() const { return size() == 0; }
+
+	typedef typename std::iterator_traits<RanIt>::value_type value_type;
+	typedef typename std::iterator_traits<RanIt>::reference reference;
+	reference operator[](size_t i) { return first[i]; }
 };
 
 } // namespace util
