@@ -31,7 +31,7 @@ void pause_output()
 #endif
 }
 
-#pragma region Profiling Routines
+// #pragma region Profiling Routines
 
 // Dummy test driver that does nothing in the test and always returns success.
 template <class Routine>
@@ -73,7 +73,7 @@ bool compareRoutines(
 	}
 
 	// Time it.
-	HRTimer timer;
+	util::hr_timer timer;
 	double t1 = 0, t2 = 0;
 
 	for (int pass = 0; pass < 10; pass++)
@@ -322,7 +322,7 @@ int TestFrequencyCounting(const Rules &rules, long times)
 }
 #endif
 
-#pragma endregion
+// #pragma endregion
 
 static void simulate_guessing(
 	Engine &e, Strategy* strats[], size_t n,
@@ -357,9 +357,9 @@ static void simulate_guessing(
 	{
 		std::string name = strats[i]->name();
 		std::cout << std::setw(10) << name;
-		breakers.push_back(new CodeBreaker(e, 
+		breakers.push_back(new CodeBreaker(e,
 			std::unique_ptr<Strategy>(strats[i]),
-			std::unique_ptr<EquivalenceFilter>(filter->clone()), 
+			std::unique_ptr<EquivalenceFilter>(filter->clone()),
 			options));
 	}
 	std::cout << std::right << std::endl;
@@ -466,7 +466,7 @@ static void test_strategy_tree(
 static void display_canonical_guesses(
 	Engine &e,
 	const EquivalenceFilter *filter,
-	int max_level, 
+	int max_level,
 	int level = 0)
 {
 	CodewordConstRange candidates = e.universe();
@@ -624,7 +624,7 @@ int test(const Rules &rules)
 	std::cout << std::endl;
 	std::cout << "Call statistics for OptimalRecursion:" << std::endl;
 	std::cout << util::call_counter::get("OptimalRecursion") << std::endl;
-	
+
 #if 0
 	std::cout << "Call statistics for Comparison:" << std::endl;
 	std::cout << util::call_counter::get("Comparison") << std::endl;
@@ -657,7 +657,7 @@ int test(const Rules &rules)
 	};
 	int nstrat = sizeof(strats)/sizeof(strats[0]);
 
-	// Note: Only one of the following can be invoked because 
+	// Note: Only one of the following can be invoked because
 	// a code breaker makes a unique pointer of the strategy.
 	//simulate_guessing(e, strats, nstrat, filter.get(), options);
 	test_strategy_tree(e, strats, nstrat, filter.get(), options);
@@ -701,6 +701,6 @@ int test(const Rules &rules)
 
 #endif
 
-	system("PAUSE");
+	pause_output();
 	return 0;
 }

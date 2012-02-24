@@ -61,13 +61,13 @@
 		<Unit filename="src/ConstraintEquivalence.cpp">
 			<Option virtualFolder="Equivalence Filters/" />
 		</Unit>
+		<Unit filename="src/DummyEquivalenceFilter.cpp">
+			<Option virtualFolder="Equivalence Filters/" />
+		</Unit>
 		<Unit filename="src/Engine.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
 		<Unit filename="src/Engine.hpp">
-			<Option virtualFolder="Algorithms/" />
-		</Unit>
-		<Unit filename="src/Equivalence.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
 		<Unit filename="src/Equivalence.hpp">
@@ -82,9 +82,6 @@
 		<Unit filename="src/Generation.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
-		<Unit filename="src/HRTimer.h">
-			<Option virtualFolder="Utilities/" />
-		</Unit>
 		<Unit filename="src/HeuristicStrategy.hpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
@@ -98,6 +95,12 @@
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
 		<Unit filename="src/ObviousStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/OptimalCodeBreaker.cpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/OptimalStrategy.hpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
 		<Unit filename="src/Permutation.hpp">
@@ -130,6 +133,9 @@
 		<Unit filename="src/util/aligned_allocator.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
+		<Unit filename="src/util/bitmask.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
 		<Unit filename="src/util/call_counter.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
@@ -139,7 +145,13 @@
 		<Unit filename="src/util/frequency_table.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
+		<Unit filename="src/util/hr_timer.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
 		<Unit filename="src/util/intrinsic.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/io_format.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/util/pool_allocator.hpp">
@@ -149,6 +161,9 @@
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/util/simd.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/zip_iterator.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Extensions>

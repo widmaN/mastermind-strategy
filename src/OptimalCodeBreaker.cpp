@@ -63,8 +63,8 @@ public:
 	size_t size() const { return _ncells; }
 
 	typename std::array<cell,Capacity>::iterator begin()
-	{ 
-		return _cells.begin(); 
+	{
+		return _cells.begin();
 	}
 
 	typename std::array<cell,Capacity>::iterator end()
@@ -79,7 +79,7 @@ struct CodewordCell : public CodewordRange
 {
 	Feedback feedback;
 	CodewordCell(Feedback fb, CodewordIterator first, CodewordIterator last)
-		: feedback(fb), CodewordRange(first, last) { }
+		: CodewordRange(first, last), feedback(fb) { }
 };
 
 typedef std::vector<CodewordCell> CodewordPartition;
@@ -164,13 +164,13 @@ static int fill_strategy_tree(
 {
 	UPDATE_CALL_COUNTER(OptimalRecursion, secrets.size());
 
-	// Note: Branch pruning is done based on the supplied cut-off 
-	// threshold _best_. It is set to an upper bound of the total 
+	// Note: Branch pruning is done based on the supplied cut-off
+	// threshold _best_. It is set to an upper bound of the total
 	// number of steps needed to reveal all the secrets, ignoring
 	// the current depth of the tree.
 
 	const bool verbose = (depth < 0);
-	
+
 	VERBOSE_COUT("Checking " << secrets.size() << " remaining secrets");
 
 	if (secrets.empty())
@@ -187,7 +187,7 @@ static int fill_strategy_tree(
 	// guesses (though an optimal strategy requires 6 guesses in one
 	// case). This means when we are about to make the 5th guess, we
 	// must have already determined the secret, i.e. there is only one
-	// possibility left. This in turn means when we are about to make 
+	// possibility left. This in turn means when we are about to make
 	// the 4th guess, this guess must be able to partition the remaining
 	// secrets into a discrete partition. If this condition is not
 	// satisfied, we do not need to proceed no more.
@@ -252,12 +252,12 @@ static int fill_strategy_tree(
 			break;
 		}
 
-		VERBOSE_COUT("Checking guess " << (i+1) << " of " 
+		VERBOSE_COUT("Checking guess " << (i+1) << " of "
 			<< candidate_count << " (" << guess << ") -> ");
 
 		// Partition the remaining secrets using this guess.
 		// Note that after successive calls to @c partition,
-		// the order of the secrets are shuffled. However, 
+		// the order of the secrets are shuffled. However,
 		// that should not impact the result.
 		CodewordPartition cells = partition(e, secrets, guess);
 
@@ -272,18 +272,18 @@ static int fill_strategy_tree(
 
 #if 1
 		// Sort the partitions by their size, so that smaller partitions
-		// (i.e. smaller search trees) are processed first. This helps 
+		// (i.e. smaller search trees) are processed first. This helps
 		// to improve the lower bound at an earlier stage.
-		std::sort(cells.begin(), cells.end(), 
+		std::sort(cells.begin(), cells.end(),
 			[](const CodewordCell &c1, const CodewordCell &c2) -> bool
 		{
 			return c1.size() < c2.size();
 		});
 #endif
 
-		// Estimate a lower bound of the number of steps required 
+		// Estimate a lower bound of the number of steps required
 		// to reveal the secrets in each partition. If the total
-		// lower bound is greater than the cut-off threshold, we 
+		// lower bound is greater than the cut-off threshold, we
 		// can skip this guess.
 		int lb_part[256]; // note: lb_part doesn't count the initial guess
 		int lb = (int)secrets.size(); // each secret takes 1 initial guess
@@ -319,12 +319,12 @@ static int fill_strategy_tree(
 			// Do not recurse for a perfect match.
 			if (cell.feedback == perfect)
 			{
-				VERBOSE_COUT("- Checking cell " << cell.feedback 
+				VERBOSE_COUT("- Checking cell " << cell.feedback
 					<< " -> perfect");
 				continue;
 			}
 
-			VERBOSE_COUT("- Checking cell " << cell.feedback 
+			VERBOSE_COUT("- Checking cell " << cell.feedback
 				<< " -> lower bound = " << lb_part[j]);
 
 			// If there's an obviously optimal guess for this cell,
@@ -332,23 +332,22 @@ static int fill_strategy_tree(
 			int cell_cost = fill_obviously_optimal_strategy(e, cell, tree);
 			if (cell_cost >= 0)
 			{
-				//VERBOSE_COUT("- Checking cell " << cell.feedback 
+				//VERBOSE_COUT("- Checking cell " << cell.feedback
 				//	<< " -> found obvious guess");
 				VERBOSE_COUT("  Found obvious guess");
 			}
 			else
 			{
-				//VERBOSE_COUT("- Checking cell " << cell.feedback 
+				//VERBOSE_COUT("- Checking cell " << cell.feedback
 				//	<< " -> lower bound = " << lb);
-				//VERBOSE_COUT("- Checking cell " << cell.feedback 
+				//VERBOSE_COUT("- Checking cell " << cell.feedback
 				//	<< " -> lower bound = " << lb_part[j]);
 
 				std::unique_ptr<EquivalenceFilter> new_filter(filter->clone());
 				new_filter->add_constraint(guess, cell.feedback, cell);
 
-				int cell_size = (int)cell.size();
 				cell_cost = fill_strategy_tree(e, cell, new_filter.get(), estimator,
-					depth + 1, cut_off - (lb - lb_part[j]), options, tree);			
+					depth + 1, cut_off - (lb - lb_part[j]), options, tree);
 			}
 
 			if (cell_cost < 0) // The branch was pruned.
