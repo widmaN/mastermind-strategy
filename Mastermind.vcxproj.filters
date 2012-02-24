@@ -77,9 +77,6 @@
     <ClInclude Include="src\Codeword.hpp">
       <Filter>Types</Filter>
     </ClInclude>
-    <ClInclude Include="src\HRTimer.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Registry.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -148,6 +145,12 @@
     </ClInclude>
     <ClInclude Include="src\StrategyTree.hpp">
       <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\hr_timer.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\io_format.hpp">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

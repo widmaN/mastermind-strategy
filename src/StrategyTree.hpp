@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
 
 #include "Rules.hpp"
 #include "Codeword.hpp"
@@ -202,6 +203,72 @@ public:
 	unsigned int getDepthInfo(unsigned int depth_freq[], unsigned int count) const;
 
 };
+
+class StrategyTreeInfo
+{
+	// depth_freq[i] = number of secrets revealed using (i) guesses
+	std::vector<unsigned int> _depth_freq;
+	unsigned int _total_depth;
+	unsigned int _total_secrets;
+	std::string _name;
+	double _time;
+
+public:
+	
+	StrategyTreeInfo(
+		const std::string &name, 
+		const StrategyTree &tree, 
+		double time)
+		: _total_depth(0), _total_secrets(0), _name(name), _time(time)
+	{
+		Feedback perfect = Feedback::perfectValue(tree.rules());
+		// unsigned int total = 0;
+		// std::fill(depth_freq + 0, depth_freq + count, 0);
+		for (size_t i = 0; i < tree.size(); ++i)
+		{
+			if (tree.nodes()[i].response() == perfect)
+			{
+				unsigned int d = tree.nodes()[i].depth();
+				if (d >= _depth_freq.size())
+				{
+					_depth_freq.resize(d+1);
+				}
+				++_depth_freq[d];
+				++_total_secrets;
+				_total_depth += d;
+			}
+		}
+	}
+
+	std::string name() const
+	{
+		return _name;
+	}
+
+	double time() const { return _time; }
+
+	int max_depth() const
+	{
+		return _depth_freq.size() - 1;
+	}
+
+	unsigned int count_depth(int depth) const
+	{
+		return (depth >= 0 && depth <= max_depth())?
+			_depth_freq[depth] : 0;
+	}
+
+	unsigned int total_depth() const { return _total_depth; }
+
+	unsigned int total_secrets() const { return _total_secrets; }
+
+	double average_depth() const 
+	{
+		return (double)total_depth() / total_secrets();
+	}
+};
+
+std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info);
 
 /// Defines the file format to serialize a stratey tree.
 enum FileFormat
