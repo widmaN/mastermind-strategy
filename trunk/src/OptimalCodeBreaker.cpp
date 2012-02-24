@@ -14,6 +14,8 @@
 #include "StrategyTree.hpp"
 // #include "util/zip_iterator.hpp"
 #include "util/call_counter.hpp"
+#include "util/hr_timer.hpp"
+#include "util/io_format.hpp"
 
 using namespace Mastermind;
 
@@ -425,7 +427,7 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 	OptimalStrategyOptions options;
 	options.max_depth = 1000;
 	options.min_worst = false;
-	options.find_last = true;
+	options.find_last = false;
 
 	// Recursively find an optimal strategy.
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
@@ -457,33 +459,12 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 
 void test_optimal_strategy(Engine &e)
 {
+	util::hr_timer t1;
+	t1.start();
 	StrategyTree tree = 	build_optimal_strategy_tree(e);
-	double t = 0.0;
+	double t = t1.stop();
 
-	std::cout << std::endl
-		<< "Frequency Table" << std::endl
-		<< "-----------------" << std::endl
-		<< "Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time" << std::endl;
-
-	// Count the steps used to get the answers
-	const int max_depth = 10;
-	unsigned int freq[max_depth];
-	unsigned int total = tree.getDepthInfo(freq, max_depth);
-	size_t count = e.rules().size();
-
-	// Display statistics
-	std::cout << "\r" << std::setw(8) << "optimal" << ":"
-		<< std::setw(6) << total << " "
-		<< std::setw(5) << std::setprecision(3)
-		<< std::fixed << (double)total / count << ' ';
-
-	for (int i = 1; i <= max_depth; i++) {
-		if (freq[i-1] > 0)
-			std::cout << std::setw(4) << freq[i-1] << ' ';
-		else
-			std::cout << "   - ";
-	}
-	std::cout << std::fixed << std::setw(6) << std::setprecision(2) << t << std::endl;
-	
+	StrategyTreeInfo info("optimal", tree, t);
+	std::cout << std::endl << util::header << info;
 }
 

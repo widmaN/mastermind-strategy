@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <memory>
 
-#include "util/call_counter.hpp"
 #include "Rules.hpp"
 #include "Codeword.hpp"
 #include "Feedback.hpp"
@@ -19,10 +18,11 @@
 #include "OptimalStrategy.hpp"
 #include "Equivalence.hpp"
 
-#include "HRTimer.h"
+#include "util/call_counter.hpp"
+#include "util/hr_timer.hpp"
+#include "util/io_format.hpp"
 
 using namespace Mastermind;
-using namespace Utilities;
 
 void pause_output()
 {
@@ -30,6 +30,8 @@ void pause_output()
 	system("PAUSE");
 #endif
 }
+
+#pragma region Profiling Routines
 
 // Dummy test driver that does nothing in the test and always returns success.
 template <class Routine>
@@ -246,130 +248,7 @@ public:
 	}
 };
 
-
 #if 0
-int TestEquivalenceFilter(const Rules &rules, long times)
-{
-	CodewordList list = generateCodewords(rules);
-	int total = (int)list.size();
-
-	unsigned char eqclass[16] = {
-		//0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 }; // all diff
-		//0,3,2,5, 4,7,6,9, 8,1,10,11, 12,13,14,15 }; // 1,3,5,7,9 same
-		//1,2,3,4, 5,6,7,8, 9,0,10,11, 12,13,14,15 }; // all same
-		0,3,2,5, 4,1,6,7, 8,9,10,11, 12,13,14,15 }; // 1,3,5 same
-
-	//__m128i *output = (__m128i*)_aligned_malloc(16*total, 16);
-	util::aligned_allocator<__m128i,16> alloc;
-	__m128i* output = alloc.allocate(total);
-
-	int count;
-
-	if (times == 0) {
-		//count = FilterByEquivalenceClass_norep_v3(
-		count = FilterByEquivalenceClass_rep_v1(
-			(codeword_t*)list.data(), total, eqclass, (codeword_t *)output);
-		if (1) {
-			for (int i = 0; i < count; i++)
-			{
-				std::cout << Codeword(output[i]) << " ";
-			}
-		}
-		alloc.deallocate(output,total);
-		//_aligned_free(output);
-		printf("\nCount: %d\n", count);
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-
-	t1 = t2 = 0;
-	for (int pass = 0; pass < 10; pass++) {
-		timer.start();
-		for (int k = 0; k < times / 10; k++) {
-//			count = FilterByEquivalenceClass_norep_v1(
-//				(__m128i*)list.GetData(), list.GetCount(), eqclass, output);
-			count = FilterByEquivalenceClass_norep_v2(
-				(codeword_t*)list.data(), list.size(), eqclass, (codeword_t *)output);
-		}
-		t1 += timer.stop();
-
-		timer.start();
-		for (int k = 0; k < times / 10; k++) {
-			count = FilterByEquivalenceClass_norep_v3(
-				(codeword_t*)list.data(), list.size(), eqclass, (codeword_t *)output);
-		}
-		t2 += timer.stop();
-	}
-	printf("Equivalence 1: %6.3f\n", t1);
-	printf("Equivalence 2: %6.3f\n", t2);
-	printf("Count: %d\n", count);
-
-	alloc.deallocate(output,total);
-	//_aligned_free(output);
-	system("PAUSE");
-	return 0;
-}
-#endif
-
-#if 0
-// Compare FilterByEquivalence Algorithms
-int TestEquivalenceFilter(Rules rules, long times)
-{
-	CodewordList list = CodewordList::Enumerate(rules);
-
-	unsigned char eqclass[16] = {
-		//0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 }; // all diff
-		//0,3,2,5, 4,7,6,1, 8,9,10,11, 12,13,14,15 }; // 1,3,5,7 same
-		1,2,3,4, 5,6,7,8, 9,0,10,11, 12,13,14,15 }; // all same
-	unsigned short output[5040];
-	int count;
-
-	if (times == 0) {
-		count = FilterByEquivalenceClass_norep_16_v1(
-			list.GetData(), list.GetCount(), eqclass, output);
-		if (1) {
-			for (int i = 0; i < count; i++) {
-				printf("%04x ", output[i]);
-			}
-		}
-		printf("\nCount: %d\n", count);
-		system("PAUSE");
-		return 0;
-	}
-
-	HRTimer timer;
-	double t1, t2;
-
-	t1 = t2 = 0;
-	for (int pass = 0; pass < 10; pass++) {
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			count = FilterByEquivalenceClass_norep_16_v1(
-				list.GetData(), list.GetCount(), eqclass, output);
-		}
-		t1 += timer.Stop();
-
-		timer.Start();
-		for (int k = 0; k < times / 10; k++) {
-			count = FilterByEquivalenceClass_norep_16_v2(
-				list.GetData(), list.GetCount(), eqclass, output);
-		}
-		t2 += timer.Stop();
-	}
-	printf("Equivalence 1: %6.3f\n", t1);
-	printf("Equivalence 2: %6.3f\n", t2);
-	printf("Count: %d\n", count);
-
-	system("PAUSE");
-	return 0;
-}
-#endif
-
-#if 0
-#ifndef NTEST
 /// Compares frequency counting algorithms.
 ///
 /// Test: Compute the frequency table of 5040 feedbacks.
@@ -442,69 +321,8 @@ int TestFrequencyCounting(const Rules &rules, long times)
 	return 0;
 }
 #endif
-#endif
 
-static bool testSumSquares(
-	const Engine &e,
-	const char *routine1,
-	const char *routine2,
-	long times)
-{
-	CodewordList list = e.generateCodewords();
-	FeedbackList fbl = e.compare(list[0], list);
-	FeedbackFrequencyTable freq;
-	e.countFrequencies(fbl.begin(), fbl.end(), freq);
-	unsigned char maxfb = Feedback::maxValue(e.rules()); // fbl.GetMaxFeedbackValue();
-	size_t count = maxfb + 1;
-
-	SumSquaresRoutine func1 = RoutineRegistry<SumSquaresRoutine>::get(routine1);
-	SumSquaresRoutine func2 = RoutineRegistry<SumSquaresRoutine>::get(routine2);
-
-	// Verify results.
-	unsigned int ss1 = func1(freq.data(), freq.data() + count);
-	unsigned int ss2 = func2(freq.data(), freq.data() + count);
-	if (ss1 != ss2)
-	{
-		std::cout << "**** ERROR: Result mismatch: " << ss1
-			<< " v " << ss2 << std::endl;
-		return false;
-	}
-
-	// Print result if in debug mode
-	if (times == 0)
-	{
-		std::cout << "SS1 = " << ss1 << std::endl;
-		std::cout << "SS2 = " << ss2 << std::endl;
-		return true;
-	}
-
-	HRTimer timer;
-	double t1 = 0, t2 = 0;
-
-	for (int pass = 0; pass < 10; pass++)
-	{
-		timer.start();
-		for (int j = 0; j < times / 10; j++)
-		{
-			ss1 = func1(freq.data(), freq.data() + count);
-		}
-		t1 += timer.stop();
-
-		timer.start();
-		for (int j = 0; j < times / 10; j++)
-		{
-			ss2 = func2(freq.data(), freq.data() + count);
-		}
-		t2 += timer.stop();
-	}
-
-	printf("Algorithm 1: %6.3f\n", t1);
-	printf("Algorithm 2: %6.3f\n", t2);
-	// printf("Speed Ratio: %5.2fX\n", t1/t2);
-
-	// system("PAUSE");
-	return 0;
-}
+#pragma endregion
 
 static void simulate_guessing(
 	Engine &e, Strategy* strats[], size_t n,
@@ -607,7 +425,7 @@ static void test_strategy_tree(
 	//CodewordList all = e.generateCodewords();
 	Rules rules = e.rules();
 	//Feedback target = Feedback::perfectValue(rules);
-	Utilities::HRTimer timer;
+	util::hr_timer timer;
 
 	std::cout
 		<< "Game Settings" << std::endl
@@ -625,17 +443,8 @@ static void test_strategy_tree(
 		<< "Guess possibility only: " << std::boolalpha
 			<< options.possibility_only << std::endl;
 
-	//printf("\n");
-	//printf("Algorithm Descriptions\n");
-	//printf("------------------------\n");
-	//for (int i = 0; i < nb; i++) {
-	//	printf("  A%d: %s\n", (i + 1), breakers[i]->GetDescription().c_str());
-	//}
 
-	std::cout << std::endl
-		<< "Frequency Table" << std::endl
-		<< "-----------------" << std::endl
-		<< "Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time" << std::endl;
+	std::cout << std::endl << util::header;
 
 	for (size_t i = 0; i < n; ++i)
 	{
@@ -648,31 +457,8 @@ static void test_strategy_tree(
 		delete copy;
 		double t = timer.stop();
 
-		// Count the steps used to get the answers
-		const int max_depth = 10;
-		unsigned int freq[max_depth];
-		unsigned int total = tree.getDepthInfo(freq, max_depth);
-		size_t count = rules.size();
-
-//			if (i*100/count > pct) {
-//				pct = i*100/count;
-//				printf("\r  A%d: running... %2d%%", ib + 1, pct);
-//				fflush(stdout);
-//			}
-
-		// Display statistics
-		std::cout << "\r" << std::setw(8) << strat->name() << ":"
-			<< std::setw(6) << total << " "
-			<< std::setw(5) << std::setprecision(3)
-			<< std::fixed << (double)total / count << ' ';
-
-		for (int i = 1; i <= max_depth; i++) {
-			if (freq[i-1] > 0)
-				std::cout << std::setw(4) << freq[i-1] << ' ';
-			else
-				std::cout << "   - ";
-		}
-		std::cout << std::fixed << std::setw(6) << std::setprecision(2) << t << std::endl;
+		StrategyTreeInfo info(strat->name(), tree, t);
+		std::cout << info;
 	}
 }
 #endif
@@ -832,14 +618,10 @@ int test(const Rules &rules)
 #endif
 
 #if 1
-	HRTimer t1;
-	t1.start();
-
 	extern void test_optimal_strategy(Engine &);
 	test_optimal_strategy(e);
 
-	std::cout << std::endl << "Time: " << t1.stop() << std::endl << std::endl;
-
+	std::cout << std::endl;
 	std::cout << "Call statistics for OptimalRecursion:" << std::endl;
 	std::cout << util::call_counter::get("OptimalRecursion") << std::endl;
 	
@@ -864,11 +646,13 @@ int test(const Rules &rules)
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
 		new HeuristicStrategy<MinimizeWorstCase<1>>(e),
+#if 1
 		new HeuristicStrategy<MinimizeAverage>(e),
 		new HeuristicStrategy<MaximizeEntropy<false>>(e),
 		new HeuristicStrategy<MaximizeEntropy<true>>(e),
 		new HeuristicStrategy<MaximizePartitions>(e),
 		new HeuristicStrategy<MinimizeLowerBound>(e, MinimizeLowerBound(e))
+#endif
 		//new OptimalCodeBreaker(rules),
 	};
 	int nstrat = sizeof(strats)/sizeof(strats[0]);
@@ -889,7 +673,7 @@ int test(const Rules &rules)
 	std::cout << util::call_counter::get("ConstraintEquivalenceCrossout") << std::endl;
 #endif
 
-#if 1
+#if 0
 	// Display some statistics.
 	std::cout << "Call statistics for Comparison:" << std::endl;
 	std::cout << util::call_counter::get("Comparison") << std::endl;

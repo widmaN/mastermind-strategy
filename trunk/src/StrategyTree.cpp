@@ -5,6 +5,7 @@
 //#include <stdlib.h>
 #include <algorithm>
 #include <utility>
+#include "util/io_format.hpp"
 
 #include "StrategyTree.hpp"
 #include "Algorithm.hpp"
@@ -16,6 +17,52 @@ using namespace Mastermind;
 //
 
 namespace Mastermind {
+
+std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
+{
+	const int max_display = 10;
+
+	// Display header.
+	if (os.iword(util::header_index()))
+	{
+		os << "Stategy Statistics" << std::endl
+		   << "--------------------" << std::endl
+		   << "Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time" << std::endl;
+		os << util::noheader;
+	}
+
+	// Display label.
+	os  << std::setw(8) << info.name() << ":"
+		<< std::setw(6) << info.total_depth() << " "
+		<< std::setw(5) << std::setprecision(3)
+		<< std::fixed << info.average_depth() << ' ';
+
+	// Display each frequency.
+	unsigned int running_total = 0;
+	for (int d = 1; d <= max_display; d++) 
+	{
+		unsigned int count;
+		if (d < max_display)
+		{
+			count = info.count_depth(d);
+			running_total += d * count;
+		}
+		else
+		{
+			count = info.total_depth() - running_total;
+		}
+		if (count > 0)
+			os << std::setw(4) << count << ' ';
+		else
+			os << "   - ";
+	}
+
+	// Display time
+	os  << std::fixed << std::setw(6) << std::setprecision(2) 
+		<< info.time() << std::endl;
+
+	return os;
+}
 
 #if 0
 void StrategyTree::AddChild(const Node &node)
