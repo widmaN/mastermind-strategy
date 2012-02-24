@@ -27,7 +27,7 @@ struct range : private std::pair<RanIt,RanIt>
 
 	typedef typename std::iterator_traits<RanIt>::value_type value_type;
 	typedef typename std::iterator_traits<RanIt>::reference reference;
-	reference operator[](size_t i) { return first[i]; }
+	reference operator[](size_t i) { return std::pair<RanIt,RanIt>::first[i]; }
 };
 
 } // namespace util

@@ -40,7 +40,7 @@ public:
 
 	virtual void add_constraint(
 		const Codeword &guess,
-		Feedback response, 
+		Feedback response,
 		CodewordConstRange remaining
 		);
 };
@@ -49,13 +49,13 @@ public:
 ConstraintEquivalenceFilter::ConstraintEquivalenceFilter(Engine &engine)
 	: e(engine), free_colors(ColorMask::fill(e.rules().colors()))
 {
-	// Generate all peg permutations, and associate with each peg 
+	// Generate all peg permutations, and associate with each peg
 	// permutation a fully unrestricted partial color permutation.
 	CodewordPermutation p;
 	do
 	{
 		pp.push_back(p);
-	} 
+	}
 	while (std::next_permutation(p.peg + 0, p.peg + e.rules().pegs()));
 }
 
@@ -63,12 +63,12 @@ ConstraintEquivalenceFilter::ConstraintEquivalenceFilter(Engine &engine)
 CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 	CodewordConstRange candidates) const
 {
-	bool verbose = false;
+	// const bool verbose = false;
 
 #if 1
 	// Optimization: if there is only one peg permutation left (in
 	// which case it must be the identity permutation) and there are
-	// no free colors left, then the color permutation must be 
+	// no free colors left, then the color permutation must be
 	// identity too, and there is no codeword to filter out.
 	if (pp.size() == 1 && free_colors.empty())
 		return CodewordList(candidates.begin(), candidates.end());
@@ -93,7 +93,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 			// Optimization: if this is the identity permutation,
 			// then needn't permute.
 			CodewordPermutation p = pp[j];
-			Codeword permuted_candidate = 
+			Codeword permuted_candidate =
 				(j == 0)? candidate : p.permute_pegs(candidate);
 
 			// Check the color on each peg in turn.
@@ -106,7 +106,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 				int c = permuted_candidate[k];
 
 				// If c is free, map it to the smallest available free color,
-				// and update the permutation. Otherwise, map it according 
+				// and update the permutation. Otherwise, map it according
 				// to the current permutation.
 				if (free_from[c])
 				{
@@ -155,7 +155,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 
 void ConstraintEquivalenceFilter::add_constraint(
 	const Codeword &guess,
-	Feedback /* response */, 
+	Feedback /* response */,
 	CodewordConstRange /* remaining */)
 {
 	bool verbose = false;
@@ -163,7 +163,7 @@ void ConstraintEquivalenceFilter::add_constraint(
 	if (verbose)
 		std::cout << "Adding constraint: " << guess << std::endl;
 
-	// For each peg permutation, restrict its associated partial 
+	// For each peg permutation, restrict its associated partial
 	// color permutation so that the supplied guess maps to itself
 	// under the peg+color permutation. If this is not possible,
 	// remove the peg permutation from the list.

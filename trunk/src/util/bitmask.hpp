@@ -13,7 +13,7 @@ namespace util {
 
 /**
  * Represents a bitmask of fixed size.
- * This class serves as a simpler and faster alternative to 
+ * This class serves as a simpler and faster alternative to
  * <code>std::bitset<N></code>.
  * @ingroup BitMask
  */
@@ -51,7 +51,7 @@ public:
 	/// Resets a given bit to zero.
 	void reset(int bit)
 	{
-		assert(bit >= 0 && bit <= Bits);
+		assert(bit >= 0 && bit <= (int)Bits);
 		_value &= ~((value_type)1 << bit);
 	}
 
@@ -75,7 +75,7 @@ public:
 
 	/// Returns the index of the least significant bit set.
 	/// If no bit is set, returns @c -1.
-	int smallest() const 
+	int smallest() const
 	{
 		return _value == 0 ? -1 : util::intrinsic::bit_scan_forward(_value);
 	}
