@@ -158,7 +158,7 @@ static int fill_strategy_tree(
 	LowerBoundEstimator &estimator,
 	int depth,     // Number of guesses already made
 	int cut_off,       // Upper bound of additional cost; used for pruning
-	const OptimalStrategyOptions &options,
+	OptimalStrategyOptions options,
 	StrategyTree &tree // Strategy tree that stores the best strategy
 	)
 {
@@ -173,10 +173,26 @@ static int fill_strategy_tree(
 
 	VERBOSE_COUT("Checking " << secrets.size() << " remaining secrets");
 
+	// Short-cut if the secret set is empty or the max-depth is 0.
 	if (secrets.empty())
 		return 0;
+	if (options.max_depth == 0)
+		return -1;
 
+	// Short-cut if there is only one secret or the max-depth is 1.
 	const Feedback perfect = Feedback::perfectValue(e.rules());
+	if (secrets.size() == 1)
+	{
+		tree.append(StrategyTree::Node(depth + 1, secrets[0], perfect));
+		return 1;
+	}
+	if (options.max_depth == 1)
+		return -1;
+
+	// From now on, we are allowed to make at least 2 more steps
+	// to reveal all the secrets. We reduce the max-steps limit
+	// by one so that it can be passed to recursive routines.
+	--options.max_depth;
 
 	// If find_last is true, then we only cut-off a guess when it's
 	// strictly worse than the current best; otherwise, we cut-off
@@ -208,7 +224,8 @@ static int fill_strategy_tree(
 	// Then sort the candidates by this lower bound so that more
 	// "promising" candidates are processed first. This helps to
 	// improve the upper bound as early as possible.
-	std::vector<int> scores(candidates.size());
+	typedef Heuristics::MinimizeLowerBound::score_t lowerbound_t;
+	std::vector<lowerbound_t> scores(candidates.size());
 	estimator.make_guess(secrets, candidates, &scores[0]);
 
 	std::vector<int> order(candidates.size());
@@ -237,10 +254,10 @@ static int fill_strategy_tree(
 		// and we sort the candidates by their lower bound,
 		// we need to check here whether the remaining candidates
 		// are still worth checking.
-		if (scores[i] >= cut_off + cut_off_delta)
+		if (scores[i].steps >= cut_off + cut_off_delta)
 		{
 			VERBOSE_COUT("Pruned " << (candidate_count - index)
-				<< " remaining guesses: lower bound (" << scores[i]
+				<< " remaining guesses: lower bound (" << scores[i].steps
 				<< ") >= cut-off (" << cut_off << ")");
 #if 0
 			if (i == 0)
@@ -254,6 +271,16 @@ static int fill_strategy_tree(
 
 		VERBOSE_COUT("Checking guess " << (i+1) << " of "
 			<< candidate_count << " (" << guess << ") -> ");
+
+		// If there's a limit on the maximum number of depth, 
+		// check if we can prune it.
+		if (scores[i].depth - 1 > options.max_depth)
+		{
+			if (verbose)
+				std::cout << "Skipped: guess will have too many steps"
+				<< std::endl;
+			continue;
+		}
 
 		// Partition the remaining secrets using this guess.
 		// Note that after successive calls to @c partition,
@@ -292,8 +319,11 @@ static int fill_strategy_tree(
 			if (cells[j].feedback == perfect)
 				lb_part[j] = 0;
 			else
-				//lb_part[j] = estimate_lower_bound(e, cells[j], 0);
-				lb_part[j] = estimator.heuristic().simple_estimate(cells[j].size());
+			{
+				lowerbound_t estimate = 
+					estimator.heuristic().simple_estimate(cells[j].size());
+				lb_part[j] = estimate.steps;
+			}
 			lb += lb_part[j];
 		}
 
@@ -326,6 +356,15 @@ static int fill_strategy_tree(
 
 			VERBOSE_COUT("- Checking cell " << cell.feedback
 				<< " -> lower bound = " << lb_part[j]);
+
+			// Short-cut if only one additional guess is allowed
+			// but we are left with more than one secret in this
+			// partition.
+			if (options.max_depth == 1 && cell.size() > 1)
+			{
+				pruned = true;
+				break;
+			}
 
 			// If there's an obviously optimal guess for this cell,
 			// use it.
@@ -424,7 +463,11 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 
 	// Set options.
 	OptimalStrategyOptions options;
+#if 0
 	options.max_depth = 1000;
+#else
+	options.max_depth = 5;
+#endif
 	options.min_worst = false;
 	options.find_last = false;
 
