@@ -72,7 +72,7 @@ public:
 			return Codeword::emptyValue();
 
 		Codeword choice = Codeword::emptyValue();
-		typename Heuristic::score_t choice_score = 0;
+		typename Heuristic::score_t choice_score;
 		bool choice_ispos = false;
 		size_t target = Feedback::perfectValue(e.rules()).value();
 
@@ -92,8 +92,13 @@ public:
 				*(scores++) = score;
 			
 			// Keep track of the guess that produces the lowest score.
+#if 0
 			if ((it == candidates.begin()) || (score < choice_score) || 
 				(score == choice_score && !choice_ispos && freq[target] > 0)) 
+#else
+			if ((it == candidates.begin()) || (score < choice_score) || 
+				(!(choice_score < score) && !choice_ispos && freq[target] > 0)) 
+#endif
 			{
 				choice = guess;
 				choice_score = score;
@@ -166,6 +171,7 @@ struct MinimizeAverage
 struct wrapped_double
 {
 	double _value;
+	wrapped_double() : _value(0.0) { }
 	wrapped_double(double value) : _value(value) { }
 
 	bool operator < (wrapped_double x) const 

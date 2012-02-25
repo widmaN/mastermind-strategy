@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <vector>
+#include <numeric>
 
 #include "Engine.hpp"
 #include "Strategy.hpp"
@@ -17,30 +18,45 @@ namespace Heuristics {
 /// @todo Improve the lower-bound estimate.
 class MinimizeLowerBound
 {
-	Engine &e;
-	std::vector<int> _cache;
-
 public:
 
 	/// Type of the heuristic score.
-	typedef int score_t;
+	typedef struct score_t
+	{
+		int steps : 24; // number of steps needed to reveal all secrets
+		int depth : 8;  // number of guesses needed in the worst case
+		score_t() : steps(0), depth(0) { }
+		bool operator < (const score_t &other) const
+		{
+			return (steps < other.steps) || 
+				(steps == other.steps && depth < other.depth);
+		}
+	};
 
 	// Returns a simple estimate of minimum total number of steps 
 	// required to reveal @c n secrets given a branching factor of @c b.
-	static int simple_estimate(
+	static score_t simple_estimate(
 		int n, // Number of remaining secrets
 		int b  // Branching factor: number of distinct non-perfect feedbacks
 		)
 	{
-		int cost = 0;
+		score_t cost;
 		for (int remaining = n, count = 1; remaining > 0; )
 		{
-			cost += remaining;
+			cost.steps += remaining;
+			cost.depth++;
 			remaining -= count;
 			count *= b;
 		}
 		return cost;
 	}
+
+private:
+
+	Engine &e;
+	std::vector<score_t> _cache;
+
+public:
 
 	MinimizeLowerBound(Engine &engine) 
 		: e(engine), _cache(e.rules().size()+1)
@@ -60,24 +76,32 @@ public:
 	// Returns a simple estimate of minimum total number of steps 
 	// required to reveal @c n secrets, assuming the maximum branching
 	// factor for the game.
-	int simple_estimate(int n) const
+	score_t simple_estimate(int n) const
 	{
 		assert(n >= 0 && n < (int)_cache.size());
 		return _cache[n];
 	}
 
 	/// Computes the heuristic score.
-	unsigned int compute(const FeedbackFrequencyTable &freq) const
+	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
 		Feedback perfect = Feedback::perfectValue(e.rules());
-		unsigned int lb = 0;
+		score_t lb;
 		for (size_t j = 0; j < freq.size(); ++j)
 		{
 			if (freq[j] > 0)
 			{
-				lb += freq[j];
-				if (j != perfect.value())
-					lb += simple_estimate(freq[j]);
+				lb.steps += freq[j];
+				if (j == perfect.value())
+				{
+					lb.depth = std::max(1, lb.depth);
+				}
+				else
+				{
+					score_t tmp = simple_estimate(freq[j]);
+					lb.steps += tmp.steps;
+					lb.depth = std::max(lb.depth, 1+tmp.depth);
+				}
 			}
 		}
 		return lb;
@@ -143,13 +167,13 @@ public:
 /// Options for finding an optimal strategy.
 struct OptimalStrategyOptions
 {
-	int max_depth;  // maximum number of steps to reveal a secret
+	unsigned short max_depth; // maximum number of steps to reveal a secret
 	bool find_last; // find the last optimal strategy
 	bool min_worst; // minimize the number of secrets revealed using
 	                // the worst-case number of steps
 
 	OptimalStrategyOptions() 
-		: max_depth(1000), find_last(false), min_worst(false) { }
+		: max_depth(0xFFFF), find_last(false), min_worst(false) { }
 };
 
 /// Real-time optimal strategy. To be practical, the search space
