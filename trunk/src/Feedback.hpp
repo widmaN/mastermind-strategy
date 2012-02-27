@@ -4,13 +4,9 @@
 #include <cassert>
 #include <iostream>
 #include <utility>
+#include <algorithm>
 
 #include "Rules.hpp"
-
-// Whether to store feedback in compact format
-#ifndef MM_FEEDBACK_COMPACT
-#define MM_FEEDBACK_COMPACT 1
-#endif
 
 namespace Mastermind 
 {
@@ -20,25 +16,11 @@ namespace Mastermind
  *
  * For a feedback of the form <code>xAyB</code>, this class stores 
  * the pair <code>(x,y)</code> and name it as <code>(nA,nB)</code>. 
- * To reduce memory usage, the feedback is stored in <i>packed</i> 
- * form, which takes up exactly one byte, as described below.
+ * To improve memory access locality, the feedback is internally  
+ * represented by its ordinal position in an order described below.
  *
- * There are two formats to pack a feedback: the standard format
- * and the compact format. In the standard format, a feedback takes
- * up <code>MM_FEEDBACK_BITS</code> bits (6 by default).
- * Bits 0-2 stores <code>nB</code>, and bits 3-5 stores 
- * <code>nA</code>. To pack a feedback in the standard format, use
- * the formula
- *    <code>x = (nA << MM_FEEDBACK_ASHIFT) | nB</code>. 
- * To unpack a feedback, use the formula 
- *    <code>nA = x >> MM_FEEDBACK_ASHIFT</code> and
- *    <code>nB = x & MM_FEEDBACK_BMASK</code>.
- * The standard format is the default format to store a feedback.
- *
- * In the compact format, the set of all distinct feedback values 
- * is arranged in the shape of a triangle, and a particular feedback
- * <code>(nA,nB)</code> is mapped to its index in this triangle.
- * The arragement is as follows:
+ * The set of all distinct feedback values can be arranged in the 
+ * form of a triangle as follows:
  * <pre>
  * 0A0B  1A0B  2A0B  3A0B  4A0B
  * 0A1B  1A1B  2A1B  3A1B*
@@ -56,37 +38,33 @@ namespace Mastermind
  * <code>p</code>-peg game is <code>(1+2+...+(p+1))-1</code>,
  * which is equal to <code>p*(p+3)/2</code>.
  *
- * To pack a feedback <code>(nA,nB)</code> in compact form, first  
- * compute <code>nAB=nA+nB</code> and then use the following formula
- *   <code>x = nAB*(nAB+1)/2+nA</code>.
- * The largest packed value for a <code>p</code>-peg game is 
- * <code>p*(p+3)/2</code>. This means one-byte storage can represent
- * up to 21 pegs, which is far larger than the other constraints.
+ * To convert a feedback <code>(nA,nB)</code> to its ordinal position
+ * in the above arrangement, first compute <code>nAB=nA+nB</code> and
+ * then use the following formula
+ *   <code>pos = nAB*(nAB+1)/2+nA</code>.
+ * The largest feedback value for a <code>p</code>-peg game is 
+ * <code>p*(p+3)/2</code>. This means 7-bits storage can represent
+ * up to 14 pegs, which corresponds to a maximum ordinal index of 119.
+ * The highest bit is reserved to indicate an error condition.
  *
- * To unpack a feedback in compact form, a loop is required. In 
- * practice we build a lookup table for this purpose.
+ * To convert a feedback from its ordinal position, there is no 
+ * simple formula. Therefore we build a lookup table for this purpose.
  *
- * The compact format has better cache performance in certain operations,
- * but is not chosen as the default format because of its complexity. 
- * To choose it, define the <code>MM_FEEDBACK_COMPACT</code> macro in
- * this file or in the compiler option.
+ * @ingroup type
  */
 class Feedback
 {
-	/// Packed value of the feedback. The special value <code>0xFF</code>
+	/// Ordinal position of the feedback. The special value @c -1
 	/// is reserved to indicate an <i>empty</i> feedback.
-	unsigned char m_value;
+	char _value;
 
-#if MM_FEEDBACK_COMPACT
-	/// Lookup table that maps a byte value (in compact format) to a 
-	/// feedback <code>(nA,nB)</code>.
+	/// Lookup table that maps an ordinal position to a feedback.
 	struct compact_format_unpacker
 	{
-		std::pair<int,int> table[0x100];
+		std::pair<int,int> table[129];
 		compact_format_unpacker()
 		{
-			for (int i = 0; i < 256; ++i)
-				table[i] = std::pair<int,int>(-1,-1);
+			std::fill(table+0, table+129, std::pair<int,int>(-1,-1));
 
 			for (int nAB = 0; nAB <= MM_MAX_PEGS; ++nAB)
 			{
@@ -98,53 +76,35 @@ class Feedback
 				}
 			}
 		}
+
+		static std::pair<int,int> unpack(char value)
+		{
+			static const compact_format_unpacker unpacker;
+			return (value >= 0)? unpacker.table[value] : unpacker.table[128];
+		}
 	};
-#endif
-
-public:
-
-	/// Packs a feedback into a byte value.
-	static unsigned char pack(int nA, int nB)
-	{
-		assert(nA >= 0 && nA <= MM_MAX_PEGS);
-		assert(nB >= 0 && nB <= MM_MAX_PEGS);
-		assert(nA+nB >= 0 && nA+nB <= MM_MAX_PEGS);
-#if MM_FEEDBACK_COMPACT
-		int nAB = nA + nB;
-		return (nAB+1)*nAB/2+nA;
-#else
-		return (nA << MM_FEEDBACK_ASHIFT) | nB;
-#endif
-	}
-
-	/// Unpacks a feedback from a byte value.
-	static std::pair<int,int> unpack(unsigned char value)
-	{
-#if MM_FEEDBACK_COMPACT
-		static const compact_format_unpacker unpacker;
-		return unpacker.table[value];
-#else
-		return std::pair<int,int>(
-			value >> MM_FEEDBACK_ASHIFT,
-			value & MM_FEEDBACK_BMASK);
-#endif
-	}
 
 public:
 
 	/// Creates an empty feedback.
-	Feedback() : m_value(0xff) { }
+	Feedback() : _value(-1) { }
 
-	/// Creates a feedback from its internal representation.
-	Feedback(unsigned char value) : m_value(value) { }
+	/// Creates a feedback from its ordinal position.
+	explicit Feedback(size_t index) : _value((char)index) { }
 
 	/// Creates a feedback with the given <code>nA</code> and <code>nB</code>.
-	Feedback(int nA, int nB) : m_value(pack(nA, nB)) { }
+	explicit Feedback(int nA, int nB)
+	{
+		assert(nA >= 0 && nA <= MM_MAX_PEGS);
+		assert(nB >= 0 && nB <= MM_MAX_PEGS);
+		assert(nA+nB >= 0 && nA+nB <= MM_MAX_PEGS);
+		int nAB = nA + nB;
+		_value = (char)((nAB+1)*nAB/2+nA);
+	}
 
-	/// Creates a feedback from a string of the form "1A2B".
-	/// If the input string is invalid, the feedback is initialized with
-	/// an empty value.
-	Feedback(const char *s) : m_value(0xff)
+	/// Creates a feedback from a string of the form "1A2B". If the
+	/// input string is invalid, the feedback is set to an empty value.
+	explicit Feedback(const char *s) : _value(-1)
 	{
 		if (s &&
 			(s[0] >= '0' && s[0] <= '9') &&
@@ -153,74 +113,84 @@ public:
 			(s[3] == 'B' || s[3] == 'b') &&
 			(s[4] == '\0')) 
 		{
-			m_value = pack(s[0]-'0', s[2]-'0');
+			_value = Feedback(s[0]-'0', s[2]-'0')._value;
 		}
 	}
 
-	/// Sets the value of the feedback.
-	void setValue(int nA, int nB) { 	m_value = pack(nA, nB); 	}
+	/// Type of the internal representation of the feedback.
+	typedef char value_type;
 
-	/// Gets the internal representation of the feedback.
-	unsigned char value() const { return m_value; }
+	/// Returns the internal representation of the feedback.
+	value_type value() const { return _value; }
 
 	/// Tests whether the feedback is empty. 
-	/// An empty feedback can be created by <code>Feedback::emptyValue()</code>.
-	bool empty() const { return (m_value == 0xff); }
+	bool empty() const { return _value < 0; }
 
 	/// Returns <code>nA</code>, the number of correct colors
 	/// in the correct pegs.
-	int nA() const { return unpack(m_value).first; 	}
+	int nA() const { return compact_format_unpacker::unpack(_value).first; }
 
 	/// Returns <code>nB</code>, the number of correct colors
 	/// in the wrong pegs.
-	int nB() const { return unpack(m_value).second; }
+	int nB() const { return compact_format_unpacker::unpack(_value).second; }
 
-	/// Tests whether this feedback is equal to another.
-	///
-	/// If both feedbacks are non-empty, then they are equal if they 
-	/// have the same number of nA and nB. If one of the feedbacks
-	/// is empty, then they are equal only if they are both empty.
-	bool operator == (Feedback b) const { return (m_value == b.m_value); }
+	/**
+	 * Compact format of a feedback.
+	 * In this format, bits 0-3 stores @c nB, and bits 4-7 stores 
+	 * @c nA. To convert a feedback into the compact format, use
+	 * the formula <code>x = (nA << 4) | nB</code>.
+	 * To restore a feedback from compact format, use the formula 
+	 * <code>nA = x >> 4</code> and <code>nB = x & 0x0F</code>.
+	 */
+	typedef unsigned char compact_type;
 
-	/// Tests whether this feedback is not equal to another.
-	///
-	/// If both feedbacks are non-empty, then they are equal if they 
-	/// have the same number of nA and nB. If one of the feedbacks
-	/// is empty, then they are equal only if they are both empty.
-	bool operator != (Feedback b) const { return (m_value != b.m_value); }
-
-public:
-
-	/// Returns an empty feedback value. 
-	static Feedback emptyValue()
+	/// Converts the feedback into compact form.
+	compact_type pack() const 
 	{
-		return Feedback(0xff);
+		std::pair<int,int> ab = compact_format_unpacker::unpack(_value);
+		return (compact_type)((ab.first << 4) | ab.second);
 	}
 
-	/// Returns a feedback value corresponding to a perfect match.
-	static Feedback perfectValue(int npegs)
+	/// Restores a feedback from compact form.
+	/// @todo check malformed input
+	static Feedback unpack(compact_type ab)
 	{
-		return Feedback(npegs, 0);
+		int nA = (ab >> 4), nB = (ab & 0x0F);
+		return Feedback(nA, nB);
 	}
 
+	/// Returns the feedback for a perfect match under a given set 
+	/// of rules.
 	static Feedback perfectValue(const Rules &rules)
 	{
 		return Feedback(rules.pegs(), 0);
 	}
 
-	static unsigned char maxValue(int npegs)
+	/// Returns the size of the set of distinct feedback values under
+	/// a given set of rules. The practically impossible feedback
+	/// <code>(p-1,1)</code> is included.
+	static size_t size(const Rules &rules)
 	{
-		return Feedback(npegs, 0).value();
+		return (size_t)perfectValue(rules)._value + 1;
 	}
-
-	static unsigned char maxValue(const Rules &rules)
-	{
-		return perfectValue(rules).value();
-	}
-
 };
 
+/// Tests whether two feedbacks are equal.
+/// @ingroup type
+inline bool operator == (const Feedback &a, const Feedback &b)
+{
+	return a.value() == b.value();
+}
+
+/// Tests whether two feedbacks are not equal.
+/// @ingroup type
+inline bool operator != (const Feedback &a, const Feedback &b)
+{
+	return a.value() != b.value();
+}
+
 /// Outputs the feedback to a stream in the form "1A2B".
+/// @ingroup type
 inline std::ostream& operator << (std::ostream &os, const Feedback &feedback)
 {
 	if (feedback.empty())
@@ -228,7 +198,6 @@ inline std::ostream& operator << (std::ostream &os, const Feedback &feedback)
 	else
 		return os << feedback.nA() << 'A' << feedback.nB() << 'B';
 }
-
 
 } // namespace Mastermind
 

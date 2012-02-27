@@ -8,11 +8,11 @@ CodewordList Engine::filterByFeedback(
 	const Codeword &guess, 
 	Feedback feedback) const
 {
-	unsigned char fb = feedback.value();
+	//Feedback fb = feedback.value();
 	FeedbackList fblist = compare(guess, list);
 
 	// Count feedbacks equal to feedback.
-	size_t count = std::count(fblist.cbegin(), fblist.cend(), fb);
+	size_t count = std::count(fblist.begin(), fblist.end(), feedback);
 #if 0
 	if (1) 
 	{
@@ -28,8 +28,9 @@ CodewordList Engine::filterByFeedback(
 	// Copy elements whose feedback are equal to fb.
 	CodewordList result(count);
 	size_t j = 0;
-	for (size_t i = 0; i < fblist.size(); i++) {
-		if (fblist[i] == fb) 
+	for (size_t i = 0; i < fblist.size(); i++) 
+	{
+		if (fblist[i] == feedback) 
 			result[j++] = list[i];
 	}
 	return result;
@@ -108,7 +109,7 @@ void Engine::countFrequencies(
 {
 	if (first != last)
 	{
-		size_t fb_count = (size_t)Feedback::maxValue(_rules) + 1;
+		size_t fb_count = Feedback::size(_rules);
 		const unsigned char *buffer = (const unsigned char *)&(*first);
 		size_t count = last - first;
 		_freq(buffer, buffer + count, freq.data(), fb_count);

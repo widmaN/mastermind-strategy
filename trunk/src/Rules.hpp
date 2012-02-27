@@ -81,13 +81,6 @@ public:
 			return n;
 		}
 	}
-
-#if 0
-	unsigned short GetFullDigitMask() const
-	{
-		return (1 << ndigits) - 1;
-	}
-#endif
 };
 
 } // namespace Mastermind

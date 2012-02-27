@@ -2,6 +2,7 @@
 #define MASTERMIND_HEURISTIC_STRATEGY_HPP
 
 #include "Strategy.hpp"
+#include "util/wrapped_float.hpp"
 
 namespace Mastermind {
 
@@ -168,23 +169,6 @@ struct MinimizeAverage
 	}
 };
 
-struct wrapped_double
-{
-	double _value;
-	wrapped_double() : _value(0.0) { }
-	wrapped_double(double value) : _value(value) { }
-
-	bool operator < (wrapped_double x) const 
-	{
-		return _value < x._value - 1.0e-10;
-	}
-
-	bool operator == (wrapped_double x) const 
-	{
-		return std::abs(x._value - _value) < 1.0e-10;
-	}
-};
-
 /// A theoretically advanced heuristic that scores a guess as roughly
 /// the expected number of further guesses needed (Neuwirth, 1982).
 /// The precise definition is to maximize the entropy, defined as
@@ -203,7 +187,7 @@ struct MaximizeEntropy
 #if 0
 	typedef double score_t;
 #else
-	typedef wrapped_double score_t;
+	typedef util::wrapped_float<double, 100> score_t;
 #endif
 
 	/// Short identifier of the heuristic function.
@@ -229,7 +213,7 @@ struct MaximizeEntropy
 			if (freq[freq.size()-1]) // 4A0B
 				s -= 2.0 * std::log(2.0);
 		}
-		return s;
+		return score_t(s);
 	}
 };
 
