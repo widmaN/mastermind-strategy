@@ -152,5 +152,8 @@
     <ClInclude Include="src\util\io_format.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\util\wrapped_float.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

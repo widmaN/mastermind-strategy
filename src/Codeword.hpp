@@ -15,8 +15,8 @@ namespace Mastermind {
 
 /// Represents a codeword.
 /// For performance reason, a codeword is interchangable with __m128i.
-/* __declspec(align(16)) */
-class Codeword
+/// @ingroup type
+class Codeword /* __declspec(align(16)) */
 {
 	// The internal representation of the codeword value.
 	union
@@ -103,13 +103,15 @@ public:
 		return Codeword();
 	}
 
+	typedef uint32_t compact_type;
+
 	/// Packs a codeword into a 4-byte representation.
-	static uint32_t pack(const Codeword &c)
+	compact_type pack() const
 	{
 		uint32_t w = 0xffffffff;
 		for (int i = 0; i < MM_MAX_PEGS; i++) 
 		{
-			unsigned char d = c[i];
+			unsigned char d = _digit[i];
 			if (d == 0xFF)
 				break;
 			w <<= 4;
@@ -119,7 +121,7 @@ public:
 	}
 
 	/// Unpacks a codeword from a 4-byte representation.
-	static Codeword unpack(uint32_t w)
+	static Codeword unpack(compact_type w)
 	{
 		Codeword c = emptyValue();
 		int i = 0;

@@ -6,9 +6,6 @@
 #include "util/call_counter.hpp"
 #include "Algorithm.hpp"
 
-// Define NTEST to exclude non-essential routines from compilation.
-#define NTEST
-
 REGISTER_CALL_COUNTER(Comparison)
 
 using namespace Mastermind;
@@ -20,7 +17,7 @@ using namespace Mastermind;
 // Both nA and nAB must be >= 0 and <= 15.
 struct generic_feedback_mapping_t
 {
-	unsigned char table[0x100];
+	Feedback table[0x100];
 
 	generic_feedback_mapping_t()
 	{
@@ -28,10 +25,10 @@ struct generic_feedback_mapping_t
 		{
 			int nA = i >> 4;
 			int nAB = i & 0xF;
-#if MM_FEEDBACK_COMPACT
+#if 0
 			table[i] = nAB*(nAB+1)/2+nA;
 #else
-			table[i] = (nA << MM_FEEDBACK_ASHIFT) | (nAB - nA);
+			table[i] = Feedback(nA, nAB - nA);
 #endif
 		}
 	}
@@ -97,7 +94,7 @@ static void compare_long_codeword_generic(
 		int nAB = sum(min(secret, guess) & mask_colors);
 #endif
 
-		unsigned char nAnB = generic_feedback_mapping.table[(nA<<4)|nAB];
+		Feedback nAnB = generic_feedback_mapping.table[(nA<<4)|nAB];
 		*(result++) = nAnB;
 	}
 }
@@ -119,7 +116,7 @@ static void compare_long_codeword_generic(
 // the table directly.
 struct norepeat_feedback_mapping_t
 {
-	unsigned char table[0x10000];
+	Feedback table[0x10000];
 
 	norepeat_feedback_mapping_t()
 	{
@@ -127,10 +124,10 @@ struct norepeat_feedback_mapping_t
 		{
 			int nA = util::intrinsic::pop_count(i >> MM_MAX_COLORS);
 			int nAB = util::intrinsic::pop_count(i & ((1<<MM_MAX_COLORS)-1));
-#if MM_FEEDBACK_COMPACT
+#if 0
 			table[i] = nAB*(nAB+1)/2+nA;
 #else
-			table[i] = (nA << MM_FEEDBACK_ASHIFT) | (nAB - nA);
+			table[i] = Feedback(nA, nAB - nA);
 #endif
 		}
 	}
@@ -179,94 +176,8 @@ static void compare_long_codeword_norepeat(
 	}
 }
 
-#ifndef NTEST
-// Comparison routine for non-repeatable codewords.
-// It is a manually-unrolled version of compare_long_codeword_norepeat().
-static void compare_long_codeword_norepeat_p4(
-	const Rules &rules,
-	const Codeword& _secret,
-	const Codeword *first,
-	const Codeword *last,
-	Feedback result[])
-{
-	//UpdateCallCounter(count);
-	__m128i secret = _secret.value();
-
-	// Change 0xFF in secret to 0x0F
-	secret = _mm_and_si128(secret, _mm_set1_epi8(0x0f));
-
-	// Set 0 counter in secret to 0xFF
-	__m128i t1 = _mm_cmpeq_epi8(secret, _mm_setzero_si128());
-	t1 = _mm_slli_si128(t1, MM_MAX_PEGS);
-	t1 = _mm_srli_si128(t1, MM_MAX_PEGS);
-	secret = _mm_or_si128(secret, t1);
-
-	// Define a static mapping from bitmask to nAnB
-	static unsigned char counter[0x10000];
-	static bool counter_ready = false;
-	if (!counter_ready) {
-		for (int i = 0; i < 0x10000; i++) {
-			int nA = count_bits(i >> MM_MAX_COLORS);
-			int nAB = count_bits(i & ((1<<MM_MAX_COLORS)-1));
-#if MM_FEEDBACK_COMPACT
-			counter[i] = (nAB*nAB+nAB)/2+nA;
-#else
-			counter[i] = (nA << MM_FEEDBACK_ASHIFT) | (nAB - nA);
-#endif
-		}
-		counter_ready = true;
-	}
-
-	const __m128i *guesses = (const __m128i *)first;
-	size_t count = last - first;
-	for (; count >= 4; count -= 4) 
-	{
-		__m128i guess1 = *(guesses++);
-		__m128i guess2 = *(guesses++);
-		__m128i guess3 = *(guesses++);
-		__m128i guess4 = *(guesses++);
-
-		__m128i cmp1 = _mm_cmpeq_epi8(guess1, secret);
-		__m128i cmp2 = _mm_cmpeq_epi8(guess2, secret);
-		__m128i cmp3 = _mm_cmpeq_epi8(guess3, secret);
-		__m128i cmp4 = _mm_cmpeq_epi8(guess4, secret);
-
-		int mask1 = _mm_movemask_epi8(cmp1);
-		int mask2 = _mm_movemask_epi8(cmp2);
-		int mask3 = _mm_movemask_epi8(cmp3);
-		int mask4 = _mm_movemask_epi8(cmp4);
-
-		unsigned char nAnB1 = counter[mask1];
-		unsigned char nAnB2 = counter[mask2];
-		unsigned char nAnB3 = counter[mask3];
-		unsigned char nAnB4 = counter[mask4];
-
-		unsigned int t = (unsigned int)nAnB1
-			| ((unsigned int)nAnB2 << 8)
-			| ((unsigned int)nAnB3 << 16)
-			| ((unsigned int)nAnB4 << 24);
-
-		*(unsigned int *)result = t;
-		result += 4;
-	}
-
-	// Scan the remaining codewords
-	for (; count > 0; count--) 
-	{
-		__m128i guess = *(guesses++);
-		__m128i cmp = _mm_cmpeq_epi8(guess, secret);
-		int mask = _mm_movemask_epi8(cmp);
-		unsigned char nAnB = counter[mask];
-		*(result++) = nAnB;
-	}
-}
-#endif // NTEST
-
 ///////////////////////////////////////////////////////////////////////////
 // Routine registration.
 
 REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_long_codeword_generic)
 REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_long_codeword_norepeat)
-#ifndef NTEST
-REGISTER_ROUTINE(ComparisonRoutine, "norepeat_p4", compare_long_codeword_norepeat_p4)
-#endif

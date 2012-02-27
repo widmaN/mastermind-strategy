@@ -187,7 +187,7 @@ void WriteToFile<XmlFormat>(std::ostream &os, const StrategyTree &tree)
 	// Output the strategy.
 	os << "<details>" << std::endl;
 
-	unsigned char target = Feedback::perfectValue(tree.rules()).value();
+	Feedback target = Feedback::perfectValue(tree.rules());
 	int indent = 2;
 	int level = 0;
 	for (size_t i = 0; i < tree.nodes().size(); ++i)

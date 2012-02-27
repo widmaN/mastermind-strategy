@@ -50,8 +50,8 @@ public:
 	class Node
 	{
 		// Basic fields that identify the state.
-		unsigned long _guess;          // stored in compact format
-		unsigned char _response;       
+		Codeword::compact_type _guess;    // [unsigned long]
+		Feedback::compact_type _response; // [unsigned char]
 		unsigned char _depth;          // 0=root, 1=first guess, etc.
 
 #if 0
@@ -85,7 +85,7 @@ public:
 
 		/// Constructs a node with the given depth, guess and response.
 		Node(int depth, const Codeword &guess, const Feedback &response)
-			: _guess(Codeword::pack(guess)), _response(response.value()),
+			: _guess(guess.pack()), _response(response.pack()),
 			_depth(depth) // , _child_count(0) 
 		{ 
 		}
@@ -94,7 +94,7 @@ public:
 
 		Codeword guess() const { return Codeword::unpack(_guess); }
 
-		Feedback response() const { return _response; }
+		Feedback response() const { return Feedback::unpack(_response); }
 	};
 
 private:
@@ -249,7 +249,7 @@ public:
 
 	int max_depth() const
 	{
-		return _depth_freq.size() - 1;
+		return (int)_depth_freq.size() - 1;
 	}
 
 	unsigned int count_depth(int depth) const

@@ -84,7 +84,7 @@ static void FillStrategy(
 	Feedback perfect = Feedback::perfectValue(e.rules());
 	for (size_t k = 0; k < freq.size(); ++k)
 	{
-		Feedback feedback(k);
+		Feedback feedback((unsigned char)k);
 		if (freq[k] == 0)
 			continue;
 

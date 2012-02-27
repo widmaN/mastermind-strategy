@@ -29,7 +29,7 @@ static unsigned short ScanDigitMask_v1(
 	return result;
 }
 
-#ifndef NTEST
+#if 0
 /// This implementation works with "long" codeword. 4-Parallel.
 unsigned short ScanDigitMask_v2(
 	const Codeword *first,
@@ -71,6 +71,6 @@ unsigned short ScanDigitMask_v2(
 //
 
 REGISTER_ROUTINE(MaskRoutine, "generic", ScanDigitMask_v1)
-#ifndef NTEST
+#if 0
 REGISTER_ROUTINE(MaskRoutine, "unrolled", ScanDigitMask_v2)
 #endif

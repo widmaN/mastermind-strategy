@@ -12,29 +12,61 @@ namespace Mastermind {
 
 namespace Heuristics {
 
-/// A special-purpose heuristic used by an optimal strategy to score
-/// candidate guesses by the lower bound of the total cost.
-/// This heuristic could also be used by a heuristic strategy.
-/// @todo Improve the lower-bound estimate.
+/**
+ * Special-purpose heuristic used by an optimal strategy to score a
+ * candidate guess by the lower bound of the cost if this guess is
+ * made.
+ *
+ * The "cost" consists of four parts, in order of priority:
+ * - @c steps: the total number of guesses needed to reveal all 
+ *   secrets, excluding the initial guess
+ * - @c depth: the maximum number of guesses needed to reveal a
+ *   secret, excluding the initial guess
+ * - @c worst1: the number of secrets revealed by the worst number
+ *   of steps
+ * - @c worst2: the number of secrets revealed by the (worst - 1)
+ *   number of steps
+ *
+ * This heuristic could also be used by a heuristic strategy.
+ *
+ * @todo Improve the lower-bound estimate.
+ */
 class MinimizeLowerBound
 {
 public:
 
 	/// Type of the heuristic score.
+	/// The machine MUST be little-endian!
 	typedef struct score_t
 	{
-		int steps : 24; // number of steps needed to reveal all secrets
-		int depth : 8;  // number of guesses needed in the worst case
-		score_t() : steps(0), depth(0) { }
+		union 
+		{
+			unsigned int value;
+			struct {
+#if 0
+				int depth : 8;  // number of guesses needed in the worst case
+				int steps : 24; // number of steps needed to reveal all secrets
+#else
+				unsigned short depth;
+				unsigned short steps;
+#endif
+			};
+		};
+
+		score_t() : depth(0), steps(0) { }
 		bool operator < (const score_t &other) const
 		{
+#if 0
 			return (steps < other.steps) || 
 				(steps == other.steps && depth < other.depth);
+#endif
+			return value < other.value;
 		}
 	};
 
-	// Returns a simple estimate of minimum total number of steps 
-	// required to reveal @c n secrets given a branching factor of @c b.
+	/// Returns a simple estimate of minimum total number of steps 
+	/// required to reveal @c n secrets given a branching factor of @c b,
+	/// including the initial guess.
 	static score_t simple_estimate(
 		int n, // Number of remaining secrets
 		int b  // Branching factor: number of distinct non-perfect feedbacks
@@ -66,16 +98,16 @@ public:
 		int b = p*(p+3)/2-1;
 		for (size_t n = 0; n < _cache.size(); ++n)
 		{
-			_cache[n] = simple_estimate(n, b);
+			_cache[n] = simple_estimate((int)n, b);
 		}
 	}
 
-	/// Name of the heuristic function.
+	/// Returns the name of the heuristic.
 	std::string name() const { return "Min-LB"; }
 
-	// Returns a simple estimate of minimum total number of steps 
-	// required to reveal @c n secrets, assuming the maximum branching
-	// factor for the game.
+	/// Returns a simple estimate of minimum total number of steps 
+	/// required to reveal @c n secrets, including the initial guess,
+	/// assuming the maximum branching factor for the game.
 	score_t simple_estimate(int n) const
 	{
 		assert(n >= 0 && n < (int)_cache.size());
@@ -87,23 +119,27 @@ public:
 	{
 		Feedback perfect = Feedback::perfectValue(e.rules());
 		score_t lb;
+#if 1
 		for (size_t j = 0; j < freq.size(); ++j)
 		{
-			if (freq[j] > 0)
+			if (freq[j] > 0 && j != perfect.value())
 			{
-				lb.steps += freq[j];
-				if (j == perfect.value())
-				{
-					lb.depth = std::max(1, lb.depth);
-				}
-				else
-				{
-					score_t tmp = simple_estimate(freq[j]);
-					lb.steps += tmp.steps;
-					lb.depth = std::max(lb.depth, 1+tmp.depth);
-				}
+				score_t tmp = simple_estimate(freq[j]);
+				lb.steps += tmp.steps;
+				lb.depth = std::max(lb.depth, tmp.depth);
 			}
 		}
+#else
+		for (size_t j = 0; j < freq.size() - 1; ++j)
+		{
+			//if (freq[j] > 0 && j != perfect.value())
+			{
+				score_t tmp = simple_estimate(freq[j]);
+				lb.steps += tmp.steps;
+				lb.depth = std::max(lb.depth, tmp.depth);
+			}
+		}
+#endif
 		return lb;
 	}
 

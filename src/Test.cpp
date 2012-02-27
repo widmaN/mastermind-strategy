@@ -548,9 +548,9 @@ static void test_partition_size(Engine &e, const char *name)
 			// Add constraint.
 			auto child = std::unique_ptr<EquivalenceFilter>(filter->clone());
 			CodewordRange part(all.begin() + k, all.begin() + k + freq[i]);
-			child->add_constraint(g1, i, part);
+			child->add_constraint(g1, Feedback((unsigned char)i), part);
 			CodewordList canonical = child->get_canonical_guesses(e.universe());
-			std::cout << "Feedback: " << Feedback(i) << ", #remaining = "
+			std::cout << "Feedback: " << Feedback((unsigned char)i) << ", #remaining = "
 				<< part.size() <<  ", #{g2} = " << canonical.size() << std::endl;
 
 			if (1)

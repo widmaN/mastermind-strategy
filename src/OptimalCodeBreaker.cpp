@@ -94,8 +94,9 @@ partition(Engine &e, CodewordRange secrets, const Codeword &guess)
 	{
 		if (freq[j] > 0)
 		{
+			Feedback fb((unsigned char)j);
 			range = CodewordRange(range.end(), range.end() + freq[j]);
-			cells.push_back(CodewordCell(j, range.begin(), range.end()));
+			cells.push_back(CodewordCell(fb, range.begin(), range.end()));
 		}
 	}
 	return cells;
@@ -116,7 +117,7 @@ static int fill_obviously_optimal_strategy(
 
 	//	VERBOSE_COUT << "Found obvious guess: " << obvious << std::endl;
 
-	int n = secrets.size();
+	int n = (int)secrets.size();
 	int cost = 2*n - 1;
 
 	Feedback perfect = Feedback::perfectValue(e.rules());
@@ -162,7 +163,7 @@ static int fill_strategy_tree(
 	StrategyTree &tree // Strategy tree that stores the best strategy
 	)
 {
-	UPDATE_CALL_COUNTER(OptimalRecursion, secrets.size());
+	UPDATE_CALL_COUNTER(OptimalRecursion, (int)secrets.size());
 
 	// Note: Branch pruning is done based on the supplied cut-off
 	// threshold _best_. It is set to an upper bound of the total
@@ -188,6 +189,9 @@ static int fill_strategy_tree(
 	}
 	if (options.max_depth == 1)
 		return -1;
+
+	// Let n be the number of secrets.
+	int nsecrets = (int)secrets.size();
 
 	// From now on, we are allowed to make at least 2 more steps
 	// to reveal all the secrets. We reduce the max-steps limit
@@ -230,10 +234,15 @@ static int fill_strategy_tree(
 
 	std::vector<int> order(candidates.size());
 	for (size_t i = 0; i < order.size(); ++i)
-		order[i] = i;
+		order[i] = (int)i;
 
+	// Note: the stable-sort takes longer time than the non-stable sort.
 	std::sort(order.begin(), order.end(), [&](int i, int j) -> bool {
+#if 0
 		return scores[i] < scores[j];
+#else
+		return (scores[i] < scores[j]) || (!(scores[j] < scores[i]) && (i < j));
+#endif
 	});
 		//util::make_zip(scores.begin(), candidates.begin()),
 		//util::make_zip(scores.end(), candidates.end()));
@@ -254,7 +263,7 @@ static int fill_strategy_tree(
 		// and we sort the candidates by their lower bound,
 		// we need to check here whether the remaining candidates
 		// are still worth checking.
-		if (scores[i].steps >= cut_off + cut_off_delta)
+		if (scores[i].steps + nsecrets >= cut_off + cut_off_delta)
 		{
 			VERBOSE_COUT("Pruned " << (candidate_count - index)
 				<< " remaining guesses: lower bound (" << scores[i].steps
@@ -274,7 +283,7 @@ static int fill_strategy_tree(
 
 		// If there's a limit on the maximum number of depth, 
 		// check if we can prune it.
-		if (scores[i].depth - 1 > options.max_depth)
+		if (scores[i].depth > options.max_depth)
 		{
 			if (verbose)
 				std::cout << "Skipped: guess will have too many steps"
@@ -321,7 +330,7 @@ static int fill_strategy_tree(
 			else
 			{
 				lowerbound_t estimate = 
-					estimator.heuristic().simple_estimate(cells[j].size());
+					estimator.heuristic().simple_estimate((int)cells[j].size());
 				lb_part[j] = estimate.steps;
 			}
 			lb += lb_part[j];
@@ -337,7 +346,7 @@ static int fill_strategy_tree(
 
 		// Find the best guess for each partition.
 		bool pruned = false;
-		int node_pos = tree.nodes().size(); // -1;
+		int node_pos = (int)tree.nodes().size(); // -1;
 		for (size_t j = 0; j < cells.size() && !pruned; ++j)
 		{
 			const CodewordCell &cell = cells[j];
@@ -463,7 +472,7 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 
 	// Set options.
 	OptimalStrategyOptions options;
-#if 0
+#if 1
 	options.max_depth = 1000;
 #else
 	options.max_depth = 5;
