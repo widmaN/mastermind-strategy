@@ -12,7 +12,6 @@
 #include "HeuristicStrategy.hpp"
 #include "OptimalStrategy.hpp"
 #include "StrategyTree.hpp"
-// #include "util/zip_iterator.hpp"
 #include "util/call_counter.hpp"
 #include "util/hr_timer.hpp"
 #include "util/io_format.hpp"
@@ -144,8 +143,31 @@ static int fill_obviously_optimal_strategy(
 
 typedef HeuristicStrategy<Heuristics::MinimizeLowerBound> LowerBoundEstimator;
 
-// @todo: Use heuristic code breaker to estimate an upper bound of total guesses
-// This could be helpful in pruning obvious bad candidates
+#if 0
+struct cost_comparer
+{
+	char max_depth;
+	bool min_worst;
+	
+public:
+
+	typedef LowerBoundEstimator::score_type lowerbound_t;
+
+	bool operator () (const lowerbound_t &a, const lowerbound_t &b) const
+	{
+		if (a.steps < b.steps)
+			return true;
+		if (a.steps > b.steps)
+			return false;
+
+		options.min_worst = true;
+		options.find_last = false;
+	}
+};
+#endif
+
+/// @todo: Use heuristic code breaker to estimate an upper bound of total guesses
+/// This could be helpful in pruning obvious bad candidates
 
 // Finds the optimal strategy for a given set of remaining secrets.
 // Returns the optimal (least) total number of steps needed to reveal
@@ -236,16 +258,12 @@ static int fill_strategy_tree(
 	for (size_t i = 0; i < order.size(); ++i)
 		order[i] = (int)i;
 
-	// Note: the stable-sort takes longer time than the non-stable sort.
+	// Perform a stable sort of the candidate guesses. This ensures
+	// the same results are obtained under different implementations
+	// of std::sort().
 	std::sort(order.begin(), order.end(), [&](int i, int j) -> bool {
-#if 0
-		return scores[i] < scores[j];
-#else
 		return (scores[i] < scores[j]) || (!(scores[j] < scores[i]) && (i < j));
-#endif
 	});
-		//util::make_zip(scores.begin(), candidates.begin()),
-		//util::make_zip(scores.end(), candidates.end()));
 
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
@@ -477,7 +495,7 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 #else
 	options.max_depth = 5;
 #endif
-	options.min_worst = false;
+	options.min_worst = true;
 	options.find_last = false;
 
 	// Recursively find an optimal strategy.

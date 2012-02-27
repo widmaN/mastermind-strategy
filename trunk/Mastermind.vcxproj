@@ -158,7 +158,6 @@
     <ClInclude Include="src\Feedback.hpp" />
     <ClInclude Include="src\HeuristicStrategy.hpp" />
     <ClInclude Include="src\ObviousStrategy.hpp" />
-    <ClInclude Include="src\OptimalCodeBreaker.hpp" />
     <ClInclude Include="src\OptimalStrategy.hpp" />
     <ClInclude Include="src\Permutation.hpp" />
     <ClInclude Include="src\Registry.hpp" />

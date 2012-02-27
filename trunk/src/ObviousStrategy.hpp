@@ -30,6 +30,8 @@ namespace Mastermind {
  * is that the number of remaining possibilities is no more than
  * the number of distinct feedbacks. For a game with @c p pegs,
  * the number of distinct feedbacks is <code>p*(p+3)/2</code>.
+ *
+ * @ingroup Obvious
  */
 class ObviousStrategy : public Strategy
 {
