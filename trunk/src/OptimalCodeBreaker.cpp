@@ -148,7 +148,7 @@ struct cost_comparer
 {
 	char max_depth;
 	bool min_worst;
-	
+
 public:
 
 	typedef LowerBoundEstimator::score_type lowerbound_t;
@@ -299,7 +299,7 @@ static int fill_strategy_tree(
 		VERBOSE_COUT("Checking guess " << (i+1) << " of "
 			<< candidate_count << " (" << guess << ") -> ");
 
-		// If there's a limit on the maximum number of depth, 
+		// If there's a limit on the maximum number of depth,
 		// check if we can prune it.
 		if (scores[i].depth > options.max_depth)
 		{
@@ -347,7 +347,7 @@ static int fill_strategy_tree(
 				lb_part[j] = 0;
 			else
 			{
-				lowerbound_t estimate = 
+				lowerbound_t estimate =
 					estimator.heuristic().simple_estimate((int)cells[j].size());
 				lb_part[j] = estimate.steps;
 			}
@@ -495,7 +495,7 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 #else
 	options.max_depth = 5;
 #endif
-	options.min_worst = true;
+	options.min_worst = false;
 	options.find_last = false;
 
 	// Recursively find an optimal strategy.

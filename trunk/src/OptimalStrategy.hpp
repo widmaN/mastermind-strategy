@@ -16,7 +16,7 @@ namespace Mastermind {
  *
  * The cost of a strategy consists of the following parts, in order of
  * decreasing priority:
- * - @c steps: the total number of guesses needed to reveal all 
+ * - @c steps: the total number of guesses needed to reveal all
  *   secrets, excluding the initial guess.
  * - @c depth: the maximum number of guesses needed to reveal a
  *   secret, excluding the initial guess.
@@ -24,13 +24,13 @@ namespace Mastermind {
  *   of steps.
  * - @c worst2: the number of secrets revealed by the (worst - 1)
  *   number of steps.
- * 
+ *
  * @remarks The machine MUST be little-endian!
  * @ingroup Optimal
  */
 struct StrategyCost
 {
-	union 
+	union
 	{
 		unsigned long long value;
 		struct {
@@ -68,7 +68,7 @@ public:
 	/// Type of the heuristic score.
 	typedef StrategyCost score_t;
 
-	/// Returns a simple estimate of minimum total number of steps 
+	/// Returns a simple estimate of minimum total number of steps
 	/// required to reveal @c n secrets given a branching factor of @c b,
 	/// including the initial guess.
 	static score_t simple_estimate(
@@ -96,7 +96,7 @@ private:
 
 public:
 
-	MinimizeLowerBound(Engine &engine) 
+	MinimizeLowerBound(Engine &engine)
 		: e(engine), _cache(e.rules().size()+1)
 	{
 		// Build a cache of simple estimates.
@@ -111,7 +111,7 @@ public:
 	/// Returns the name of the heuristic.
 	std::string name() const { return "Min-LB"; }
 
-	/// Returns a simple estimate of minimum total number of steps 
+	/// Returns a simple estimate of minimum total number of steps
 	/// required to reveal @c n secrets, including the initial guess,
 	/// assuming the maximum branching factor for the game.
 	score_t simple_estimate(int n) const
@@ -127,7 +127,7 @@ public:
 		score_t lb;
 		for (size_t j = 0; j < freq.size(); ++j)
 		{
-			if (freq[j] > 0 && j != perfect.value())
+			if (freq[j] > 0 && Feedback(j) != perfect)
 			{
 				score_t tmp = simple_estimate(freq[j]);
 				lb.steps += tmp.steps;
@@ -174,7 +174,7 @@ public:
 		{
 			Codeword guess = guesses[i];
 			FeedbackFrequencyTable freq = e.frequency(e.compare(guess, secrets));
-			
+
 			std::copy(freq.begin(), freq.end(), frequency_cache.begin() + i*table_size);
 
 #if 0
@@ -221,7 +221,7 @@ struct OptimalStrategyOptions
 	bool min_worst; // minimize the number of secrets revealed using
 	                // the worst-case number of steps
 
-	OptimalStrategyOptions() 
+	OptimalStrategyOptions()
 		: max_depth(0xFFFF), find_last(false), min_worst(false) { }
 };
 
@@ -232,13 +232,13 @@ struct OptimalStrategyOptions
 class OptimalStrategy
 {
 public:
-	
+
 	/// Returns the name of the strategy.
 	virtual std::string name() const { return "optimal"; }
 
 	/// Makes a guess.
 	virtual Codeword make_guess(
-		CodewordConstRange possibilities, 
+		CodewordConstRange possibilities,
 		CodewordConstRange candidates) const;
 };
 
