@@ -33,6 +33,8 @@ namespace Mastermind {
  * Note that when computing the heuristic score, we always assume that
  * each codeword in the possibility set is equally-likely to be the
  * secret.
+ *
+ * @ingroup Heuristic
  */
 template <class Heuristic>
 class HeuristicStrategy : public Strategy
@@ -54,12 +56,6 @@ public:
 	virtual std::string name() const
 	{
 		 return h.name();
-	}
-
-	/// Returns a description of the strategy.
-	virtual std::string description() const
-	{
-		return h.name();
 	}
 
 	/// Makes the guess that produces the lowest heuristic score.
@@ -93,13 +89,8 @@ public:
 				*(scores++) = score;
 			
 			// Keep track of the guess that produces the lowest score.
-#if 0
-			if ((it == candidates.begin()) || (score < choice_score) || 
-				(score == choice_score && !choice_ispos && freq[target] > 0)) 
-#else
 			if ((it == candidates.begin()) || (score < choice_score) || 
 				(!(choice_score < score) && !choice_ispos && freq[target] > 0)) 
-#endif
 			{
 				choice = guess;
 				choice_score = score;
@@ -124,6 +115,7 @@ namespace Heuristics {
 /// The score to minimize is <code>Max{ n[i] }</code>, where 
 /// <code>n[i]</code> is the number of elements in partition 
 /// <code>i</code>.
+/// @ingroup Heuristic
 template <int Levels>
 struct MinimizeWorstCase
 {
@@ -147,6 +139,7 @@ struct MinimizeWorstCase
 /// is <code>Sum{ n[i] * (n[i]/N) }</code>, or equivalently 
 /// <code>Sum{ n[i]^2 }</code>, where <code>n[i]</code> is the number
 /// of elements in partition <code>i</code>.
+/// @ingroup Heuristic
 struct MinimizeAverage
 {
 	/// Data type of the score (unsigned integer).
@@ -180,6 +173,7 @@ struct MinimizeAverage
 /// estimate of the expected number of further guesses needed. 
 /// As a side note, note that the base of the logrithm doesn't matter 
 /// in computing the score.
+/// @ingroup Heuristic
 template <bool ApplyCorrection>
 struct MaximizeEntropy
 {
@@ -220,6 +214,7 @@ struct MaximizeEntropy
 /// An aggressive heuristic that scores a guess as the number of
 /// partitions it produces. The rationale is that more partitions,
 /// fewer steps.
+/// @ingroup Heuristic
 struct MaximizePartitions
 {
 	/// Data type of the score (signed integer).
@@ -235,7 +230,6 @@ struct MaximizePartitions
 		return -(int)freq.nonzero_count();
 	}
 };
-
 
 } // namespace Heuristics
 

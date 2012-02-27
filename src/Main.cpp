@@ -12,6 +12,24 @@
  * @defgroup util Utility Routines
  */
 
+/// @defgroup Obvious Obvious Strategy
+/// A strategy that makes an obviously-optimal guess when one exists.
+/// @ingroup strat
+
+/// @defgroup Simple Simple Strategy
+/// A strategy that makes an arbitrary guess from the set of remaining
+/// secrets.
+/// @ingroup strat
+
+/// @defgroup Heuristic Heuristic Strategy
+/// A strategy that makes the guess that produces the best heuristic
+/// score.
+/// @ingroup strat
+
+/// @defgroup Optimal Optimal Strategy
+/// A strategy that makes the optimal guess through exhaustive search.
+/// @ingroup strat
+
 #include <iostream>
 #include <vector>
 
@@ -372,13 +390,13 @@ int main(int argc, char* argv[])
 	bool repeatable = true;
 #endif
 	bool verbose = false;
-	enum class Mode
+	enum Mode
 	{
 		Interactive = 0,
 		Strategy = 1,
 		Test = 2,
 	};
-	Mode mode = Mode::Interactive;
+	Mode mode = Mode(Interactive);
 
 	// Parse command line arguments.
 	for (int i = 1; i < argc; i++)
@@ -418,9 +436,9 @@ int main(int argc, char* argv[])
 		else // mode
 		{
 			if (strcmp(s, "strat") == 0)
-				mode = Mode::Strategy;
+				mode = Mode(Strategy);
 			else if (strcmp(s, "test") == 0)
-				mode = Mode::Test;
+				mode = Mode(Test);
 			else
 			{
 				usage();
@@ -457,11 +475,11 @@ int main(int argc, char* argv[])
 	// Execute the selected action.
 	switch (mode)
 	{
-	case Mode::Interactive:
+	case Interactive:
 		return interactive(rules);
-	case Mode::Strategy:
+	case Strategy:
 		break;
-	case Mode::Test:
+	case Test:
 		return test(rules);
 	default:
 		break;

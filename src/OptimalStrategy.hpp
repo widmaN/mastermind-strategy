@@ -10,25 +10,55 @@
 
 namespace Mastermind {
 
+/**
+ * Represents the cost of a strategy in terms of the number of guesses
+ * required to reveal the secrets.
+ *
+ * The cost of a strategy consists of the following parts, in order of
+ * decreasing priority:
+ * - @c steps: the total number of guesses needed to reveal all 
+ *   secrets, excluding the initial guess.
+ * - @c depth: the maximum number of guesses needed to reveal a
+ *   secret, excluding the initial guess.
+ * - @c worst1: the number of secrets revealed by the worst number
+ *   of steps.
+ * - @c worst2: the number of secrets revealed by the (worst - 1)
+ *   number of steps.
+ * 
+ * @remarks The machine MUST be little-endian!
+ * @ingroup Optimal
+ */
+struct StrategyCost
+{
+	union 
+	{
+		unsigned long long value;
+		struct {
+			int worst2 : 16; //
+			int worst1 : 16; //
+			int depth  : 8;  // number of guesses needed in the worst case
+			int steps  : 24; // number of steps needed to reveal all secrets
+		};
+	};
+
+	StrategyCost() : value(0) { }
+};
+
+/// Compares two costs.
+/// @ingroup Optimal
+inline bool operator < (const StrategyCost &c1, const StrategyCost &c2)
+{
+	return c1.value < c2.value;
+}
+
 namespace Heuristics {
 
 /**
  * Special-purpose heuristic used by an optimal strategy to score a
  * candidate guess by the lower bound of the cost if this guess is
- * made.
+ * made. This heuristic could also be used by a heuristic strategy.
  *
- * The "cost" consists of four parts, in order of priority:
- * - @c steps: the total number of guesses needed to reveal all 
- *   secrets, excluding the initial guess
- * - @c depth: the maximum number of guesses needed to reveal a
- *   secret, excluding the initial guess
- * - @c worst1: the number of secrets revealed by the worst number
- *   of steps
- * - @c worst2: the number of secrets revealed by the (worst - 1)
- *   number of steps
- *
- * This heuristic could also be used by a heuristic strategy.
- *
+ * @ingroup Optimal
  * @todo Improve the lower-bound estimate.
  */
 class MinimizeLowerBound
@@ -36,33 +66,7 @@ class MinimizeLowerBound
 public:
 
 	/// Type of the heuristic score.
-	/// The machine MUST be little-endian!
-	typedef struct score_t
-	{
-		union 
-		{
-			unsigned int value;
-			struct {
-#if 0
-				int depth : 8;  // number of guesses needed in the worst case
-				int steps : 24; // number of steps needed to reveal all secrets
-#else
-				unsigned short depth;
-				unsigned short steps;
-#endif
-			};
-		};
-
-		score_t() : depth(0), steps(0) { }
-		bool operator < (const score_t &other) const
-		{
-#if 0
-			return (steps < other.steps) || 
-				(steps == other.steps && depth < other.depth);
-#endif
-			return value < other.value;
-		}
-	};
+	typedef StrategyCost score_t;
 
 	/// Returns a simple estimate of minimum total number of steps 
 	/// required to reveal @c n secrets given a branching factor of @c b,
@@ -77,6 +81,8 @@ public:
 		{
 			cost.steps += remaining;
 			cost.depth++;
+			cost.worst2 = cost.worst1;
+			cost.worst1 = std::min(count, remaining);
 			remaining -= count;
 			count *= b;
 		}
@@ -119,27 +125,33 @@ public:
 	{
 		Feedback perfect = Feedback::perfectValue(e.rules());
 		score_t lb;
-#if 1
 		for (size_t j = 0; j < freq.size(); ++j)
 		{
 			if (freq[j] > 0 && j != perfect.value())
 			{
 				score_t tmp = simple_estimate(freq[j]);
 				lb.steps += tmp.steps;
-				lb.depth = std::max(lb.depth, tmp.depth);
-			}
-		}
+#if 1
+				if (tmp.depth > lb.depth)
+				{
+					lb.depth = tmp.depth;
+					lb.worst1 = tmp.worst1;
+					lb.worst2 = tmp.worst2;
+				}
+				else if (tmp.depth == lb.depth)
+				{
+					lb.worst1 += tmp.worst1;
+					lb.worst2 += tmp.worst2;
+				}
+				else if (tmp.depth == lb.depth - 1)
+				{
+					lb.worst2 += tmp.worst1;
+				}
 #else
-		for (size_t j = 0; j < freq.size() - 1; ++j)
-		{
-			//if (freq[j] > 0 && j != perfect.value())
-			{
-				score_t tmp = simple_estimate(freq[j]);
-				lb.steps += tmp.steps;
 				lb.depth = std::max(lb.depth, tmp.depth);
+#endif
 			}
 		}
-#endif
 		return lb;
 	}
 
@@ -201,6 +213,7 @@ public:
 } // namespace Mastermind::Heuristics
 
 /// Options for finding an optimal strategy.
+/// @ingroup Optimal
 struct OptimalStrategyOptions
 {
 	unsigned short max_depth; // maximum number of steps to reveal a secret
@@ -215,15 +228,13 @@ struct OptimalStrategyOptions
 /// Real-time optimal strategy. To be practical, the search space
 /// must be small. For example, it works with Mastermind rules (p4c10r),
 /// but probably not larger.
+/// @ingroup Optimal
 class OptimalStrategy
 {
 public:
 	
-	/// Returns a name identifying the strategy.
+	/// Returns the name of the strategy.
 	virtual std::string name() const { return "optimal"; }
-
-	/// Returns a description of the strategy.
-	virtual std::string description() const { return "optimal"; }
 
 	/// Makes a guess.
 	virtual Codeword make_guess(

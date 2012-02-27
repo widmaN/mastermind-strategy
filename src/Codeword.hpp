@@ -31,9 +31,10 @@ class Codeword /* __declspec(align(16)) */
 
 public:
 
-	/// Creates an empty codeword. An empty codeword contains no pegs.
-	/// It can be used as a special value to indicate, for example,
-	/// an error.
+	/// Type of the internal representation of a codeword.
+	typedef __m128i value_type;
+
+	/// Creates an empty codeword.
 	Codeword()
 	{
 		std::memset(_counter, 0, sizeof(_counter));
@@ -41,10 +42,10 @@ public:
 	}
 
 	/// Creates a codeword from its internal representation.
-	Codeword(__m128i value) : _value(value) { }
+	Codeword(value_type value) : _value(value) { }
 
 	/// Gets the internal representation of the codeword.
-	__m128i value() const { 	return _value; }
+	value_type value() const { return _value; }
 
 	/// Tests whether the codeword is empty.
 	bool empty() const { return _digit[0] == 0xFF; }

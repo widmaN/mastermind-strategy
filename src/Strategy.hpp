@@ -1,10 +1,3 @@
-/**
- * On the micro-scope, a strategy is a function that receives as input
- *   - a list of possibilities
- *   - a list of candidate guesses
- * and returns as output a guess to make.
- *
- */
 #ifndef MASTERMIND_STRATEGY_HPP
 #define MASTERMIND_STRATEGY_HPP
 
@@ -13,21 +6,28 @@
 
 namespace Mastermind {
 
-// simple strategy
-// heuristic strategy
-// optimal strategy
-// playback strategy (reads from a file)
-
-// Defines an interface to a strategy implementation.
+/**
+ * Interface for a Mastermind strategy.
+ *
+ * On the micro-scope, a strategy is a function that receives as input
+ *   - a list of possibilities
+ *   - a list of candidate guesses
+ * and returns as output a guess to make.
+ *
+ * A few strategies implemented (or to be implemented) include:
+ *   - simple strategy
+ *   - heuristic strategy
+ *   - optimal strategy
+ *   - playback strategy (reads from a strategy tree)
+ * 
+ * @ingroup strat
+ */
 struct Strategy
 {
-	/// Returns a name identifying the strategy.
+	/// Returns the name of the strategy.
 	virtual std::string name() const = 0;
 
-	/// Returns a description of the strategy.
-	virtual std::string description() const = 0;
-
-	/*
+	/**
 	 * Makes a guess.
 	 *
 	 * @param possibilities List of remaining possibilities.
@@ -38,9 +38,6 @@ struct Strategy
 	 *      must be from @c possibility OR @c candidates. If failed,
 	 *      returns <code>Codeword::emtpyValue()</code>. The condition
 	 *      under which the call fails is implementation-specific.
-	 *
-	 * @timecomplexity <i>Implementation-specific</i>.
-	 * @spacecomplexity <i>Implementation-specific</i>.
 	 */
 	virtual Codeword make_guess(
 		CodewordConstRange possibilities, 

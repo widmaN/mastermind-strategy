@@ -68,9 +68,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\OptimalCodeBreaker.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
     <ClInclude Include="src\Algorithm.hpp">
       <Filter>Algorithms</Filter>
     </ClInclude>
