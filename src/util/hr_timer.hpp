@@ -12,13 +12,13 @@
 
 namespace util
 {
-	
+
 /// High-resolution timer used to time program execution.
 /// @ingroup HRTimer
-class hr_timer 
+class hr_timer
 {
 #if HAS_CHRONO
-	typedef std::chrono::steady_clock clock;
+	typedef std::chrono::high_resolution_clock clock;
 	clock::time_point m_start;
 #endif
 

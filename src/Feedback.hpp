@@ -8,18 +8,18 @@
 
 #include "Rules.hpp"
 
-namespace Mastermind 
+namespace Mastermind
 {
 
 /**
  * Represents the feedback from comparing two codewords.
  *
- * For a feedback of the form <code>xAyB</code>, this class stores 
- * the pair <code>(x,y)</code> and name it as <code>(nA,nB)</code>. 
- * To improve memory access locality, the feedback is internally  
+ * For a feedback of the form <code>xAyB</code>, this class stores
+ * the pair <code>(x,y)</code> and name it as <code>(nA,nB)</code>.
+ * To improve memory access locality, the feedback is internally
  * represented by its ordinal position in an order described below.
  *
- * The set of all distinct feedback values can be arranged in the 
+ * The set of all distinct feedback values can be arranged in the
  * form of a triangle as follows:
  * <pre>
  * 0A0B  1A0B  2A0B  3A0B  4A0B
@@ -28,13 +28,13 @@ namespace Mastermind
  * 0A3B  1A3B
  * 0A4B
  * </pre>
- * The arrangement looks like a Pythagoras triangle, in that the 
+ * The arrangement looks like a Pythagoras triangle, in that the
  * feedbacks in any diagonal have the same sum <code>nA+nB</code>.
  * A game with <code>p</code> pegs can have any feedback outcome
- * up to the <code>p</code>-th diagonal (starting from zero), 
+ * up to the <code>p</code>-th diagonal (starting from zero),
  * except for the last feedback in the row marked with [*]. For
  * example, in a game with 4 pegs, an outcome can never be 3A1B.
- * It follows that the total number of possible feedbacks in a 
+ * It follows that the total number of possible feedbacks in a
  * <code>p</code>-peg game is <code>(1+2+...+(p+1))-1</code>,
  * which is equal to <code>p*(p+3)/2</code>.
  *
@@ -42,12 +42,12 @@ namespace Mastermind
  * in the above arrangement, first compute <code>nAB=nA+nB</code> and
  * then use the following formula
  *   <code>pos = nAB*(nAB+1)/2+nA</code>.
- * The largest feedback value for a <code>p</code>-peg game is 
+ * The largest feedback value for a <code>p</code>-peg game is
  * <code>p*(p+3)/2</code>. This means 7-bits storage can represent
  * up to 14 pegs, which corresponds to a maximum ordinal index of 119.
  * The highest bit is reserved to indicate an error condition.
  *
- * To convert a feedback from its ordinal position, there is no 
+ * To convert a feedback from its ordinal position, there is no
  * simple formula. Therefore we build a lookup table for this purpose.
  *
  * @ingroup type
@@ -80,7 +80,7 @@ class Feedback
 		static std::pair<int,int> unpack(char value)
 		{
 			static const compact_format_unpacker unpacker;
-			return (value >= 0)? unpacker.table[value] : unpacker.table[128];
+			return (value >= 0)? unpacker.table[(size_t)value] : unpacker.table[128];
 		}
 	};
 
@@ -111,7 +111,7 @@ public:
 			(s[1] == 'A' || s[1] == 'a') &&
 			(s[2] >= '0' && s[2] <= '9') &&
 			(s[3] == 'B' || s[3] == 'b') &&
-			(s[4] == '\0')) 
+			(s[4] == '\0'))
 		{
 			_value = Feedback(s[0]-'0', s[2]-'0')._value;
 		}
@@ -123,7 +123,7 @@ public:
 	/// Returns the internal representation of the feedback.
 	value_type value() const { return _value; }
 
-	/// Tests whether the feedback is empty. 
+	/// Tests whether the feedback is empty.
 	bool empty() const { return _value < 0; }
 
 	/// Returns <code>nA</code>, the number of correct colors
@@ -136,16 +136,16 @@ public:
 
 	/**
 	 * Compact format of a feedback.
-	 * In this format, bits 0-3 stores @c nB, and bits 4-7 stores 
+	 * In this format, bits 0-3 stores @c nB, and bits 4-7 stores
 	 * @c nA. To convert a feedback into the compact format, use
 	 * the formula <code>x = (nA << 4) | nB</code>.
-	 * To restore a feedback from compact format, use the formula 
+	 * To restore a feedback from compact format, use the formula
 	 * <code>nA = x >> 4</code> and <code>nB = x & 0x0F</code>.
 	 */
 	typedef unsigned char compact_type;
 
 	/// Converts the feedback into compact form.
-	compact_type pack() const 
+	compact_type pack() const
 	{
 		std::pair<int,int> ab = compact_format_unpacker::unpack(_value);
 		return (compact_type)((ab.first << 4) | ab.second);
@@ -159,7 +159,7 @@ public:
 		return Feedback(nA, nB);
 	}
 
-	/// Returns the feedback for a perfect match under a given set 
+	/// Returns the feedback for a perfect match under a given set
 	/// of rules.
 	static Feedback perfectValue(const Rules &rules)
 	{

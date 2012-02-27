@@ -163,6 +163,9 @@
 		<Unit filename="src/util/simd.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
+		<Unit filename="src/util/wrapped_float.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
 		<Unit filename="src/util/zip_iterator.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
