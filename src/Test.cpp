@@ -2,6 +2,7 @@
 /// Routines for testing the algorithms.
 
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
 #include <malloc.h>
 #include <iomanip>
@@ -568,6 +569,37 @@ static void test_partition_size(Engine &e, const char *name)
 	}
 }
 
+static void test_serialization()
+{
+	Rules rules(4, 6, true);
+	StrategyTree tree(rules);
+
+	if (1)
+	{
+		std::cout << "File 1" << std::endl;
+		std::ifstream fs("strats/p4c6r-koyama-1.txt");
+		fs >> tree;
+	}
+	if (1)
+	{
+		std::cout << "File 2" << std::endl;
+		std::ifstream fs("strats/p4c6r-koyama-2.txt");
+		fs >> tree;
+	}
+	if (1)
+	{
+		std::cout << "File 3" << std::endl;
+		std::ifstream fs("strats/p4c6r-knuth.txt");
+		fs >> tree;
+	}
+	if (1)
+	{
+		std::cout << "File 4" << std::endl;
+		std::ifstream fs("strats/p4c6r-neuwirth.txt");
+		fs >> tree;
+	}
+}
+
 /// Runs regression and benchmark tests.
 int test(const Rules &rules)
 {
@@ -630,6 +662,12 @@ int test(const Rules &rules)
 	std::cout << util::call_counter::get("Comparison") << std::endl;
 #endif
 
+	pause_output();
+	return 0;
+#endif
+
+#if 1
+	test_serialization();
 	pause_output();
 	return 0;
 #endif

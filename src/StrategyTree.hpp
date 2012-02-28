@@ -287,6 +287,11 @@ template <> void WriteToFile<TextFormat>(std::ostream &, const StrategyTree &);
 template <> void WriteToFile<XmlFormat>(std::ostream &, const StrategyTree &);
 template <> void WriteToFile<BinaryFormat>(std::ostream &, const StrategyTree &);
 
+/// Deserializes a strategy tree from a stream. 
+/// If the input format is invalid, the stream's fail bit is set,
+/// and an error message is written to cerr.
+std::istream& operator >> (std::istream &is, StrategyTree &tree);
+
 } // namespace Mastermind
 
 #endif // MASTERMIND_STRATEGY_TREE_HPP
