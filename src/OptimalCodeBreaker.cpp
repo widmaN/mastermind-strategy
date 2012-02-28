@@ -356,7 +356,7 @@ static int fill_strategy_tree(
 
 		// Since this is a double-computation, we shouldn't be pruning
 		// this guess here.
-		assert(lb == scores[i]);
+		//assert(lb == scores[i]);
 
 		if (verbose)
 			std::cout << cells.size() << " cells, lower bound = "

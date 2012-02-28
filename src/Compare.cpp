@@ -25,11 +25,7 @@ struct generic_feedback_mapping_t
 		{
 			int nA = i >> 4;
 			int nAB = i & 0xF;
-#if 0
-			table[i] = nAB*(nAB+1)/2+nA;
-#else
 			table[i] = Feedback(nA, nAB - nA);
-#endif
 		}
 	}
 };

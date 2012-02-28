@@ -93,13 +93,14 @@ public:
 	explicit Feedback(size_t index) : _value((char)index) { }
 
 	/// Creates a feedback with the given <code>nA</code> and <code>nB</code>.
+	/// If the arguments are not valid, an empty feedback is created.
 	explicit Feedback(int nA, int nB)
 	{
-		assert(nA >= 0 && nA <= MM_MAX_PEGS);
-		assert(nB >= 0 && nB <= MM_MAX_PEGS);
-		assert(nA+nB >= 0 && nA+nB <= MM_MAX_PEGS);
 		int nAB = nA + nB;
-		_value = (char)((nAB+1)*nAB/2+nA);
+		if (nA >= 0 && nB >= 0 && nAB <= MM_MAX_PEGS)
+			_value = (char)((nAB+1)*nAB/2+nA);
+		else
+			_value = -1;
 	}
 
 	/// Creates a feedback from a string of the form "1A2B". If the
