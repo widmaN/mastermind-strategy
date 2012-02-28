@@ -617,7 +617,7 @@ int test(const Rules &rules)
 	return 0;
 #endif
 
-#if 1
+#if 0
 	extern void test_optimal_strategy(Engine &);
 	test_optimal_strategy(e);
 
@@ -646,7 +646,7 @@ int test(const Rules &rules)
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
 		new HeuristicStrategy<MinimizeWorstCase<1>>(e),
-#if 1
+#if 0
 		new HeuristicStrategy<MinimizeAverage>(e),
 		new HeuristicStrategy<MaximizeEntropy<false>>(e),
 		new HeuristicStrategy<MaximizeEntropy<true>>(e),
