@@ -52,6 +52,12 @@ public:
 	/// Returns whether the same color can appear more than once.
 	bool repeatable() const { return _repeatable; }
 
+	/// Checkes whether this set of rules is empty.
+	bool empty() const
+	{
+		return (_pegs == 0) && (_colors == 0) && (_repeatable == false);
+	}
+
 	/// Checks whether this set of rules is valid.
 	bool valid() const
 	{

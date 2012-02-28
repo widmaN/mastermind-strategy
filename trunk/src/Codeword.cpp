@@ -1,40 +1,53 @@
 #include <iostream>
+#include <algorithm>
 
 #include "Codeword.hpp"
 
 namespace Mastermind {
 
+static const char *codeword_alphabet = "1234567890abcdef";
+
 std::istream& operator >> (std::istream &is, Codeword &codeword)
 {
-	Codeword ret = Codeword::emptyValue();
+	Codeword ret;
+	const char *first = codeword_alphabet;
+	const char *last = first + 16;
 
-	// Skip leading whitespaces.
+	// Read first character, skipping leading whitespaces.
 	char c = 0;
-	for (int i = 0; is >> c; ++i)
+	if (!(is >> c))
+		return is;
+
+	// Process characters.
+	int i = 0;
+	bool ok = true;
+	do
 	{
-		unsigned char d = 0xff;
-		if (c >= '0' && c <= '9')
-			d = c - '0';
-		else if (c >= 'A' && c <= 'Z')
-			d = 10 + (c - 'A');
-		else if (c >= 'a' && c <= 'z')
-			d = 10 + (c = 'a');
+		const char *p = std::find(first, last, c);
+		if (p == last) // invalid input
+		{
+			// Unget character if this is not the first character.
+			if (i > 0)
+				is.unget();
+			break;
+		}
+		if (i < MM_MAX_PEGS && (p - first) < MM_MAX_COLORS)
+		{
+			ret.set(i, (int)(p - first));
+		}
+		else
+		{
+			ok = false;
+		}
+		++i;
+	} while ((c = is.get()) != EOF);
 
-		if (d == 0xff) // not a digit
-		{
-			break;
-		}
-		if (i >= MM_MAX_PEGS || d > MM_MAX_COLORS)
-		{
-			ret = Codeword::emptyValue();
-			break;
-		}
-		ret.set(i, d);
+	// Set stream status and return result.
+	if (ok && !ret.empty())
+	{
+		codeword = ret;
 	}
-
-	// Return result and set stream status.
-	codeword = ret;
-	if (ret.empty())
+	else
 	{
 		is.setstate(std::ios_base::failbit);
 	}
@@ -46,9 +59,9 @@ std::ostream& operator << (std::ostream &os, const Codeword &c)
 	for (int k = 0; k < MM_MAX_PEGS; k++) 
 	{
 		unsigned char d = c[k];
-		if (d == 0xFF)
+		if (d >= 0x0F)
 			break;
-		os << (char)('0' + d);
+		os << codeword_alphabet[d];
 	}
 	return os;
 }
@@ -58,6 +71,40 @@ int Codeword::pegs() const
 	int k;
 	for (k = 0; k < MM_MAX_PEGS && _digit[k] != 0xFF; k++);
 	return k;
+}
+
+bool Codeword::valid(const Rules &rules) const
+{
+	if (!rules.valid())
+		return false;
+
+	// Check pegs.
+	for (int p = 0; p < rules.pegs(); ++p)
+	{
+		if (_digit[p] == 0xFF)
+			return false;
+	}
+	for (int p = rules.pegs(); p < MM_MAX_PEGS; ++p)
+	{
+		if (_digit[p] != 0xFF)
+			return false;
+	}
+
+	// Check colors.
+	if (!rules.repeatable())
+	{
+		for (int c = 0; c < rules.colors(); ++c)
+		{
+			if (_counter[c] > 1)
+				return false;
+		}
+	}
+	for (int c = rules.colors(); c < MM_MAX_COLORS; ++c)
+	{
+		if (_counter[c] > 0)
+			return false;
+	}
+	return true;
 }
 
 } // namespace Mastermind
