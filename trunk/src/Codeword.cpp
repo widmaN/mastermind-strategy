@@ -45,6 +45,8 @@ std::istream& operator >> (std::istream &is, Codeword &codeword)
 	// Set stream status and return result.
 	if (ok && !ret.empty())
 	{
+		if (c == EOF)
+			is.clear(std::ios_base::eofbit);
 		codeword = ret;
 	}
 	else
@@ -56,14 +58,16 @@ std::istream& operator >> (std::istream &is, Codeword &codeword)
 
 std::ostream& operator << (std::ostream &os, const Codeword &c)
 {
+	// Build a string.
+	char s[MM_MAX_PEGS + 1] = {0};
 	for (int k = 0; k < MM_MAX_PEGS; k++) 
 	{
 		unsigned char d = c[k];
 		if (d >= 0x0F)
 			break;
-		os << codeword_alphabet[d];
+		s[k] = codeword_alphabet[d];
 	}
-	return os;
+	return os << s;
 }
 
 int Codeword::pegs() const

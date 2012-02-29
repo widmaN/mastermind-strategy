@@ -609,6 +609,11 @@ int test(const Rules &rules)
 #define LOOP_FLAG 0
 #endif
 
+#if 0
+	extern int interactive(const Rules &rules);
+	return interactive(rules);
+#endif
+
 	// Set up the standard engine.
 	Engine e(rules);
 

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <utility>
 #include <algorithm>
+#include <string>
 
 #include "Rules.hpp"
 
@@ -127,6 +128,19 @@ public:
 	/// Tests whether the feedback is empty.
 	bool empty() const { return _value < 0; }
 
+	/// Tests whether the feedback is valid under a given set of rules.
+	bool valid(const Rules &rules) const
+	{
+		if (!rules.valid())
+			return false;
+		
+		if (empty())
+			return false;
+
+		int a = nA(), b = nB(), p = rules.pegs();
+		return (a >= 0 && b >= 0 && a + b <= p && !(a == p - 1 && b == 1));
+	}
+
 	/// Returns <code>nA</code>, the number of correct colors
 	/// in the correct pegs.
 	int nA() const { return compact_format_unpacker::unpack(_value).first; }
@@ -194,10 +208,34 @@ inline bool operator != (const Feedback &a, const Feedback &b)
 /// @ingroup type
 inline std::ostream& operator << (std::ostream &os, const Feedback &feedback)
 {
-	if (feedback.empty())
-		return os << "(empty_feedback)";
+	char s[5] = "-A-B";
+	int a = feedback.nA(), b = feedback.nB();
+	if (a >= 0 && a <= MM_MAX_PEGS)
+		s[0] = (char)('0' + a);
+	if (b >= 0 && b <= MM_MAX_PEGS)
+		s[2] = (char)('0' + b);
+
+	return os << s;
+}
+
+/// Inputs the feedback from a stream in the form "1A2B".
+/// @ingroup type
+inline std::istream& operator >> (std::istream &is, Feedback &feedback)
+{
+	std::string s;
+	if (!(is >> s))
+		return is;
+
+	Feedback f(s.c_str());
+	if (f.empty())
+	{
+		is.setstate(std::ios_base::failbit);
+	}
 	else
-		return os << feedback.nA() << 'A' << feedback.nB() << 'B';
+	{
+		feedback = f;
+	}
+	return is;
 }
 
 } // namespace Mastermind
