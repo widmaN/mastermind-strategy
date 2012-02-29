@@ -292,7 +292,7 @@ static bool ReadSituation_TextFormat(
 		{
 			PARSING_WARNING("mismatch in number of possibilities: got "
 				<< n << ", expecting " << secrets.size());
-			return false;
+			// return false;
 		}
 	}
 
