@@ -121,4 +121,33 @@ void Engine::countFrequencies(
 	}
 }
 
+/// @todo Make the interface nicer and reduce duplicate code.
+/// @todo Implement it also for codeword without repetition.
+/// @todo If the codeword involved in comparison doesn't contain repetitive 
+/// colors, can it be compared faster?
+FeedbackFrequencyTable 
+Engine::frequencies(const Codeword &guess, CodewordConstRange secrets) const
+{
+#if 0
+	return frequency(compare(guess, secrets));
+#else
+	extern void compare_frequencies_generic(
+		const Rules & /* rules */,
+		const Codeword &_secret,
+		const Codeword *_first,
+		const Codeword *_last,
+		unsigned int freq[],
+		size_t size);
+
+	FeedbackFrequencyTable freq;
+	size_t fb_size = Feedback::size(rules());
+	freq.resize(fb_size);
+	size_t count = secrets.size();
+	const Codeword *first = &(*secrets.begin());
+	compare_frequencies_generic(_rules, guess, first, first + count, freq.data(), fb_size);
+	return freq;
+#endif
+}
+
+
 } // namespace Mastermind

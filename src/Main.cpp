@@ -199,9 +199,9 @@ static void usage()
 		"    -s strat   build strategy 'strat' and output strategy tree\n"
 		"    -t         run tests\n"
 		"Rules: 'p' pegs 'c' colors ['r'|'n']\n"
-		"    p4c6r      [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
-		"    p4c10n     Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
-		"    p5c8r      Logik (5 pegs, 8 colors, with repetition)\n"
+		"    mm,p4c6r   [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
+		"    bc,p4c10n  Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
+		"    lg,p5c8r   Logik (5 pegs, 8 colors, with repetition)\n"
 		"Strategies:\n"
 		"    file path  read strategy from 'path'; use - for STDIN\n"
 		"    simple     simple strategy\n"
@@ -374,7 +374,15 @@ int main(int argc, char* argv[])
 		else if (s == "-r")
 		{
 			USAGE_REQUIRE(++i < argc, "missing argument for option -r");
-			rules = Rules(argv[i]);
+			std::string name = argv[i];
+			if (name == "mm")
+				rules = Rules(4, 6, true);
+			else if (name == "bc")
+				rules = Rules(4, 10, false);
+			else if (name == "lg")
+				rules = Rules(5, 8, true);
+			else
+				rules = Rules(name.c_str());
 			USAGE_REQUIRE(rules.valid(), "invalid rules: " << argv[i]);
 		}
 		else if (s == "-v")

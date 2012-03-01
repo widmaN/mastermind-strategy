@@ -75,11 +75,11 @@ public:
 
 		// Evaluate each candidate guess and find the one that 
 		// produces the lowest score.
-		for (auto it = candidates.begin(); it != candidates.end(); ++it)
+		size_t n = candidates.size();
+		for (size_t i = 0; i < n; ++i)
 		{
-			Codeword guess = *it;
-			FeedbackFrequencyTable freq = 
-				e.frequency(e.compare(guess, possibilities));
+			Codeword guess = candidates[i];
+			FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
 
 			// Compute a score of the partition.
 			score_type score = h.compute(freq);
@@ -89,7 +89,7 @@ public:
 				*(scores++) = score;
 			
 			// Keep track of the guess that produces the lowest score.
-			if ((it == candidates.begin()) || (score < choice_score) || 
+			if ((i == 0) || (score < choice_score) || 
 				(!(choice_score < score) && !choice_ispos && freq[target] > 0)) 
 			{
 				choice = guess;

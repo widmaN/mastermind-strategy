@@ -95,6 +95,63 @@ static void compare_long_codeword_generic(
 	}
 }
 
+// Compares a guess to a list of secrets, and stores the feedback frequencies.
+void compare_frequencies_generic(
+	const Rules & /* rules */,
+	const Codeword &_secret,
+	const Codeword *_first,
+	const Codeword *_last,
+	unsigned int freq[],
+	size_t size)
+{
+	memset(freq, 0, sizeof(unsigned int)*size);
+
+	using namespace util::simd;
+	typedef util::simd::simd_t<uint8_t,16> simd_t;
+
+	simd_t secret = _secret.value();
+
+	// Change 0xff in secret to 0x0f.
+	secret &= (uint8_t)0x0f;
+
+	// Create mask for use later.
+	const simd_t mask_pegs = fill_left<MM_MAX_PEGS>((uint8_t)0x01);
+	const simd_t mask_colors = fill_right<MM_MAX_COLORS>((uint8_t)0xff);
+
+	// Note: we write an explicit loop since std::transform() is too 
+	// slow, because VC++ does not inline the lambda expression, thus
+	// making each iteration a CALL with arguments passed on the stack.
+	const simd_t *first = reinterpret_cast<const simd_t *>(_first);
+	const simd_t *last = reinterpret_cast<const simd_t *>(_last);
+	for (const simd_t *guesses = first; guesses != last; ++guesses)
+	{
+		const simd_t &guess = *guesses;
+
+		// Compute nA.
+		// It turns out that there's a significant (20%) performance
+		// hit if <code>nA = sum_high(...)</code> is changed to 
+		// <code>nA = sum(...)</code>. In the latter case, VC++
+		// VC++ generates an extra (redundant) memory read.
+		// The reason is unclear. (Obviously there are still free
+		// XMM registers.)
+#if MM_MAX_PEGS <= 8
+		int nA = sum_high((secret == guess) & mask_pegs);
+#else
+		int nA = sum((secret == guess) & mask_pegs);
+#endif
+
+		// Compute nAB.
+#if MM_MAX_COLORS <= 8
+		int nAB = sum_low(min(secret, guess) & mask_colors);
+#else
+		int nAB = sum(min(secret, guess) & mask_colors);
+#endif
+
+		Feedback nAnB = generic_feedback_mapping.table[(nA<<4)|nAB];
+		++freq[nAnB.value()];
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // Specialized comparison routine for NON-repeatable codewords.
 
