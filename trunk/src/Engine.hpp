@@ -175,6 +175,10 @@ public:
 		return table;
 	}
 
+	FeedbackFrequencyTable frequencies(
+		const Codeword &guess, 
+		CodewordConstRange codewords) const;
+
 	/// Returns a bit-mask of the colors that are present in the codeword.
 	ColorMask colorMask(const Codeword &c) const
 	{

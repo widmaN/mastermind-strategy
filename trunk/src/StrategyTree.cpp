@@ -22,22 +22,22 @@ namespace Mastermind {
 
 std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 {
-	const int max_display = 10;
+	const int max_display = 9;
 
 	// Display header.
 	if (os.iword(util::header_index()))
 	{
 		os << "Stategy Statistics" << std::endl
 		   << "--------------------" << std::endl
-		   << "Strategy: Total   Avg    1    2    3    4    5    6    7    8    9   >9   Time" << std::endl;
+		   << "Strategy  Total   Avg 1     2     3     4     5     6     7     8    >8   Time" << std::endl;
 		os << util::noheader;
 	}
 
 	// Display label.
-	os  << std::setw(8) << info.name() << ":"
-		<< std::setw(6) << info.total_depth() << " "
+	os  << std::setw(8) << info.name() 
+		<< std::setw(7) << info.total_depth() << " "
 		<< std::setw(5) << std::setprecision(3)
-		<< std::fixed << info.average_depth() << ' ';
+		<< std::fixed << info.average_depth();
 
 	// Display each frequency.
 	unsigned int running_total = 0;
@@ -53,14 +53,15 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 		{
 			count = info.total_depth() - running_total;
 		}
+		os << std::setw(d == 1? 2 : 6);
 		if (count > 0)
-			os << std::setw(4) << count << ' ';
+			os << count;
 		else
-			os << "   - ";
+			os << '-';
 	}
 
 	// Display time
-	os  << std::fixed << std::setw(6) << std::setprecision(2) 
+	os  << std::fixed << std::setw(7) << std::setprecision(2) 
 		<< info.time() << std::endl;
 
 	return os;
