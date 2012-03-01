@@ -607,7 +607,7 @@ static void test_serialization()
 }
 
 /// Runs regression and benchmark tests.
-int test(const Rules &rules)
+int test(const Rules &rules, bool verbose)
 {
 #ifdef NDEBUG
 #define LOOP_FLAG 1
@@ -753,3 +753,59 @@ int test(const Rules &rules)
 	pause_output();
 	return 0;
 }
+
+#if 0
+static int RegressionTestUnit()
+{
+	Rules rules;
+	rules.length = 4;
+	rules.ndigits = 10;
+	rules.allow_repetition = false;
+
+	// Codeword creation
+	Codeword cw;
+	if (!cw.IsEmpty()) {
+		printf("FAILED: Codeword::IsEmpty()\n");
+		return -1;
+	}
+
+	// Enumeration
+	CodewordList list;
+	list = CodewordList::Enumerate(rules);
+	if (!(list.GetCount() == 5040)) {
+		printf("FAILED: Wrong enumeration count\n");
+		return -1;
+	}
+	if (!(list[357].ToString() == "0741")) {
+		printf("FAILED: Wrong enumeration result\n");
+		return -1;
+	}
+
+	// Comparison
+	FeedbackList fbl(list[0], list);
+	if (!(fbl.GetCount() == 5040)) {
+		printf("FAILED: Codeword::CompareTo() returns wrong length of feedback\n");
+		return -1;
+	}
+	if (!(fbl[3] == Feedback(3, 0))) {
+		printf("FAILED: Incorrect comparison results\n");
+		return -1;
+	}
+
+	// Count frequency
+	return 0;
+}
+
+static int RegressionTest()
+{
+	printf("Running regression test...\n");
+	if (RegressionTestUnit() == 0) {
+		printf("Passed\n");
+	} else {
+		printf("Failed\n");
+	}
+
+	system("PAUSE");
+	return 0;
+}
+#endif
