@@ -32,174 +32,23 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
+#include <memory>
 
 #include <iostream>
 #include "Rules.hpp"
 #include "Codeword.hpp"
-//#include "CodeBreaker.h"
-//#include "SimpleCodeBreaker.hpp"
+#include "Equivalence.hpp"
+#include "SimpleStrategy.hpp"
+#include "HeuristicStrategy.hpp"
+#include "OptimalStrategy.hpp"
+#include "CodeBreaker.hpp"
+#include "util/io_format.hpp"
+#include "util/hr_timer.hpp"
 
 using namespace Mastermind;
 
 #if 0
-static int RegressionTestUnit()
-{
-	Rules rules;
-	rules.length = 4;
-	rules.ndigits = 10;
-	rules.allow_repetition = false;
-
-	// Codeword creation
-	Codeword cw;
-	if (!cw.IsEmpty()) {
-		printf("FAILED: Codeword::IsEmpty()\n");
-		return -1;
-	}
-
-	// Enumeration
-	CodewordList list;
-	list = CodewordList::Enumerate(rules);
-	if (!(list.GetCount() == 5040)) {
-		printf("FAILED: Wrong enumeration count\n");
-		return -1;
-	}
-	if (!(list[357].ToString() == "0741")) {
-		printf("FAILED: Wrong enumeration result\n");
-		return -1;
-	}
-
-	// Comparison
-	FeedbackList fbl(list[0], list);
-	if (!(fbl.GetCount() == 5040)) {
-		printf("FAILED: Codeword::CompareTo() returns wrong length of feedback\n");
-		return -1;
-	}
-	if (!(fbl[3] == Feedback(3, 0))) {
-		printf("FAILED: Incorrect comparison results\n");
-		return -1;
-	}
-
-	// Count frequency
-	return 0;
-}
-
-static int RegressionTest()
-{
-	printf("Running regression test...\n");
-	if (RegressionTestUnit() == 0) {
-		printf("Passed\n");
-	} else {
-		printf("Failed\n");
-	}
-
-	system("PAUSE");
-	return 0;
-}
-
-static void DumpCodewordList(const CodewordList *list)
-{
-	for (int i = 0; i < list->GetCount(); i++) {
-		cout << (*list)[i].ToString() << " ";
-	}
-}
-
-static void TestGuessing(Rules rules, CodeBreaker *breakers[], int nb)
-{
-	CodewordList all = CodewordList::Enumerate(rules);
-	Feedback target(rules.length, 0);
-	Utilities::HRTimer timer;
-
-	printf("\n");
-	printf("Algorithm Descriptions\n");
-	printf("------------------------\n");
-	for (int i = 0; i < nb; i++) {
-		printf("  A%d: %s\n", (i + 1), breakers[i]->GetDescription().c_str());
-	}
-
-	printf("\n");
-	printf("Frequency Table\n");
-	printf("-----------------\n");
-	printf("  ##:   Avg    1    2    3    4    5    6    7    8    9   >9     Time(s)\n");
-
-	for (int ib = 0; ib < nb; ib++) {
-		CodeBreaker *breaker = breakers[ib];
-
-		// Initialize frequency table
-		const int max_freq = 10;
-		int freq[max_freq+1];
-		for (int i = 1; i <= max_freq; i++) {
-			freq[i] = 0;
-		}
-
-		int max_round = 0;
-		int sum_round = 0;
-		int count = all.GetCount();
-		int pct = -1;
-
-		// Test each possible secret
-		timer.Start();
-		for (int i = 0; i < count; i += 1) {
-			if (i*100/count > pct) {
-				pct = i*100/count;
-				printf("\r  A%d: running... %2d%%", ib + 1, pct);
-				fflush(stdout);
-			}
-
-			Codeword secret = all[i];
-
-			int round = 0;
-			breaker->Reset();
-			for (round = 1; round < max_freq; round++) {
-				Codeword guess = breaker->MakeGuess();
-				Feedback fb = secret.CompareTo(guess);
-				if (fb == target) {
-					break;
-				}
-				breaker->AddFeedback(guess, fb);
-			}
-
-			if (round > max_round)
-				max_round = round;
-			sum_round += round;
-			freq[round]++;
-			//printf("%s : %d\n", secret.ToString().c_str(), round);
-		}
-		double t = timer.Stop();
-
-		// Display statistics
-		printf("\r  A%d: %5.3f ", (ib + 1), (double)sum_round / count);
-		for (int i = 1; i <= max_freq; i++) {
-			if (freq[i] > 0)
-				printf("%4d ", freq[i]);
-			else
-				printf("   - ");
-		}
-		printf("%8.2f\n", t);
-
-	}
-
-}
-
-
-
-int TestOutputStrategyTree(Rules rules)
-{
-	//CodeBreaker *b = new HeuristicCodeBreaker<Heuristics::MinimizeAverage>(rules);
-	CodeBreaker *b = new OptimalCodeBreaker(rules);
-	Codeword first_guess;
-	StrategyTree *tree = b->BuildStrategyTree(first_guess);
-	//const char *filename = "E:/good-strat.txt";
-	char filename[100];
-	sprintf_s(filename, "./strats/mm-%dp%dc-%s-%s.xml", rules.length, rules.ndigits,
-		(rules.allow_repetition? "r":"nr"), b->GetName());
-	FILE *fp = fopen(filename, "wt");
-	tree->WriteToFile(fp, StrategyTree::XmlFormat, rules);
-	fclose(fp);
-	delete tree;
-
-	system("PAUSE");
-	return 0;
-}
 
 // c.f. http://www.javaworld.com.tw/jute/post/view?bid=35&id=138372&sty=1&tpg=1&ppg=1&age=0#138372
 
@@ -340,25 +189,36 @@ static int TestBound(Rules rules)
 static void usage()
 {
 	std::cerr <<
-		"Mastermind [options] [rules] [-s strategy] [action]\n"
-		"Actions:\n"
-		"    (none)     interactive mode\n"
-		"    strat      build and output strategy tree\n"
-		"    test name  run regression or benchmark tests\n"
-		"Rules:\n"
-		"    -p pegs    set the number of pegs [default=4]\n"
-		"    -c colors  set the number of colors [default=10]\n"
-		"    -n         do not allow colors to repeat [default]\n"
-		"    -r         allow colors to repeat\n"
-		"Strategies: (only relevant in strat mode)\n"
+		"Mastermind [options] [-r rules] [-f filter] mode\n"
+		"Build a Mastermind strategy and output the strategy tree.\n"
+		"Version 0.5 (2012). Configured with max " << MM_MAX_PEGS << " pegs and "
+		<< MM_MAX_COLORS << " colors.\n"
+		"Modes:\n"
+		"    -a         interactive analyst\n"
+		"    -p         interactive player\n"
+		"    -s strat   build strategy 'strat' and output strategy tree\n"
+		"    -t         run tests\n"
+		"Rules: 'p' pegs 'c' colors ['r'|'n']\n"
+		"    p4c6r      [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
+		"    p4c10n     Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
+		"    p5c8r      Logik (5 pegs, 8 colors, with repetition)\n"
+		"Strategies:\n"
+		"    file path  read strategy from 'path'; use - for STDIN\n"
 		"    simple     simple strategy\n"
-		"    heuristic  heuristic strategy\n"
+		"    minmax     min-max heuristic strategy\n"
+		"    minavg     min-average heuristic strategy\n"
+		"    entropy    max-entropy heuristic strategy\n"
+		"    maxparts   max-parts heuristic strategy\n"
+		"    minlb      min-lowerbound heuristic strategy\n"
 		"    optimal    optimal strategy\n"
-		"Tests:\n"
-		"    comp       (benchmark) comparison routines\n"
+		"Equivalence filters:\n"
+		"    default    composite filter (color + constraint)\n"
+		"    color      filter by color equivalence\n"
+		"    constraint filter by constraint equivalence\n"
+		"    none       do not apply any filter\n"
 		"Options:\n"
-		"    -h         display this help screen\n"
-		"    -v         verbose\n"
+		"    -h         display this help screen and exit\n"
+		"    -v         verbose mode; display more information\n"
 		"";
 }
 
@@ -367,189 +227,207 @@ static void usage()
 // TODO: Add progress display to OptimalCodeBreaker
 // TODO: Output strategy tree after finishing a run
 
-extern int interactive(const Rules &rules);
-extern int test(const Rules &rules);
+// extern int strategy(std::string strat);
+extern int interactive_player(const Rules &rules, bool verbose);
+extern int interactive_analyst(const Rules &rules, bool verbose);
+extern int test(const Rules &rules, bool verbose);
+
 extern void pause_output();
+
+#define USAGE_ERROR(msg) do { \
+		std::cerr << "Error: " << msg << ". Type -h for help." << std::endl; \
+		return 1; \
+	} while (0)
+
+#define USAGE_REQUIRE(cond,msg) do { \
+		if (!(cond)) USAGE_ERROR(msg); \
+	} while (0)
+
+static int build_strategy(
+	Engine &e, const EquivalenceFilter *filter, bool verbose, 
+	const std::string &name, const std::string &file)
+{
+	using namespace Mastermind::Heuristics;
+
+	Strategy *strat = NULL;
+
+	if (name == "file")
+	{
+		USAGE_ERROR("Not implemented");
+	}
+	else if (name == "simple")
+	{
+		strat = new SimpleStrategy(e);
+	}
+	else if (name == "minmax")
+	{
+		strat = new HeuristicStrategy<MinimizeWorstCase<1>>(e);
+	}
+	else if (name == "minavg")
+	{
+		strat = new HeuristicStrategy<MinimizeAverage>(e);
+	}
+	else if (name == "entropy")
+	{
+		strat = new HeuristicStrategy<MaximizeEntropy<true>>(e);
+	}
+	else if (name == "maxparts")
+	{
+		strat = new HeuristicStrategy<MaximizePartitions>(e);
+	}
+	else if (name == "minlb")
+	{
+		strat = new HeuristicStrategy<MinimizeLowerBound>(e, MinimizeLowerBound(e));
+	}
+	else if (name == "optimal")
+	{
+		USAGE_ERROR("Not implemented");
+	}
+	else
+	{
+		USAGE_ERROR("unknown strategy: " << name);
+	}
+	
+	util::hr_timer timer;
+	timer.start();
+	CodeBreakerOptions options;
+	options.optimize_obvious = true;
+	options.possibility_only = false;
+	std::unique_ptr<EquivalenceFilter> copy(filter->clone());
+	StrategyTree tree = BuildStrategyTree(e, strat, copy.get(), options);
+	double t = timer.stop();
+
+	StrategyTreeInfo info(strat->name(), tree, t);
+	if (verbose)
+	{
+		std::cout << util::header;
+	}
+	std::cout << info;
+	return 0;
+}
 
 int main(int argc, char* argv[])
 {
 	using namespace Mastermind;
 
-	// Default argument values.
-#if 0 // (3,5)
-	int pegs = 4;
-	int colors = 3;
-	bool repeatable = true;
+#if 0
+	Rules rules(4, 3, true);
 #elif 0
-	int pegs = 4;
-	int colors = 10;
-	bool repeatable = false;
+	Rules rules(4, 10, false);
 #else
-	int pegs = 4;
-	int colors = 6;
-	bool repeatable = true;
+	Rules rules(4, 6, true);
 #endif
+
 	bool verbose = false;
 	enum Mode
 	{
-		Interactive = 0,
-		Strategy = 1,
-		Test = 2,
-	};
-	Mode mode = Mode(Interactive);
+		DefaultMode = 0,
+		StrategyMode = 1,
+		PlayerMode = 2,
+		AnalystMode = 3,
+		TestMode = 4,
+	} mode = DefaultMode;
+	std::string strat_name, strat_file, filter_name;
 
 	// Parse command line arguments.
 	for (int i = 1; i < argc; i++)
 	{
-		const char *s = argv[i];
-		if (*s == '-') // option
+		std::string s = argv[i];
+		if (s == "-a")
 		{
-			switch (s[1])
+			USAGE_REQUIRE(mode == DefaultMode, "only one mode may be specified");
+			mode = AnalystMode;
+		}
+		else if (s == "-p")
+		{
+			USAGE_REQUIRE(mode == DefaultMode, "only one mode may be specified");
+			mode = PlayerMode;
+		}
+		else if (s == "-s")
+		{
+			USAGE_REQUIRE(mode == DefaultMode, "only one mode may be specified");
+			USAGE_REQUIRE(++i < argc, "missing argument for option -s");
+			mode = StrategyMode;
+			strat_name = argv[i];
+			if (strat_name == "file")
 			{
-			case 'p':
-				pegs = atoi(s+2);
-				break;
-			case 'c':
-				colors = atoi(s+2);
-				break;
-			case 'r':
-				repeatable = true;
-				break;
-			case 'n':
-				repeatable = false;
-				break;
-			case 'h':
-				usage();
-				pause_output();
-				return 0;
-				break;
-			case 'v':
-				verbose = true;
-				break;
-			default:
-				std::cerr << "Unknown option: " << s[1] << std::endl;
-				usage();
-				pause_output();
-				break;
+				USAGE_REQUIRE(++i < argc, "missing input filename for file strategy");
+				strat_file = argv[i];
 			}
 		}
-		else // mode
+		else if (s == "-t")
 		{
-			if (strcmp(s, "strat") == 0)
-				mode = Mode(Strategy);
-			else if (strcmp(s, "test") == 0)
-				mode = Mode(Test);
-			else
-			{
-				usage();
-				pause_output();
-				break;
-			}
+			USAGE_REQUIRE(mode == DefaultMode, "only one mode may be specified");
+			mode = TestMode;
+		}
+		else if (s == "-f")
+		{
+			USAGE_REQUIRE(filter_name.empty(), "only one equivalence filter may be specified");
+			USAGE_REQUIRE(++i < argc, "missing argument for option -f");
+			filter_name = argv[i];
+		}
+		else if (s == "-h")
+		{
+			usage();
+			return 0;
+		}
+		else if (s == "-r")
+		{
+			USAGE_REQUIRE(++i < argc, "missing argument for option -r");
+			rules = Rules(argv[i]);
+			USAGE_REQUIRE(rules.valid(), "invalid rules: " << argv[i]);
+		}
+		else if (s == "-v")
+		{
+			verbose = true;
+		}
+		else
+		{
+			USAGE_REQUIRE(false, "unknown option: " << s);
 		}
 	}
 
-	// Check if the rule specified is valid.
-	if (!(pegs > 0 && colors > 0 && (repeatable || colors >= pegs)))
-	{
-		std::cerr << "Error: Invalid rules: pegs=" << pegs
-			<< ", colors=" << colors << ", repeatable="
-			<< std::boolalpha << repeatable << std::endl;
-		return 2;
-	}
-	if (pegs > MM_MAX_PEGS)
-	{
-		std::cerr << "Error: Too many pegs: max=" << MM_MAX_PEGS
-			<< ", supplied=" << pegs << std::endl;
-		return 2;
-	}
-	if (colors > MM_MAX_COLORS)
-	{
-		std::cerr << "Error: Too many colors: max=" << MM_MAX_COLORS
-			<< ", supplied=" << pegs << std::endl;
-		return 2;
-	}
+	// Create an algorithm engine.
+	Engine e(rules);
 
-	// Construct the rules.
-	Rules rules(pegs, colors, repeatable);
+	// Create the specified equivalence filter.
+	EquivalenceFilter *filter = NULL;
+	if (filter_name == "default" || filter_name == "")
+	{
+		filter = new CompositeEquivalenceFilter(
+			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e),
+			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e));
+	}
+	else if (filter_name == "color")
+	{
+		filter = RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e);
+	}
+	else if (filter_name == "constraint")
+	{
+		filter = RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e);
+	}
+	else if (filter_name == "none")
+	{
+		filter = RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Dummy")(e);
+	}
+	else
+	{
+		USAGE_ERROR("unknown equivalence filter: " << filter_name);
+	}
+	std::unique_ptr<EquivalenceFilter> filter_obj(std::move(filter));
 
-	// Execute the selected action.
+	// Execute the specified action.
 	switch (mode)
 	{
-	case Interactive:
-		return interactive(rules);
-	case Strategy:
-		break;
-	case Test:
-		return test(rules);
+	case StrategyMode:
+		return build_strategy(e, filter, verbose, strat_name, strat_file);
+	case PlayerMode:
+		return interactive_player(rules, verbose);
+	case AnalystMode:
+		return interactive_analyst(rules, verbose);
+	case TestMode:
+		return test(rules, verbose);
 	default:
-		break;
+		USAGE_REQUIRE(false, "missing mode");
 	}
-	return 0;
-
-#if 0
-	Rules rules(4, 10, false); // Guess Number rules
-	Rules rules(4, 6, true);   // Mastermind rules
-	Rules rules(5, 8, false);
-#endif
-
-#if 0
-	TestBound(rules);
-	//return system("PAUSE");
-
-	// There is an interesting bug with the FilterEquivalence_Rep
-	// If the first guess is 0011 and feedback is 0A1B,
-	// Then the filter will think 1223 and 1233 are equivalent,
-	// and keep the first one only.
-	// But actually, the second codeword has better score
-	// in the worst-case heuristic criteria.
-	// Let's find out why.
-	if (0) {
-		CodewordList all = CodewordList::Enumerate(rules);
-		Codeword guess = Codeword::Parse("0011", rules);
-		Feedback fb = Feedback(0, 1);
-		CodewordList list = all.FilterByFeedback(guess, fb);
-
-		unsigned char eqclass[16] = {
-			0,1,3,4, 5,2,6,7, 8,9,10,11, 12,13,14,15 };
-		codeword_t output[1296];
-		int count = FilterByEquivalence_Rep(list.GetData(), list.GetCount(), eqclass, output);
-
-		Feedback check(1, 3);
-		// Find out the partition of 1223
-		if (1) {
-			const char *s = "1233";
-			guess = Codeword::Parse(s, rules);
-			FeedbackList fbl(guess, list);
-			FeedbackFrequencyTable freq(fbl);
-			//printf("Frequency table %s:\n", s);
-			//freq.DebugPrint();
-			printf("Guess=0011, Feedback=0A1B\n");
-			printf("Guess=%s, Feedback=%s: ", s, check.ToString().c_str());
-			list.FilterByFeedback(guess, check).DebugPrint();
-			printf("\n");
-		}
-
-		// Find out the partition of 1233
-		if (1) {
-			const char *s = "1223";
-			guess = Codeword::Parse(s, rules);
-			FeedbackList fbl(guess, list);
-			FeedbackFrequencyTable freq(fbl);
-			//printf("Frequency table %s:\n", s);
-			//freq.DebugPrint();
-			printf("Guess=0011, Feedback=0A1B\n");
-			printf("Guess=%s, Feedback=%s: ", s, check.ToString().c_str());
-			list.FilterByFeedback(guess, check).DebugPrint();
-			printf("\n");
-		}
-
-		system("PAUSE");
-		return 0;
-	}
-
-	//return RegressionTest();
-
-	//return TestOutputStrategyTree(rules);
-
-#endif
 }

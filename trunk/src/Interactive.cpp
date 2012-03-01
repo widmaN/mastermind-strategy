@@ -427,3 +427,13 @@ int interactive(const Rules &rules)
 #endif
 	return 0;
 }
+
+int interactive_player(const Rules &rules, bool verbose)
+{
+	return 0;
+}
+
+int interactive_analyst(const Rules &rules, bool verbose)
+{
+	return 0;
+}
