@@ -64,7 +64,7 @@ public:
 		assert(color == 0xFF || (color >= 0 && color < MM_MAX_COLORS));
 		if (_digit[peg] != 0xFF)
 			--_counter[_digit[peg]];
-		if ((_digit[peg] = color) != 0xFF)
+		if ((_digit[peg] = (unsigned char)color) != 0xFF)
 			++_counter[color];
 	}
 

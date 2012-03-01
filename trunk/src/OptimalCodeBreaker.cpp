@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <array>
+#include <numeric>
 
 #include "Engine.hpp"
 #include "Strategy.hpp"
@@ -192,7 +193,7 @@ static int fill_strategy_tree(
 	// number of steps needed to reveal all the secrets, ignoring
 	// the current depth of the tree.
 
-	const bool verbose = (depth < 0);
+	bool verbose = (depth < 0);
 
 	VERBOSE_COUT("Checking " << secrets.size() << " remaining secrets");
 
@@ -255,8 +256,12 @@ static int fill_strategy_tree(
 	estimator.make_guess(secrets, candidates, &scores[0]);
 
 	std::vector<int> order(candidates.size());
+#if 0
 	for (size_t i = 0; i < order.size(); ++i)
 		order[i] = (int)i;
+#else
+	std::iota(order.begin(), order.end(), 0);
+#endif
 
 	// Perform a stable sort of the candidate guesses. This ensures
 	// the same results are obtained under different implementations

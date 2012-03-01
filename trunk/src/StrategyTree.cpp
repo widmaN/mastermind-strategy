@@ -226,7 +226,7 @@ void WriteToFile<XmlFormat>(std::ostream &os, const StrategyTree &tree)
 	os << "</mastermind-strategy>" << std::endl;
 }
 
-
+#if 0
 //typedef partition<Feedback,256,CodewordRange> CodewordPartition;
 struct CodewordCell : public CodewordRange
 {
@@ -254,6 +254,7 @@ partition(Engine &e, CodewordRange secrets, const Codeword &guess)
 	}
 	return cells;
 }
+#endif
 
 /* 
 Example:

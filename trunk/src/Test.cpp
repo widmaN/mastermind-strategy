@@ -32,8 +32,6 @@ void pause_output()
 #endif
 }
 
-// #pragma region Profiling Routines
-
 // Dummy test driver that does nothing in the test and always returns success.
 template <class Routine>
 struct TestDriver
@@ -323,8 +321,7 @@ int TestFrequencyCounting(const Rules &rules, long times)
 }
 #endif
 
-// #pragma endregion
-
+#if 0
 static void simulate_guessing(
 	Engine &e, Strategy* strats[], size_t n,
 	EquivalenceFilter *filter,
@@ -413,6 +410,7 @@ static void simulate_guessing(
 		std::cout << std::endl;
 	}
 }
+#endif
 
 #if 1
 static void test_strategy_tree(
@@ -607,7 +605,7 @@ static void test_serialization()
 }
 
 /// Runs regression and benchmark tests.
-int test(const Rules &rules, bool verbose)
+int test(const Rules &rules, bool /* verbose */)
 {
 #ifdef NDEBUG
 #define LOOP_FLAG 1

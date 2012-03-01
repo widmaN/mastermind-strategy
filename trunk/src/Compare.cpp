@@ -35,7 +35,7 @@ static const generic_feedback_mapping_t generic_feedback_mapping;
 // SSE2-based implementation for comparing generic codewords.
 // Repeated colors are allowed.
 static void compare_long_codeword_generic(
-	const Rules &rules,
+	const Rules & /* rules */,
 	const Codeword &_secret,
 	const Codeword *_first,
 	const Codeword *_last,
@@ -118,8 +118,8 @@ struct norepeat_feedback_mapping_t
 	{
 		for (int i = 0; i < 0x10000; i++) 
 		{
-			int nA = util::intrinsic::pop_count(i >> MM_MAX_COLORS);
-			int nAB = util::intrinsic::pop_count(i & ((1<<MM_MAX_COLORS)-1));
+			int nA = util::intrinsic::pop_count((unsigned short)(i >> MM_MAX_COLORS));
+			int nAB = util::intrinsic::pop_count((unsigned short)(i & ((1<<MM_MAX_COLORS)-1)));
 #if 0
 			table[i] = nAB*(nAB+1)/2+nA;
 #else
@@ -135,7 +135,7 @@ static const norepeat_feedback_mapping_t norepeat_feedback_mapping;
 // We build a cache that pre-computes feedback from bitmask.
 // This is much (3x) faster than counting the bits each time.
 static void compare_long_codeword_norepeat(
-	const Rules &rules,
+	const Rules & /* rules */,
 	const Codeword &_secret,
 	const Codeword *first,
 	const Codeword *last,

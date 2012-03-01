@@ -69,7 +69,7 @@ public:
 			return Codeword::emptyValue();
 
 		Codeword choice = Codeword::emptyValue();
-		typename Heuristic::score_t choice_score;
+		typename Heuristic::score_t choice_score = Heuristic::score_t();
 		bool choice_ispos = false;
 		size_t target = Feedback::perfectValue(e.rules()).value();
 
