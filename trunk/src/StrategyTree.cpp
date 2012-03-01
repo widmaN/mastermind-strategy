@@ -504,6 +504,7 @@ static bool ReadStrategy_TextFormat(std::istream &is, StrategyTree &tree, std::o
 	// Check for declared but undefined sub-situations.
 	if (defined.size() < placeholders.size())
 	{
+		is.clear();
 		PARSING_ERROR("some situations are not defined");
 		return false;
 	}
