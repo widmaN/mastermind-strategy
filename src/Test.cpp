@@ -598,6 +598,12 @@ static void test_serialization()
 		std::ifstream fs("strats/p4c6r-neuwirth.txt");
 		fs >> tree;
 	}
+	if (1)
+	{
+		std::cout << "File 5" << std::endl;
+		std::ifstream fs("strats/p4c6r-irving.txt");
+		fs >> tree;
+	}
 }
 
 /// Runs regression and benchmark tests.
