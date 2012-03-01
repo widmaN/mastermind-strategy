@@ -24,7 +24,7 @@ static unsigned short ScanDigitMask_v1(
 	}
 
 	mask = (mask == simd_t::zero());
-	unsigned short result = util::simd::byte_mask(mask);
+	unsigned short result = (unsigned short)util::simd::byte_mask(mask);
 	result = (~result) & ((1 << MM_MAX_COLORS) - 1);
 	return result;
 }

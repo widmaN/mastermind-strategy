@@ -228,8 +228,8 @@ static void usage()
 // TODO: Output strategy tree after finishing a run
 
 // extern int strategy(std::string strat);
-extern int interactive_player(const Rules &rules, bool verbose);
-extern int interactive_analyst(const Rules &rules, bool verbose);
+extern int interactive_player(Engine & e, bool verbose);
+extern int interactive_analyst(Engine & e, bool verbose);
 extern int test(const Rules &rules, bool verbose);
 
 extern void pause_output();
@@ -422,12 +422,12 @@ int main(int argc, char* argv[])
 	case StrategyMode:
 		return build_strategy(e, filter, verbose, strat_name, strat_file);
 	case PlayerMode:
-		return interactive_player(rules, verbose);
+		return interactive_player(e, verbose);
 	case AnalystMode:
-		return interactive_analyst(rules, verbose);
+		return interactive_analyst(e, verbose);
 	case TestMode:
 		return test(rules, verbose);
 	default:
-		USAGE_REQUIRE(false, "missing mode");
+		USAGE_ERROR("missing mode");
 	}
 }

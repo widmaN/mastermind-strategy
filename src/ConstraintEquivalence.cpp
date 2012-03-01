@@ -114,7 +114,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 					int cc = free_to.smallest();
 
 					// Map c to cc.
-					p.color[c] = cc;
+					p.color[c] = (char)cc;
 
 					// Clear the respective free-color indicator.
 					free_from.reset(c);

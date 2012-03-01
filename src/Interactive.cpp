@@ -175,6 +175,15 @@ static void displayInfo(const Analyst &game, bool verbose = false)
 	std::cout << game.constraints().size() << " constraints, "
 		<< game.possibilities().size() << " remaining possibilities." 
 		<< std::endl;
+	if (verbose && !game.constraints().empty())
+	{
+		std::cout << "Constraints are:" << std::endl;
+		for (size_t i = 0; i < game.constraints().size(); ++i)
+		{
+			const Constraint &c = game.constraints()[i];
+			std::cout << c.guess << " " << c.response << std::endl;
+		}
+	}
 }
 
 // sort_order: 0 = no sort, 2 = lexical sort by output
@@ -258,12 +267,82 @@ static void displayPartitions(Analyst &game, CodewordConstRange guesses,
 	}
 }
 
-// Interactive mode.
-int interactive(const Rules &rules)
+int interactive_player(Engine &e, bool /* verbose */)
 {
-	// Set up default engine for the rules.
-	Engine e(rules);
-	Analyst game(rules);
+	Analyst game(e.rules());
+
+	// Display available commands.
+	// displayHelp();
+
+	// Generate all codewords.
+	//std::cout << "Generating all codewords..." << std::endl;
+	CodewordList all = e.generateCodewords();
+	std::cout << "There are " << all.size() << " codewords. Please make your guesses." << std::endl;
+
+	// Generate a secret.
+	Codeword secret = all[randomNumber(all.size())];
+	//std::cout << "Generated secret: " << secret << std::endl;
+
+	for (;;)
+	{
+		// Display prompt.
+		std::cout << "> ";
+		std::flush(std::cout);
+
+		// Read a line of command.
+		std::string line;
+		std::getline(std::cin, line);
+		std::istringstream ss(line);
+
+		// Read command.
+		std::string cmd;
+		if (!(ss >> cmd) || cmd == "quit" || cmd == "exit" || cmd == "q")
+			break;
+
+		// Dispatch command.
+		if (cmd == "help")
+		{
+			displayHelp();
+		}
+		else if (cmd == "guess")
+		{
+			Codeword guess;
+			if (!(ss >> guess))
+			{
+				std::cout << "Expecting guess\n";
+				continue;
+			}
+			if (!guess.valid(e.rules()))
+			{
+				std::cout << "Invalid guess: " << guess << std::endl;
+				continue;
+			}
+			Feedback response = e.compare(guess, secret);
+			std::cout << guess << " " << response << std::endl;
+			game.push_constraint(guess, response);
+			if (response == Feedback::perfectValue(e.rules()))
+				break;
+			//displayInfo(game, true);
+		}
+		else if (cmd == "list")
+		{
+			listCodewords(game.possibilities());
+		}
+		else if (cmd == "cheat")
+		{
+			std::cout << "Secret is " << secret << std::endl;
+		}
+		else
+		{
+			std::cout << "Unknown command: " << cmd << std::endl;
+		}
+	}
+	return 0;
+}
+
+int interactive_analyst(Engine &e, bool /* verbose */)
+{
+	Analyst game(e.rules());
 
 	// Display available commands.
 	displayHelp();
@@ -273,11 +352,7 @@ int interactive(const Rules &rules)
 	CodewordList all = e.generateCodewords();
 	std::cout << "Done. There are " << all.size() << " codewords." << std::endl;
 
-	// Generate a secret.
-	Codeword secret = all[randomNumber(all.size())];
-	std::cout << "Generated secret: " << secret << std::endl;
-
-	while (1) 
+	for (;;)
 	{
 		// Display prompt.
 		std::cout << "> ";
@@ -303,12 +378,12 @@ int interactive(const Rules &rules)
 				std::cout << "Expecting: push guess response\n";
 				continue;
 			}
-			if (!guess.valid(rules))
+			if (!guess.valid(e.rules()))
 			{
 				std::cout << "Invalid guess: " << guess << std::endl;
 				continue;
 			}
-			if (!response.valid(rules))
+			if (!response.valid(e.rules()))
 			{
 				std::cout << "Invalid response: " << response << std::endl;
 				continue;
@@ -345,7 +420,7 @@ int interactive(const Rules &rules)
 				ss.unget();
 				for (Codeword guess; ss >> guess; )
 				{
-					if (!guess.valid(rules))
+					if (!guess.valid(e.rules()))
 					{
 						std::cout << "Invalid guess: " << guess << std::endl;
 						continue;
@@ -363,77 +438,6 @@ int interactive(const Rules &rules)
 		{
 			std::cout << "Unknown command: " << cmd << std::endl;
 		}
-#if 0
-		Codeword guess = Codeword::emptyValue();
-		switch (c)
-		{
-		case '!': // show the secret
-			std::cout << "Secret: " << secret << std::endl;
-			break;
-		case 'd': // dump all codewords
-			listCodewords(all.begin(), all.end());
-			break;
-		case 'h': // help
-			displayHelp();
-			break;
-		case 'g': // guess
-			if (!(std::cin >> guess))
-			{
-				std::cout << "Invalid codeword." << std::endl;
-			}
-			break;
-		case 'l': // list possibilities
-			break;
-		default:
-			std::cout << "Unknown command: " << c << std::endl;
-			break;
-		}
-#endif
 	}
-
-#if 0
-	// Generate a secret codeword.
-	Codeword secret; // = Codeword::GetRandom(rules);
-	printf("Generated secret: %s\n", secret.ToString().c_str());
-
-	// Let's guess!
-	//Feedback target(rules.length, 0);
-	//CodewordList list = all;
-	for (int k = 1; k <= 9; k++) {
-		// Which codeword to guess? The first one.
-		Codeword guess = list[0];
-
-		Feedback fb = secret.CompareTo(guess);
-		printf("[%d] Guess: %s, feedback: %s... ",
-			k, guess.ToString().c_str(), fb.ToString().c_str());
-		if (fb == target) {
-			printf("That's it!\n");
-			break;
-		}
-
-		CodewordList possibilities = list.FilterByFeedback(guess, fb);
-		printf("possibilities: %d\n", possibilities.GetCount());
-		list = possibilities;
-	}
-
-	system("PAUSE");
-	return 0;
-
-	// Generate a secret codeword.
-	// Codeword secret = Codeword::GetRandom(rules);
-	cout << "Fyi, the secret is " << secret.ToString() << endl;
-
-	
-#endif
-	return 0;
-}
-
-int interactive_player(const Rules &rules, bool verbose)
-{
-	return 0;
-}
-
-int interactive_analyst(const Rules &rules, bool verbose)
-{
 	return 0;
 }

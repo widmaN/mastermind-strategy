@@ -3,6 +3,7 @@
 #include <emmintrin.h>
 #include <memory.h>
 #include <array>
+#include <numeric>
 
 #include "Algorithm.hpp"
 #include "util/intrinsic.hpp"
@@ -23,10 +24,13 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 
 	void update_eqclass()
 	{
+		std::iota(eqclass.begin(), eqclass.end(), (unsigned char)0);
+#if 0
 		for (int i = 0; i < 16; ++i)
 		{
 			eqclass[i] = i;
 		}
+#endif
 
 		for (int last = -1, i = 0; i < e.rules().colors(); ++i)
 		{
@@ -35,7 +39,7 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 				if (last >= 0)
 				{
 					eqclass[i] = eqclass[last];
-					eqclass[last] = i;
+					eqclass[last] = (unsigned char)i;
 				}
 				last = i;
 			}
@@ -48,7 +52,7 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 				if (last >= 0)
 				{
 					eqclass[i] = eqclass[last];
-					eqclass[last] = i;
+					eqclass[last] = (unsigned char)i;
 				}
 				last = i;
 			}
@@ -102,12 +106,12 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 	for (int i = 0; i < 16; i++) 
 	{
 		if (i < head[i])
-			head[i] = i;
+			head[i] = (unsigned char)i;
 		int c = 0; // counter to avoid dead loop in case _eqclass_ is malformed.
 		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++) 
 		{
 			if (i < head[p])
-				head[p] = i;
+				head[p] = (unsigned char)i;
 		}
 		assert(c <= 16); // check bad loop
 	}

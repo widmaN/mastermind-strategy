@@ -86,7 +86,7 @@ public:
 		/// Constructs a node with the given depth, guess and response.
 		Node(int depth, const Codeword &guess, const Feedback &response)
 			: _guess(guess.pack()), _response(response.pack()),
-			_depth(depth) // , _child_count(0) 
+			_depth((unsigned char)depth) // , _child_count(0) 
 		{ 
 		}
 

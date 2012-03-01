@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <numeric>
 #include "Codeword.hpp"
 
 namespace Mastermind {
@@ -21,10 +22,14 @@ public:
 	/// Creates an identity permutation.
 	CodewordPermutation()
 	{
+		std::iota(color + 0, color + MM_MAX_COLORS, (char)0);
+		std::iota(peg + 0, peg + MM_MAX_PEGS, (char)0);
+#if 0
 		for (int i = 0; i < MM_MAX_COLORS; ++i)
 			color[i] = i;
 		for (int i = 0; i < MM_MAX_PEGS; ++i)
 			peg[i] = i;
+#endif
 	}
 
 #if 0

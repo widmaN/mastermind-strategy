@@ -40,7 +40,7 @@ std::istream& operator >> (std::istream &is, Codeword &codeword)
 			ok = false;
 		}
 		++i;
-	} while ((c = is.get()) != EOF);
+	} while ((c = (char)is.get()) != EOF);
 
 	// Set stream status and return result.
 	if (ok && !ret.empty())

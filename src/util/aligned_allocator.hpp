@@ -42,7 +42,7 @@ struct aligned_allocator
 		return allocate(n, const_pointer(0));
 	}
 
-	pointer allocate(size_type n, const_pointer hint)
+	pointer allocate(size_type n, const_pointer /* hint */)
 	{
 		void *p;
 #ifndef _WIN32
@@ -56,7 +56,7 @@ struct aligned_allocator
 		return static_cast<pointer>(p);
 	}
 
-	void deallocate(pointer p, size_type n)
+	void deallocate(pointer p, size_type /* n */)
 	{
 #ifndef _WIN32
 		free(p);

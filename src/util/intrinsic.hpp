@@ -18,7 +18,7 @@ namespace util { namespace intrinsic {
 /// @ingroup Intrinsic
 inline unsigned int rotate_left(unsigned int value, int shift)
 {
-	return _rotl(value, 4);
+	return _rotl(value, shift);
 }
 
 /// Returns the position of the least significant one bit in @c value.
