@@ -4,6 +4,8 @@
 #include "Strategy.hpp"
 #include "util/wrapped_float.hpp"
 
+#define ENABLE_OMP 1
+
 namespace Mastermind {
 
 /**
@@ -68,36 +70,77 @@ public:
 		if (candidates.empty())
 			return Codeword::emptyValue();
 
-		Codeword choice = Codeword::emptyValue();
-		typename Heuristic::score_t choice_score = Heuristic::score_t();
-		bool choice_ispos = false;
+		/// @todo Check why serial version and parallel version returns
+		///  different results for Mastermind.exe -v -r lg -s minavg
+		/// @todo Make the heuristic score calculation take into account
+		///  whether 4A0B is present, so that we can directly compare 
+		///  the heuristic scores.
+
+		struct choice_t
+		{
+			int i; // index to the choice, -1 = undefined
+			typename Heuristic::score_t score; // score of the choice
+			bool ispos; // whether the choice is a remaining possibility
+			choice_t() : i(-1), score(), ispos(false) { }
+		};
+
+#if ENABLE_OMP
+		choice_t global_choice;
+#else
+		choice_t choice;
+#endif
 		size_t target = Feedback::perfectValue(e.rules()).value();
 
 		// Evaluate each candidate guess and find the one that 
 		// produces the lowest score.
-		size_t n = candidates.size();
-		for (size_t i = 0; i < n; ++i)
+		int n = (int)candidates.size();
+
+		// OpenMP index variable (i) must have signed integer type.
+#if ENABLE_OMP
+		#pragma omp parallel
 		{
-			Codeword guess = candidates[i];
-			FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+			choice_t choice;
 
-			// Compute a score of the partition.
-			score_type score = h.compute(freq);
-
-			// Store the score if requested.
-			if (scores)
-				*(scores++) = score;
-			
-			// Keep track of the guess that produces the lowest score.
-			if ((i == 0) || (score < choice_score) || 
-				(!(choice_score < score) && !choice_ispos && freq[target] > 0)) 
+			#pragma omp for schedule(static)
+#endif
+			for (int i = 0; i < n; ++i)
 			{
-				choice = guess;
-				choice_score = score;
-				choice_ispos = (freq[target] > 0);
+				Codeword guess = candidates[i];
+				FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+
+				// Compute a score of the partition.
+				score_type score = h.compute(freq);
+
+				// Store the score if requested.
+				if (scores)
+					scores[i] = score;
+			
+				// Keep track of the guess that produces the lowest score.
+				if ((choice.i < 0) || (score < choice.score) || 
+					(!(choice.score < score) && 
+					(!choice.ispos && freq[target] > 0 || choice.i > i))) 
+				{
+					choice.i = i;
+					choice.score = score;
+					choice.ispos = (freq[target] > 0);
+				}
+			}
+#if ENABLE_OMP
+			#pragma omp critical
+			{
+				if (choice.i >= 0)
+				{
+					if ((global_choice.i < 0 || choice.score < global_choice.score) || 
+						(!(global_choice.score < choice.score) && 
+						(!global_choice.ispos && choice.ispos || global_choice.i > choice.i))) 
+						global_choice = choice;
+				}
 			}
 		}
-		return choice;
+		return candidates[global_choice.i];
+#else
+		return candidates[choice.i];
+#endif
 	}
 
 	virtual Codeword make_guess(

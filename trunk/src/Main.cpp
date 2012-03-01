@@ -34,6 +34,10 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <sstream>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include <iostream>
 #include "Rules.hpp"
@@ -218,6 +222,10 @@ static void usage()
 		"    none       do not apply any filter\n"
 		"Options:\n"
 		"    -h         display this help screen and exit\n"
+#ifdef _OPENMP
+		"    -mt n      set maximum number of parallel threads [default="
+		<< omp_get_max_threads() << "]\n"
+#endif
 		"    -v         verbose mode; display more information\n"
 		"";
 }
@@ -385,6 +393,17 @@ int main(int argc, char* argv[])
 				rules = Rules(name.c_str());
 			USAGE_REQUIRE(rules.valid(), "invalid rules: " << argv[i]);
 		}
+#ifdef _OPENMP
+		else if (s == "-mt")
+		{
+			USAGE_REQUIRE(++i < argc, "missing argument for option -mt");
+			std::string cnt(argv[i]);
+			int n = -1;
+			USAGE_REQUIRE((std::istringstream(cnt) >> n) && (n > 0),
+				"positive integer argument expected for option -mt");
+			omp_set_num_threads(n);
+		}
+#endif
 		else if (s == "-v")
 		{
 			verbose = true;
