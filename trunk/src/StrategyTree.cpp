@@ -27,21 +27,21 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 	// Display header.
 	if (os.iword(util::header_index()))
 	{
-		os << "Stategy Statistics" << std::endl
-		   << "--------------------" << std::endl
-		   << "Strategy  Total   Avg 1     2     3     4     5     6     7     8    >8   Time" << std::endl;
+		//os << "Stategy Statistics" << std::endl;
+		//os << "--------------------" << std::endl;
+		os << "Strategy  Total   Avg 1     2     3     4     5     6     7     8    >8   Time" << std::endl;
 		os << util::noheader;
 	}
 
 	// Display label.
-	os  << std::setw(8) << info.name() 
+	os  << std::setw(8) << info.name()
 		<< std::setw(7) << info.total_depth() << " "
 		<< std::setw(5) << std::setprecision(3)
 		<< std::fixed << info.average_depth();
 
 	// Display each frequency.
 	unsigned int running_total = 0;
-	for (int d = 1; d <= max_display; d++) 
+	for (int d = 1; d <= max_display; d++)
 	{
 		unsigned int count;
 		if (d < max_display)
@@ -61,7 +61,7 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 	}
 
 	// Display time
-	os  << std::fixed << std::setw(7) << std::setprecision(2) 
+	os  << std::fixed << std::setw(7) << std::setprecision(2)
 		<< info.time() << std::endl;
 
 	return os;
@@ -91,7 +91,7 @@ void StrategyTree::AddChild(const Node &node)
 	} else {
 		if (m_depth < (child->m_depth + 1)) {
 			m_depth = child->m_depth + 1;
-		} 
+		}
 		m_hits += child->m_hits;
 		m_totaldepth += (child->m_totaldepth + child->m_hits);
 	}
@@ -100,7 +100,7 @@ void StrategyTree::AddChild(const Node &node)
 #endif
 
 unsigned int StrategyTree::getDepthInfo(
-	unsigned int depth_freq[], 
+	unsigned int depth_freq[],
 	unsigned int count) const
 {
 	Feedback perfect = Feedback::perfectValue(_rules);
@@ -122,22 +122,22 @@ unsigned int StrategyTree::getDepthInfo(
 template <>
 void WriteToFile<TextFormat>(std::ostream &os, const StrategyTree &tree)
 {
-	if (format == XmlFormat) 
+	if (format == XmlFormat)
 	{
-		os << "<mmstrat" 
+		os << "<mmstrat"
 			<< " npegs=" << '"' << rules.pegs() << '"'
 			<< " ncolors=\"" << rules.colors() << '"'
 			<< " allowrepetition=\"" << std::boolalpha << rules.repeatable() << '"'
 			<< ">" << std::endl;
-		
+
 		const int max_depth = 100;
 		int freq[max_depth+1];
 		int total = GetDepthInfo(freq, max_depth);
 
 		os << "<summary totalsteps=\"" << total << "\">" << std::endl;
-		for (int i = 0; i <= max_depth; i++) 
+		for (int i = 0; i <= max_depth; i++)
 		{
-			if (freq[i] > 0) 
+			if (freq[i] > 0)
 			{
 				os << "  <where"
 					<< " steps=\"" << i << '"'
@@ -149,7 +149,7 @@ void WriteToFile<TextFormat>(std::ostream &os, const StrategyTree &tree)
 		os << "<details>\n";
 	}
 	WriteToFile(os, format, 0);
-	if (format == XmlFormat) 
+	if (format == XmlFormat)
 	{
 		os << "</details>" << std::endl;
 		os << "</mmstrat>" << std::endl;
@@ -163,21 +163,21 @@ void WriteToFile<XmlFormat>(std::ostream &os, const StrategyTree &tree)
 	Rules rules = tree.rules();
 
 	// Output XML header.
-	os << "<mastermind-strategy" 
+	os << "<mastermind-strategy"
 		<< " pegs=" << '"' << rules.pegs() << '"'
 		<< " colors=\"" << rules.colors() << '"'
 		<< " repeatable=\"" << std::boolalpha << rules.repeatable() << '"'
 		<< ">" << std::endl;
-	
+
 	// Output summary.
 	const int max_depth = 100;
 	unsigned int freq[max_depth];
 	unsigned int total = tree.getDepthInfo(freq, max_depth);
 
 	os << "<summary totalsteps=\"" << total << "\">" << std::endl;
-	for (int i = 1; i <= max_depth; i++) 
+	for (int i = 1; i <= max_depth; i++)
 	{
-		if (freq[i-1] > 0) 
+		if (freq[i-1] > 0)
 		{
 			os << "  <where"
 				<< " steps=\"" << i << '"'
@@ -206,11 +206,11 @@ void WriteToFile<XmlFormat>(std::ostream &os, const StrategyTree &tree)
 
 		if (node.response() == target)
 		{
-			os << std::setw(indent*level) << "" << "<state guess=\"" 
+			os << std::setw(indent*level) << "" << "<state guess=\""
 				<< node.guess() << "\" feedback=\"" << node.response()
 				<< "\"/>" << std::endl;
 		}
-		else 
+		else
 		{
 			os << std::setw(indent*level) << "" << "<state "
 				<< "guess=\"" << node.guess() << "\" "
@@ -257,14 +257,14 @@ partition(Engine &e, CodewordRange secrets, const Codeword &guess)
 }
 #endif
 
-/* 
+/*
 Example:
-1296 (1123: 2 (2311), 44A, 222B, 276C, 81D; 4 (1312), 84E, 230F, 182G; 5 (1321: 1, 0, 0, 0, 
-0; 2 (1132), 0, 0, 0; 1, 0, 0; 0; 1), 40H, 105I; 20J; 1) 
+1296 (1123: 2 (2311), 44A, 222B, 276C, 81D; 4 (1312), 84E, 230F, 182G; 5 (1321: 1, 0, 0, 0,
+0; 2 (1132), 0, 0, 0; 1, 0, 0; 0; 1), 40H, 105I; 20J; 1)
 
-A = (2345: 0, 6 (3412), 10 (3612: 1, 0, 0, 0, 0; 1, 1, 2 (4211), 0; 1, 0, 2 (3411); 1; 1), 
-    2 (3611), 0; 0, 6 (3215), 8 (2461: 0, 1, 1,0, 0; 0, 0, 1, 1; 0, 1, 2 (2231); 1; 0), 4 (2611); 0, 
-    2 (2314), 4 (2316); 2 (2315); 0) 
+A = (2345: 0, 6 (3412), 10 (3612: 1, 0, 0, 0, 0; 1, 1, 2 (4211), 0; 1, 0, 2 (3411); 1; 1),
+    2 (3611), 0; 0, 6 (3215), 8 (2461: 0, 1, 1,0, 0; 0, 0, 1, 1; 0, 1, 2 (2231); 1; 0), 4 (2611); 0,
+    2 (2314), 4 (2316); 2 (2315); 0)
 */
 
 #define PARSING_ERROR(msg) err << is.tellg() << ": " << msg << std::endl
@@ -390,8 +390,8 @@ static bool ReadSituation_TextFormat(
 
 					// Note that (p-1,1) is an impossible situation, in which
 					// the number of remaining possibilities is always zero.
-					// Thus this situation is omitted by Irving (1979), etc. 
-					// However, in Knuth(1976), this redundant situation a31=0 
+					// Thus this situation is omitted by Irving (1979), etc.
+					// However, in Knuth(1976), this redundant situation a31=0
 					// is explicitly shown; so we tweak a bit to be compatible
 					// with his format.
 					if (nA == p - 1 && nB == 1)
@@ -452,14 +452,14 @@ static bool ReadSituation_TextFormat(
 	}
 }
 
-/* 
+/*
 Example:
-1296 (1123: 2 (2311), 44A, 222B, 276C, 81D; 4 (1312), 84E, 230F, 182G; 5 (1321: 1, 0, 0, 0, 
-0; 2 (1132), 0, 0, 0; 1, 0, 0; 0; 1), 40H, 105I; 20J; 1) 
+1296 (1123: 2 (2311), 44A, 222B, 276C, 81D; 4 (1312), 84E, 230F, 182G; 5 (1321: 1, 0, 0, 0,
+0; 2 (1132), 0, 0, 0; 1, 0, 0; 0; 1), 40H, 105I; 20J; 1)
 
-A = (2345: 0, 6 (3412), 10 (3612: 1, 0, 0, 0, 0; 1, 1, 2 (4211), 0; 1, 0, 2 (3411); 1; 1), 
-    2 (3611), 0; 0, 6 (3215), 8 (2461: 0, 1, 1,0, 0; 0, 0, 1, 1; 0, 1, 2 (2231); 1; 0), 4 (2611); 0, 
-    2 (2314), 4 (2316); 2 (2315); 0) 
+A = (2345: 0, 6 (3412), 10 (3612: 1, 0, 0, 0, 0; 1, 1, 2 (4211), 0; 1, 0, 2 (3411); 1; 1),
+    2 (3611), 0; 0, 6 (3215), 8 (2461: 0, 1, 1,0, 0; 0, 0, 1, 1; 0, 1, 2 (2231); 1; 0), 4 (2611); 0,
+    2 (2314), 4 (2316); 2 (2315); 0)
 */
 static bool ReadStrategy_TextFormat(std::istream &is, StrategyTree &tree, std::ostream &err)
 {
@@ -476,7 +476,7 @@ static bool ReadStrategy_TextFormat(std::istream &is, StrategyTree &tree, std::o
 	if (!ReadSituation_TextFormat(is, tree, err, true, e, all, placeholders))
 		return false;
 
-	// Read each sub-situation identified by [A-Z]. For example, 
+	// Read each sub-situation identified by [A-Z]. For example,
 	// A = (2345: 0, ....
 	char id;
 	while (is >> id)
@@ -575,7 +575,7 @@ void StrategyTreeNode::AddChild(Feedback fb, StrategyTreeNode *child)
 	} else {
 		if (m_depth < (child->m_depth + 1)) {
 			m_depth = child->m_depth + 1;
-		} 
+		}
 		m_hits += child->m_hits;
 		m_totaldepth += (child->m_totaldepth + child->m_hits);
 	}
@@ -587,18 +587,18 @@ void StrategyTreeNode::WriteToFile(std::ostream &os, FileFormat format, int inde
 {
 	assert(indent >= 0 && indent < 200);
 
-	for (int i = 0; i < m_childcount; i++) 
+	for (int i = 0; i < m_childcount; i++)
 	{
 		int j = m_childindex[i];
 		const StrategyTreeNode *child = m_children[j];
-		if (format == XmlFormat) 
+		if (format == XmlFormat)
 		{
-			if (child == Done()) 
+			if (child == Done())
 			{
 				os << std::setw(indent) << "" << "<case feedback=\""
 					<< Feedback(i) << "\">" << std::endl;
-			} 
-			else 
+			}
+			else
 			{
 				os << std::setw(indent) << "" << "<case "
 					<< "feedback=\"" << Feedback(i) << "\" "
@@ -607,17 +607,17 @@ void StrategyTreeNode::WriteToFile(std::ostream &os, FileFormat format, int inde
 					<< "guess=\"" << child->State.Guess << "\">"
 					<< std::endl;
 			}
-		} 
-		else 
+		}
+		else
 		{
-			os << std::setw(indent) << "" 
+			os << std::setw(indent) << ""
 				<< State.Guess << ":" << Feedback(i) << std::endl;
 		}
-		if (child != Done()) 
+		if (child != Done())
 		{
 			child->WriteToFile(os, format, indent + 2);
 		}
-		if (format == XmlFormat) 
+		if (format == XmlFormat)
 		{
 			os << std::setw(indent) << "" << "</case>" << std::endl;
 		}
@@ -627,22 +627,22 @@ void StrategyTreeNode::WriteToFile(std::ostream &os, FileFormat format, int inde
 void StrategyTreeNode::WriteToFile(
 	std::ostream &os, FileFormat format, const Rules &rules) const
 {
-	if (format == XmlFormat) 
+	if (format == XmlFormat)
 	{
-		os << "<mmstrat" 
+		os << "<mmstrat"
 			<< " npegs=" << '"' << rules.pegs() << '"'
 			<< " ncolors=\"" << rules.colors() << '"'
 			<< " allowrepetition=\"" << std::boolalpha << rules.repeatable() << '"'
 			<< ">" << std::endl;
-		
+
 		const int max_depth = 100;
 		int freq[max_depth+1];
 		int total = GetDepthInfo(freq, max_depth);
 
 		os << "<summary totalsteps=\"" << total << "\">" << std::endl;
-		for (int i = 0; i <= max_depth; i++) 
+		for (int i = 0; i <= max_depth; i++)
 		{
-			if (freq[i] > 0) 
+			if (freq[i] > 0)
 			{
 				os << "  <where"
 					<< " steps=\"" << i << '"'
@@ -654,7 +654,7 @@ void StrategyTreeNode::WriteToFile(
 		os << "<details>\n";
 	}
 	WriteToFile(os, format, 0);
-	if (format == XmlFormat) 
+	if (format == XmlFormat)
 	{
 		os << "</details>" << std::endl;
 		os << "</mmstrat>" << std::endl;
