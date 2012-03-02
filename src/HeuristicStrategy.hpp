@@ -4,7 +4,21 @@
 #include "Strategy.hpp"
 #include "util/wrapped_float.hpp"
 
-#define ENABLE_OMP 1
+/**
+ * Define FAVOR_POSSIBILITY to 1 to make a heuristic strategy favor
+ * a guess that is among the remaining possibilities when multiple
+ * guesses have the same heuristic score. 
+ *
+ * Normally, this flag should be set to 0 because we expect the 
+ * heuristic score to fully capture the available information from
+ * the partition. However, setting this to 1 does improve the result
+ * marginally in certain cases, e.g. "-r bc -s entropy". Also it 
+ * may help in compatilibity with legacy implementations that favor
+ * a remaining possibility as guess in case of a tie.
+ *
+ * @ingroup Heuristic
+ */
+#define FAVOR_POSSIBILITY 0
 
 namespace Mastermind {
 
@@ -70,33 +84,59 @@ public:
 		if (candidates.empty())
 			return Codeword::emptyValue();
 
-		/// @todo Check why serial version and parallel version returns
-		///  different results for Mastermind.exe -v -r lg -s minavg
-		/// @todo Make the heuristic score calculation take into account
-		///  whether 4A0B is present, so that we can directly compare 
-		///  the heuristic scores.
-
 		struct choice_t
 		{
+			typedef typename Heuristic::score_t score_t;
+
 			int i; // index to the choice, -1 = undefined
 			typename Heuristic::score_t score; // score of the choice
+#if FAVOR_POSSIBILITY
 			bool ispos; // whether the choice is a remaining possibility
 			choice_t() : i(-1), score(), ispos(false) { }
+			choice_t(int _i, const score_t _score, bool _ispos)
+				: i(_i), score(_score), ispos(_ispos) { }
+#else
+			choice_t() : i(-1), score() { }
+			choice_t(int _i, const score_t &_score)
+				: i(_i), score(_score) { }
+#endif
+
+			bool operator < (const choice_t &other) const 
+			{
+				if (i < 0)
+					return false;
+				if (other.i < 0)
+					return true;
+				if (score < other.score)
+					return true;
+				if (other.score < score)
+					return false;
+#if FAVOR_POSSIBILITY
+				if (!ispos && other.ispos)
+					return true;
+				if (ispos && !other.ispos)
+					return false;
+#endif
+				return i < other.i;
+			}
 		};
 
-#if ENABLE_OMP
+#if _OPENMP
 		choice_t global_choice;
 #else
 		choice_t choice;
 #endif
+
+#if FAVOR_POSSIBILITY
 		size_t target = Feedback::perfectValue(e.rules()).value();
+#endif
 
 		// Evaluate each candidate guess and find the one that 
 		// produces the lowest score.
 		int n = (int)candidates.size();
 
 		// OpenMP index variable (i) must have signed integer type.
-#if ENABLE_OMP
+#if _OPENMP
 		#pragma omp parallel
 		{
 			choice_t choice;
@@ -116,25 +156,17 @@ public:
 					scores[i] = score;
 			
 				// Keep track of the guess that produces the lowest score.
-				if ((choice.i < 0) || (score < choice.score) || 
-					(!(choice.score < score) && 
-					(!choice.ispos && freq[target] > 0 || choice.i > i))) 
-				{
-					choice.i = i;
-					choice.score = score;
-					choice.ispos = (freq[target] > 0);
-				}
+#if FAVOR_POSSIBILITY
+				choice_t current(i, score, freq[target] > 0);
+#else
+				choice_t current(i, score);
+#endif
+				choice = std::min(choice, current);
 			}
-#if ENABLE_OMP
+#if _OPENMP
 			#pragma omp critical
 			{
-				if (choice.i >= 0)
-				{
-					if ((global_choice.i < 0 || choice.score < global_choice.score) || 
-						(!(global_choice.score < choice.score) && 
-						(!global_choice.ispos && choice.ispos || global_choice.i > choice.i))) 
-						global_choice = choice;
-				}
+				global_choice = std::min(global_choice, choice);
 			}
 		}
 		return candidates[global_choice.i];
@@ -177,30 +209,44 @@ struct MinimizeWorstCase
 	}
 };
 
-/// A balanced heuristic that scores a guess as the expected number 
-/// of remaining possibilities (Irving, 1978). The score to minimize
-/// is <code>Sum{ n[i] * (n[i]/N) }</code>, or equivalently 
+/// Heuristic that scores a guess by the expected number of remaining 
+/// possibilities (Irving, 1979). The score to minimize is
+/// <code>Sum{ n[i] * (n[i]/N) }</code>, or equivalently 
 /// <code>Sum{ n[i]^2 }</code>, where <code>n[i]</code> is the number
 /// of elements in partition <code>i</code>.
 /// @ingroup Heuristic
 struct MinimizeAverage
 {
-	/// Data type of the score (unsigned integer).
-	typedef unsigned int score_t;
+	/// Type of the score (64-bit integer to avoid overflow if the
+	/// partition size is larger than 2^16).
+	typedef unsigned long long score_t;
 
-	/// Short identifier of the heuristic function.
-	std::string name() const { return "minavg"; }
+	/// Flag indicating whether to make an adjustment to the score
+	/// if the guess is among the remaining possibilities.
+	bool apply_correction;
+
+	/// Constructs the heuristic using the given policy.
+	MinimizeAverage(bool _apply_correction = true) 
+		: apply_correction(_apply_correction) { }
+
+	/// Name of the heuristic.
+	std::string name() const 
+	{
+		return apply_correction? "minavg" : "minavg'";
+	}
 
 	/// Computes the heuristic score - sum of squares of the size
 	/// of each partition.
 	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
-		unsigned int s = 0;
+		score_t s = 0;
 		for (size_t i = 0; i < freq.size(); ++i)
 		{
-			unsigned int f = freq[i];
+			score_t f = freq[i];
 			s += f * f;
 		}
+		if (apply_correction && freq[freq.size()-1])
+			--s;
 		return s;
 	}
 };
@@ -217,24 +263,33 @@ struct MinimizeAverage
 /// As a side note, note that the base of the logrithm doesn't matter 
 /// in computing the score.
 /// @ingroup Heuristic
-template <bool ApplyCorrection>
 struct MaximizeEntropy
 {
-	/// Data type of the score (double precision).
 #if 0
+	/// Type of the score (double precision).
 	typedef double score_t;
 #else
+	/// Type of the score (wrapped double to avoid numerical instability
+	/// during comparison).
 	typedef util::wrapped_float<double, 100> score_t;
 #endif
+
+	/// Flag indicating whether to make an adjustment to the score
+	/// if the guess is among the remaining possibilities.
+	bool apply_correction;
+
+	/// Constructs the heuristic using the given policy.
+	MaximizeEntropy(bool _apply_correction = true) 
+		: apply_correction(_apply_correction) { }
 
 	/// Short identifier of the heuristic function.
 	std::string name() const
 	{
-		return ApplyCorrection? "entropy*" : "entropy";
+		return apply_correction? "entropy" : "entropy'";
 	}
 
 	/// Computes the heuristic score - negative of the entropy.
-	static score_t compute(const FeedbackFrequencyTable &freq)
+	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
 		double s = 0.0;
 		for (size_t i = 0; i < freq.size(); ++i)
@@ -245,10 +300,9 @@ struct MaximizeEntropy
 				s += std::log((double)f) * (double)f;
 			}
 		}
-		if (ApplyCorrection)
+		if (apply_correction && freq[freq.size()-1]) // 4A0B
 		{
-			if (freq[freq.size()-1]) // 4A0B
-				s -= 2.0 * std::log(2.0);
+			s -= 2.0 * std::log(2.0);
 		}
 		return score_t(s);
 	}
@@ -260,17 +314,34 @@ struct MaximizeEntropy
 /// @ingroup Heuristic
 struct MaximizePartitions
 {
-	/// Data type of the score (signed integer).
+	/// Type of the score (signed integer because we need to minimize
+	/// the negative value of the number of partitions).
 	typedef int score_t;
 
+	/// Flag indicating whether to make an adjustment to the score
+	/// if the guess is among the remaining possibilities.
+	bool apply_correction;
+
+	/// Constructs the heuristic using the given policy.
+	MaximizePartitions(bool _apply_correction = true) 
+		: apply_correction(_apply_correction) { }
+
 	/// Short identifier of the heuristic function.
-	static std::string name() { return "maxparts"; }
+	std::string name() const 
+	{
+		return apply_correction? "parts" : "parts'";
+	}
 
 	/// Computes the heuristic score - negative of the number of
 	/// partitions.
-	static score_t compute(const FeedbackFrequencyTable &freq)
+	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
-		return -(int)freq.nonzero_count();
+		int score = 2 * (int)freq.nonzero_count();
+		if (apply_correction && freq[freq.size()-1])
+		{
+			++score;
+		}
+		return -score;
 	}
 };
 
