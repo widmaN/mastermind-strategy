@@ -206,13 +206,13 @@ static void usage()
 		"    mm,p4c6r   [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
 		"    bc,p4c10n  Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
 		"    lg,p5c8r   Logik (5 pegs, 8 colors, with repetition)\n"
-		"Strategies: (optional ' indicates no favor of remaining possibility as guess)\n"
+		"Strategies: (~ indicates no favor of remaining possibility as guess)\n"
 		"    file path  read strategy from 'path'; use - for STDIN\n"
 		"    simple     simple strategy\n"
 		"    minmax     min-max heuristic strategy\n"
-		"    minavg[']  min-average heuristic strategy\n"
-		"    entropy['] max-entropy heuristic strategy\n"
-		"    parts[']   max-parts heuristic strategy\n"
+		"    minavg[~]  min-average heuristic strategy\n"
+		"    entropy[~] max-entropy heuristic strategy\n"
+		"    parts[~]   max-parts heuristic strategy\n"
 		"    minlb      min-lowerbound heuristic strategy\n"
 		"    optimal    optimal strategy\n"
 		"Equivalence filters:\n"
@@ -223,7 +223,7 @@ static void usage()
 		"Options:\n"
 		"    -h         display this help screen and exit\n"
 #ifdef _OPENMP
-		"    -mt n      set maximum number of parallel threads [default="
+		"    -mt [n]    enable parallel execution with n threads [default="
 		<< omp_get_max_threads() << "]\n"
 #endif
 		"    -v         verbose mode; display more information\n"
@@ -252,7 +252,7 @@ extern void pause_output();
 	} while (0)
 
 static int build_strategy(
-	Engine &e, const EquivalenceFilter *filter, bool verbose, 
+	Engine &e, const EquivalenceFilter *filter, bool verbose,
 	const std::string &name, const std::string &file)
 {
 	using namespace Mastermind::Heuristics;
@@ -267,15 +267,15 @@ static int build_strategy(
 		strat = new SimpleStrategy(e);
 	else if (name == "minmax")
 		strat = new HeuristicStrategy<MinimizeWorstCase<1>>(e);
-	else if (name == "minavg'")
+	else if (name == "minavg~")
 		strat = new HeuristicStrategy<MinimizeAverage>(e, MinimizeAverage(false));
 	else if (name == "minavg")
 		strat = new HeuristicStrategy<MinimizeAverage>(e, MinimizeAverage(true));
-	else if (name == "entropy'")
+	else if (name == "entropy~")
 		strat = new HeuristicStrategy<MaximizeEntropy>(e, MaximizeEntropy(false));
 	else if (name == "entropy")
 		strat = new HeuristicStrategy<MaximizeEntropy>(e, MaximizeEntropy(true));
-	else if (name == "parts'")
+	else if (name == "parts~")
 		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(false));
 	else if (name == "parts")
 		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(true));
@@ -291,7 +291,7 @@ static int build_strategy(
 	{
 		USAGE_ERROR("unknown strategy: " << name);
 	}
-	
+
 	util::hr_timer timer;
 	timer.start();
 	CodeBreakerOptions options;
@@ -332,6 +332,9 @@ int main(int argc, char* argv[])
 		TestMode = 4,
 	} mode = DefaultMode;
 	std::string strat_name, strat_file, filter_name;
+#ifdef _OPENMP
+	int mt = 1;
+#endif
 
 	// Parse command line arguments.
 	for (int i = 1; i < argc; i++)
@@ -391,13 +394,28 @@ int main(int argc, char* argv[])
 		}
 		else if (s == "-mt")
 		{
-			USAGE_REQUIRE(++i < argc, "missing argument for option -mt");
-			std::string cnt(argv[i]);
 			int n = -1;
-			USAGE_REQUIRE((std::istringstream(cnt) >> n) && (n > 0),
-				"positive integer argument expected for option -mt");
+			if (i+1 < argc && argv[i+1][0] != '-')
+			{
+				std::string cnt(argv[++i]);
+				USAGE_REQUIRE((std::istringstream(cnt) >> n) && (n > 0),
+					"positive integer argument expected for option -mt");
+			}
 #ifdef _OPENMP
-			omp_set_num_threads(n);
+			if (n < 0)
+			{
+				mt = omp_get_max_threads();
+			}
+			else
+			{
+				if (n > omp_get_max_threads())
+				{
+					std::cerr << "Warning: number of threads set to maximum value "
+						<< omp_get_max_threads() << std::endl;
+					n = omp_get_max_threads();
+				}
+				mt = n;
+			}
 #else
 			std::cerr << "Warning: option -mt is not supported by this build"
 				" and is ignored." << std::endl;
@@ -412,6 +430,11 @@ int main(int argc, char* argv[])
 			USAGE_REQUIRE(false, "unknown option: " << s);
 		}
 	}
+
+	// Set number of threads.
+#ifdef _OPENMP
+	omp_set_num_threads(mt);
+#endif
 
 	// Create an algorithm engine.
 	Engine e(rules);

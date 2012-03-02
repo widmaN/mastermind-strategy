@@ -8,7 +8,7 @@
 
 REGISTER_CALL_COUNTER(Comparison)
 
-using namespace Mastermind;
+namespace Mastermind {
 
 ///////////////////////////////////////////////////////////////////////////
 // Generic comparison routine for repeatable codewords.
@@ -21,7 +21,7 @@ struct generic_feedback_mapping_t
 
 	generic_feedback_mapping_t()
 	{
-		for (int i = 0; i < 0x100; i++) 
+		for (int i = 0; i < 0x100; i++)
 		{
 			int nA = i >> 4;
 			int nAB = i & 0xF;
@@ -61,7 +61,7 @@ static void compare_long_codeword_generic(
 	const simd_t mask_pegs = fill_left<MM_MAX_PEGS>((uint8_t)0x01);
 	const simd_t mask_colors = fill_right<MM_MAX_COLORS>((uint8_t)0xff);
 
-	// Note: we write an explicit loop since std::transform() is too 
+	// Note: we write an explicit loop since std::transform() is too
 	// slow, because VC++ does not inline the lambda expression, thus
 	// making each iteration a CALL with arguments passed on the stack.
 	const simd_t *first = reinterpret_cast<const simd_t *>(_first);
@@ -72,7 +72,7 @@ static void compare_long_codeword_generic(
 
 		// Compute nA.
 		// It turns out that there's a significant (20%) performance
-		// hit if <code>nA = sum_high(...)</code> is changed to 
+		// hit if <code>nA = sum_high(...)</code> is changed to
 		// <code>nA = sum(...)</code>. In the latter case, VC++
 		// VC++ generates an extra (redundant) memory read.
 		// The reason is unclear. (Obviously there are still free
@@ -119,7 +119,7 @@ void compare_frequencies_generic(
 	const simd_t mask_pegs = fill_left<MM_MAX_PEGS>((uint8_t)0x01);
 	const simd_t mask_colors = fill_right<MM_MAX_COLORS>((uint8_t)0xff);
 
-	// Note: we write an explicit loop since std::transform() is too 
+	// Note: we write an explicit loop since std::transform() is too
 	// slow, because VC++ does not inline the lambda expression, thus
 	// making each iteration a CALL with arguments passed on the stack.
 	const simd_t *first = reinterpret_cast<const simd_t *>(_first);
@@ -131,7 +131,7 @@ void compare_frequencies_generic(
 
 		// Compute nA.
 		// It turns out that there's a significant (20%) performance
-		// hit if <code>nA = sum_high(...)</code> is changed to 
+		// hit if <code>nA = sum_high(...)</code> is changed to
 		// <code>nA = sum(...)</code>. In the latter case, VC++
 		// VC++ generates an extra (redundant) memory read.
 		// The reason is unclear. (Obviously there are still free
@@ -178,7 +178,7 @@ void compare_frequencies_generic(
 	const simd_t mask_pegs = fill_left<MM_MAX_PEGS>((uint8_t)0x01);
 	const simd_t mask_colors = fill_right<MM_MAX_COLORS>((uint8_t)0xff);
 
-	// Note: we write an explicit loop since std::transform() is too 
+	// Note: we write an explicit loop since std::transform() is too
 	// slow, because VC++ does not inline the lambda expression, thus
 	// making each iteration a CALL with arguments passed on the stack.
 	const simd_t *first = reinterpret_cast<const simd_t *>(_first);
@@ -194,7 +194,7 @@ void compare_frequencies_generic(
 
 		// Compute nA.
 		// It turns out that there's a significant (20%) performance
-		// hit if <code>nA = sum_high(...)</code> is changed to 
+		// hit if <code>nA = sum_high(...)</code> is changed to
 		// <code>nA = sum(...)</code>. In the latter case, VC++
 		// VC++ generates an extra (redundant) memory read.
 		// The reason is unclear. (Obviously there are still free
@@ -216,7 +216,7 @@ void compare_frequencies_generic(
 #if ENABLE_OMP
 		#pragma omp atomic
 #endif
-		++freq[nAnB.value()];
+		++freq[(size_t)nAnB.value()];
 	}
 }
 #endif
@@ -227,14 +227,14 @@ void compare_frequencies_generic(
 // Pre-computed table that converts a comparison bitmask of
 // non-repeatable codewords into a feedback.
 //
-// Note that the performance impact of the table lookup can be subtle. 
+// Note that the performance impact of the table lookup can be subtle.
 // The VC++ compiler tends to generate a MOVZX (32-bit) or MOVSXD (64-bit)
 // instruction if the integer sizes do not match. What's worse, because
 // an SSE2 intrinsic function in use returns an <code>int</code>, there
-// is no way to get rid of the MOVSXD instruction which deteriates 
+// is no way to get rid of the MOVSXD instruction which deteriates
 // performance by 30%!
 //
-// Hence, the best we can do is to compile under 32-bit, and access 
+// Hence, the best we can do is to compile under 32-bit, and access
 // the table directly.
 struct norepeat_feedback_mapping_t
 {
@@ -242,7 +242,7 @@ struct norepeat_feedback_mapping_t
 
 	norepeat_feedback_mapping_t()
 	{
-		for (int i = 0; i < 0x10000; i++) 
+		for (int i = 0; i < 0x10000; i++)
 		{
 			int nA = util::intrinsic::pop_count((unsigned short)(i >> MM_MAX_COLORS));
 			int nAB = util::intrinsic::pop_count((unsigned short)(i & ((1<<MM_MAX_COLORS)-1)));
@@ -303,3 +303,5 @@ static void compare_long_codeword_norepeat(
 
 REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_long_codeword_generic)
 REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_long_codeword_norepeat)
+
+} // namespace Mastermind

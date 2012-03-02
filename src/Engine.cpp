@@ -5,7 +5,7 @@ namespace Mastermind {
 // TODO: Does this function take a lot of time?
 CodewordList Engine::filterByFeedback(
 	const CodewordList &list,
-	const Codeword &guess, 
+	const Codeword &guess,
 	Feedback feedback) const
 {
 	//Feedback fb = feedback.value();
@@ -14,7 +14,7 @@ CodewordList Engine::filterByFeedback(
 	// Count feedbacks equal to feedback.
 	size_t count = std::count(fblist.begin(), fblist.end(), feedback);
 #if 0
-	if (1) 
+	if (1)
 	{
 		const unsigned char *pfb = fblist.GetData();
 		int total = fblist.GetCount();
@@ -28,9 +28,9 @@ CodewordList Engine::filterByFeedback(
 	// Copy elements whose feedback are equal to fb.
 	CodewordList result(count);
 	size_t j = 0;
-	for (size_t i = 0; i < fblist.size(); i++) 
+	for (size_t i = 0; i < fblist.size(); i++)
 	{
-		if (fblist[i] == feedback) 
+		if (fblist[i] == feedback)
 			result[j++] = list[i];
 	}
 	return result;
@@ -78,7 +78,7 @@ FeedbackFrequencyTable Engine::partition(
 	{
 		int fbv = fbl[i].value();
 		//std::cout << "Feedback[" << i << "] = " << fbl[i] << std::endl;
-		if (fbv == k) 
+		if (fbv == k)
 		{
 			// Codeword[i] is in the correct partition.
 			// Advance the current partition pointer.
@@ -89,7 +89,7 @@ FeedbackFrequencyTable Engine::partition(
 			}
 			i = part[k].current;
 		}
-		else 
+		else
 		{
 			// Codeword[i] is NOT in the correct partition.
 			// Swap it into the correct partition, and increment
@@ -121,24 +121,24 @@ void Engine::countFrequencies(
 	}
 }
 
+void compare_frequencies_generic(
+	const Rules & /* rules */,
+	const Codeword &_secret,
+	const Codeword *_first,
+	const Codeword *_last,
+	unsigned int freq[],
+	size_t size);
+
 /// @todo Make the interface nicer and reduce duplicate code.
 /// @todo Implement it also for codeword without repetition.
-/// @todo If the codeword involved in comparison doesn't contain repetitive 
+/// @todo If the codeword involved in comparison doesn't contain repetitive
 /// colors, can it be compared faster?
-FeedbackFrequencyTable 
+FeedbackFrequencyTable
 Engine::frequencies(const Codeword &guess, CodewordConstRange secrets) const
 {
 #if 0
 	return frequency(compare(guess, secrets));
 #else
-	extern void compare_frequencies_generic(
-		const Rules & /* rules */,
-		const Codeword &_secret,
-		const Codeword *_first,
-		const Codeword *_last,
-		unsigned int freq[],
-		size_t size);
-
 	FeedbackFrequencyTable freq;
 	size_t fb_size = Feedback::size(rules());
 	freq.resize(fb_size);
