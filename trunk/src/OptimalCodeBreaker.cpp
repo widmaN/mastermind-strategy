@@ -471,7 +471,7 @@ static int fill_strategy_tree(
 	return best;
 }
 
-static StrategyTree build_optimal_strategy_tree(Engine &e)
+StrategyTree build_optimal_strategy_tree(Engine &e, int max_depth = 1000)
 {
 	CodewordList all = e.generateCodewords();
 
@@ -496,7 +496,7 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 	// Set options.
 	OptimalStrategyOptions options;
 #if 1
-	options.max_depth = 1000;
+	options.max_depth = (unsigned short)max_depth;
 #else
 	options.max_depth = 5;
 #endif
@@ -505,9 +505,9 @@ static StrategyTree build_optimal_strategy_tree(Engine &e)
 
 	// Recursively find an optimal strategy.
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
-	int best = fill_strategy_tree(e, all, filter.get(), estimator,
+	/* int best = */ fill_strategy_tree(e, all, filter.get(), estimator,
 		0, 1000000, options, tree);
-	std::cout << "OPTIMAL: " << best << std::endl;
+	// std::cout << "OPTIMAL: " << best << std::endl;
 	return tree;
 }
 

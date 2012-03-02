@@ -57,7 +57,7 @@ class HeuristicStrategy : public Strategy
 {
 	Engine &e;
 	Heuristic h;
-
+	
 public:
 
 	typedef typename Heuristic::score_t score_type;

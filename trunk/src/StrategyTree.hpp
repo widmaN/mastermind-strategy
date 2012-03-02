@@ -98,6 +98,7 @@ public:
 	};
 
 private:
+	// std::string _name;
 	Rules _rules;
 	std::vector<Node> _nodes;
 
@@ -120,6 +121,8 @@ public:
 		_nodes.push_back(root);
 #endif
 	}
+
+	//const std::string& name() const { return _name; }
 
 	const Rules& rules() const { return _rules; }
 
