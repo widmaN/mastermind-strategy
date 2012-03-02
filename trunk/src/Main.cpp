@@ -206,13 +206,13 @@ static void usage()
 		"    mm,p4c6r   [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
 		"    bc,p4c10n  Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
 		"    lg,p5c8r   Logik (5 pegs, 8 colors, with repetition)\n"
-		"Strategies:\n"
+		"Strategies: (optional ' indicates no favor of remaining possibility as guess)\n"
 		"    file path  read strategy from 'path'; use - for STDIN\n"
 		"    simple     simple strategy\n"
 		"    minmax     min-max heuristic strategy\n"
-		"    minavg     min-average heuristic strategy\n"
-		"    entropy    max-entropy heuristic strategy\n"
-		"    maxparts   max-parts heuristic strategy\n"
+		"    minavg[']  min-average heuristic strategy\n"
+		"    entropy['] max-entropy heuristic strategy\n"
+		"    parts[']   max-parts heuristic strategy\n"
 		"    minlb      min-lowerbound heuristic strategy\n"
 		"    optimal    optimal strategy\n"
 		"Equivalence filters:\n"
@@ -264,25 +264,21 @@ static int build_strategy(
 		USAGE_ERROR("Not implemented");
 	}
 	else if (name == "simple")
-	{
 		strat = new SimpleStrategy(e);
-	}
 	else if (name == "minmax")
-	{
 		strat = new HeuristicStrategy<MinimizeWorstCase<1>>(e);
-	}
+	else if (name == "minavg'")
+		strat = new HeuristicStrategy<MinimizeAverage>(e, MinimizeAverage(false));
 	else if (name == "minavg")
-	{
-		strat = new HeuristicStrategy<MinimizeAverage>(e);
-	}
+		strat = new HeuristicStrategy<MinimizeAverage>(e, MinimizeAverage(true));
+	else if (name == "entropy'")
+		strat = new HeuristicStrategy<MaximizeEntropy>(e, MaximizeEntropy(false));
 	else if (name == "entropy")
-	{
-		strat = new HeuristicStrategy<MaximizeEntropy<true>>(e);
-	}
-	else if (name == "maxparts")
-	{
-		strat = new HeuristicStrategy<MaximizePartitions>(e);
-	}
+		strat = new HeuristicStrategy<MaximizeEntropy>(e, MaximizeEntropy(true));
+	else if (name == "parts'")
+		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(false));
+	else if (name == "parts")
+		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(true));
 	else if (name == "minlb")
 	{
 		strat = new HeuristicStrategy<MinimizeLowerBound>(e, MinimizeLowerBound(e));
@@ -393,7 +389,6 @@ int main(int argc, char* argv[])
 				rules = Rules(name.c_str());
 			USAGE_REQUIRE(rules.valid(), "invalid rules: " << argv[i]);
 		}
-#ifdef _OPENMP
 		else if (s == "-mt")
 		{
 			USAGE_REQUIRE(++i < argc, "missing argument for option -mt");
@@ -401,9 +396,13 @@ int main(int argc, char* argv[])
 			int n = -1;
 			USAGE_REQUIRE((std::istringstream(cnt) >> n) && (n > 0),
 				"positive integer argument expected for option -mt");
+#ifdef _OPENMP
 			omp_set_num_threads(n);
-		}
+#else
+			std::cerr << "Warning: option -mt is not supported by this build"
+				" and is ignored." << std::endl;
 #endif
+		}
 		else if (s == "-v")
 		{
 			verbose = true;
