@@ -61,7 +61,7 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 	}
 
 	// Display time
-	os  << std::fixed << std::setw(7) << std::setprecision(2)
+	os  << std::fixed << std::setw(7) << std::setprecision(1)
 		<< info.time() << std::endl;
 
 	return os;

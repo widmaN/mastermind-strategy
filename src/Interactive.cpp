@@ -1,24 +1,18 @@
 #include <iostream>
 #include <iomanip>
-#include <random>
 #include <string>
 #include <sstream>
 #include <stack>
 #include <vector>
 #include <cassert>
+#include <time.h>
+#include <stdlib.h>
 
 #include "Codeword.hpp"
 #include "Algorithm.hpp"
 #include "Engine.hpp"
 
 using namespace Mastermind;
-
-// Generates a random integer x such that 0 <= x < N.
-static size_t randomNumber(size_t N)
-{
-	static std::mt19937 rng;
-	return rng() % N;
-}
 
 // List codewords.
 static void listCodewords(CodewordConstRange list)
@@ -28,38 +22,6 @@ static void listCodewords(CodewordConstRange list)
 		std::cout << *it << ' '; // std::endl;
 	}
 	std::cout << std::endl;
-}
-
-// Display help screen.
-static void displayHelp()
-{
-	std::cout << 
-		"Common commands:\n"
-		"  rules         display the rules in use\n"
-		"  rules p4c6r   set the rules\n"
-		"  q,quit,exit   quit the program\n"
-		"  h,help        display this help screen\n"
-		"";
-	std::cout << 
-		"Analyst mode commands:\n"
-		"  push guess response  push a constraint to the constraint stack\n"
-		"  pop                  pop the last constraint from the stack\n"
-		"  l,list               list remaining possibilities\n"
-		"  i,info               display a summary of current situation\n"
-		"  part [guess ...]     partition the remaining possibilities by each guess\n"
-		"  eval [guess ...]     evaluate guesses by heuristic score of their partitions\n"
-		"";
-	std::cout << 
-		"Player mode commands:\n"
-		"  peek          show the secret\n"
-		"  d          list all codewords\n"
-		"  g guess    make a guess\n"
-		"  h          display this help screen\n"
-		"  i          display information\n"
-		"  l          list possibilities\n"
-		"  q          quit\n"
-		"  r          recommend a guess\n"
-		"";
 }
 
 struct Constraint
@@ -267,21 +229,44 @@ static void displayPartitions(Analyst &game, CodewordConstRange guesses,
 	}
 }
 
-int interactive_player(Engine &e, bool /* verbose */)
+/// Displays help screen for player mode.
+static void help_player()
+{
+	std::cout << 
+		"Input your guess (e.g. 1234) or type one of the following commands:\n"
+		"  !,cheat       show the secret\n"
+		"  h,help        display this help screen\n"
+		"  i,info        display information\n"
+		"  l,list        list remaining possibilities\n"
+		"  q,quit,exit   quit the program\n"
+		//"  r,recommend   let the computer recommend a guess\n"
+		"";
+}
+
+/// Enters interactive player mode. This starts a prompt for user commands,
+/// until either the user enter "quit" or reveals the secret.
+/// Important output are put to STDOUT. 
+/// Informational messages are put to STDOUT.
+int interactive_player(Engine &e, bool verbose, Codeword secret)
 {
 	Analyst game(e.rules());
 
-	// Display available commands.
-	// displayHelp();
-
 	// Generate all codewords.
-	//std::cout << "Generating all codewords..." << std::endl;
 	CodewordList all = e.generateCodewords();
-	std::cout << "There are " << all.size() << " codewords. Please make your guesses." << std::endl;
+	if (verbose)
+	{
+		std::cout << "There are " << all.size() << " codewords. "
+			<< "Please make guesses or type help for help." << std::endl;
+	}
 
-	// Generate a secret.
-	Codeword secret = all[randomNumber(all.size())];
-	//std::cout << "Generated secret: " << secret << std::endl;
+	// Generate a secret if one is not specified.
+	if (secret.empty())
+	{
+		srand((unsigned int)time(NULL));
+		rand();
+		int i = rand() % all.size();
+		secret = all[i];
+	}
 
 	for (;;)
 	{
@@ -296,20 +281,38 @@ int interactive_player(Engine &e, bool /* verbose */)
 
 		// Read command.
 		std::string cmd;
-		if (!(ss >> cmd) || cmd == "quit" || cmd == "exit" || cmd == "q")
+		if (!(ss >> cmd))
 			break;
 
 		// Dispatch command.
-		if (cmd == "help")
+		if (cmd == "q" || cmd == "quit" || cmd == "exit")
 		{
-			displayHelp();
+			break;
 		}
-		else if (cmd == "guess")
+		else if (cmd == "!" || cmd == "cheat")
+		{
+			if (verbose)
+				std::cout << "Secret is ";
+			std::cout << secret << std::endl;
+		}
+		else if (cmd == "h" || cmd == "help")
+		{
+			help_player();
+		}
+		else if (cmd == "i" || cmd == "info")
+		{
+			displayInfo(game, true);
+		}
+		else if (cmd == "l" || cmd == "list")
+		{
+			listCodewords(game.possibilities());
+		}
+		else // guess
 		{
 			Codeword guess;
-			if (!(ss >> guess))
+			if (!(std::istringstream(cmd) >> guess))
 			{
-				std::cout << "Expecting guess\n";
+				std::cout << "Unknown command: " << cmd << std::endl;
 				continue;
 			}
 			if (!guess.valid(e.rules()))
@@ -318,26 +321,32 @@ int interactive_player(Engine &e, bool /* verbose */)
 				continue;
 			}
 			Feedback response = e.compare(guess, secret);
-			std::cout << guess << " " << response << std::endl;
+			if (verbose)
+				std::cout << guess << " ";
+			std::cout << response << std::endl;
 			game.push_constraint(guess, response);
 			if (response == Feedback::perfectValue(e.rules()))
 				break;
-			//displayInfo(game, true);
-		}
-		else if (cmd == "list")
-		{
-			listCodewords(game.possibilities());
-		}
-		else if (cmd == "cheat")
-		{
-			std::cout << "Secret is " << secret << std::endl;
-		}
-		else
-		{
-			std::cout << "Unknown command: " << cmd << std::endl;
 		}
 	}
 	return 0;
+}
+
+/// Display help screen for diagnostic mode.
+static void help_analyst()
+{
+	std::cout << 
+		"Commands:\n"
+		"  +,push 1234 0a2b  push a constraint to the constraint stack\n"
+		"  -,pop             pop the last constraint from the stack\n"
+		"  c,canonical       list canonical guesses\n"
+		"  e,eval [guess...] evaluate guesses by heuristic score of their partitions\n"
+		"  h,help            display this help screen\n"
+		"  i,info            display a summary of the current situation\n"
+		"  l,list            list remaining possibilities\n"
+		"  p,part [guess...] partition the remaining possibilities by each guess\n"
+		"  q,quit,exit       quit the program\n"
+		"";
 }
 
 int interactive_analyst(Engine &e, bool /* verbose */)
@@ -345,7 +354,7 @@ int interactive_analyst(Engine &e, bool /* verbose */)
 	Analyst game(e.rules());
 
 	// Display available commands.
-	displayHelp();
+	help_analyst();
 
 	// Generate all codewords.
 	std::cout << "Generating all codewords..." << std::endl;

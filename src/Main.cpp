@@ -193,40 +193,43 @@ static int TestBound(Rules rules)
 static void usage()
 {
 	std::cerr <<
-		"Mastermind [options] [-r rules] [-f filter] mode\n"
+		"Mastermind [options] [-r rules] [-e equiv-filter] mode\n"
 		"Build a Mastermind strategy and output the strategy tree.\n"
 		"Version 0.5 (2012). Configured with max " << MM_MAX_PEGS << " pegs and "
 		<< MM_MAX_COLORS << " colors.\n"
 		"Modes:\n"
-		"    -a         interactive analyst\n"
-		"    -p         interactive player\n"
-		"    -s strat   build strategy 'strat' and output strategy tree\n"
-		"    -t         run tests\n"
-		"Rules: 'p' pegs 'c' colors ['r'|'n']\n"
-		"    mm,p4c6r   [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
-		"    bc,p4c10n  Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
-		"    lg,p5c8r   Logik (5 pegs, 8 colors, with repetition)\n"
-		"Strategies: (~ indicates no favor of remaining possibility as guess)\n"
-		"    file path  read strategy from 'path'; use - for STDIN\n"
-		"    simple     simple strategy\n"
-		"    minmax     min-max heuristic strategy\n"
-		"    minavg[~]  min-average heuristic strategy\n"
-		"    entropy[~] max-entropy heuristic strategy\n"
-		"    parts[~]   max-parts heuristic strategy\n"
-		"    minlb      min-lowerbound heuristic strategy\n"
-		"    optimal    optimal strategy\n"
-		"Equivalence filters:\n"
-		"    default    composite filter (color + constraint)\n"
-		"    color      filter by color equivalence\n"
-		"    constraint filter by constraint equivalence\n"
-		"    none       do not apply any filter\n"
+		"    -d          interactive debugger\n"
+		"    -p [secret] interactive player (optionally) using the given secret\n"
+		"    -s strat    build strategy 'strat' and output strategy tree\n"
+		"    -t          run tests\n"
 		"Options:\n"
-		"    -h         display this help screen and exit\n"
+		"    -h          display this help screen and exit\n"
+		"    -md [depth] set the maximum depth (number of guesses) for any secret\n"
 #ifdef _OPENMP
-		"    -mt [n]    enable parallel execution with n threads [default="
+		"    -mt [n]     enable parallel execution with n threads [default="
 		<< omp_get_max_threads() << "]\n"
 #endif
-		"    -v         verbose mode; display more information\n"
+		"    -po         make guess from remaining possibilities only\n"
+		//"    -q          display minimal information\n"
+		"    -v          verbose mode; display more information\n"
+		"Rules: 'p' pegs 'c' colors ['r'|'n']\n"
+		"    mm,p4c6r    [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
+		"    bc,p4c10n   Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
+		"    lg,p5c8r    Logik (5 pegs, 8 colors, with repetition)\n"
+		"Strategies: (~ indicates no favor of remaining possibility as guess)\n"
+		"    file path   read strategy from 'path'; use - for STDIN\n"
+		"    simple      simple strategy\n"
+		"    minmax      min-max heuristic strategy\n"
+		"    minavg[~]   min-average heuristic strategy\n"
+		"    entropy[~]  max-entropy heuristic strategy\n"
+		"    parts[~]    max-parts heuristic strategy\n"
+		"    minlb       min-lowerbound heuristic strategy\n"
+		"    optimal     optimal strategy\n"
+		"Equivalence filters:\n"
+		"    default     composite filter (color + constraint)\n"
+		"    color       filter by color equivalence\n"
+		"    constraint  filter by constraint equivalence\n"
+		"    none        do not apply any filter\n"
 		"";
 }
 
@@ -236,7 +239,7 @@ static void usage()
 // TODO: Output strategy tree after finishing a run
 
 // extern int strategy(std::string strat);
-extern int interactive_player(Engine & e, bool verbose);
+extern int interactive_player(Engine & e, bool verbose, Codeword secret);
 extern int interactive_analyst(Engine & e, bool verbose);
 extern int test(const Rules &rules, bool verbose);
 
@@ -251,19 +254,14 @@ extern void pause_output();
 		if (!(cond)) USAGE_ERROR(msg); \
 	} while (0)
 
-static int build_strategy(
-	Engine &e, const EquivalenceFilter *filter, bool verbose,
-	const std::string &name, const std::string &file)
+static int build_heuristic_strategy_tree(
+	Engine &e, const EquivalenceFilter *filter, bool /* verbose */,
+	const std::string &name, bool pos_only, StrategyTree &tree)
 {
 	using namespace Mastermind::Heuristics;
 
 	Strategy *strat = NULL;
-
-	if (name == "file")
-	{
-		USAGE_ERROR("Not implemented");
-	}
-	else if (name == "simple")
+	if (name == "simple")
 		strat = new SimpleStrategy(e);
 	else if (name == "minmax")
 		strat = new HeuristicStrategy<MinimizeWorstCase<1>>(e);
@@ -280,28 +278,50 @@ static int build_strategy(
 	else if (name == "parts")
 		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(true));
 	else if (name == "minlb")
-	{
 		strat = new HeuristicStrategy<MinimizeLowerBound>(e, MinimizeLowerBound(e));
-	}
-	else if (name == "optimal")
+	else
+		USAGE_ERROR("unknown strategy: " << name);
+
+	CodeBreakerOptions options;
+	options.optimize_obvious = true;
+	options.possibility_only = pos_only;
+	std::unique_ptr<EquivalenceFilter> copy(filter->clone());
+	tree = BuildStrategyTree(e, strat, copy.get(), options);
+	return 0;
+}
+
+extern StrategyTree build_optimal_strategy_tree(Engine &e, int max_depth = 1000);
+
+static int build_strategy(
+	Engine &e, const EquivalenceFilter *filter, bool verbose,
+	const std::string &name, const std::string &file,
+	int max_depth, bool pos_only)
+{
+	using namespace Mastermind::Heuristics;
+
+	StrategyTree tree(e.rules());
+	util::hr_timer timer;
+
+	timer.start();
+	if (name == "file")
 	{
 		USAGE_ERROR("Not implemented");
 	}
+	else if (name == "optimal")
+	{
+		//USAGE_REQUIRE(e.rules().size() <= 1296, 
+		//	"optimal strategy supports up to 1296 secrets");
+		tree = build_optimal_strategy_tree(e, max_depth);
+	}
 	else
 	{
-		USAGE_ERROR("unknown strategy: " << name);
+		int ret = build_heuristic_strategy_tree(e, filter, verbose, name, pos_only, tree);
+		if (ret)
+			return ret;
 	}
-
-	util::hr_timer timer;
-	timer.start();
-	CodeBreakerOptions options;
-	options.optimize_obvious = true;
-	options.possibility_only = false;
-	std::unique_ptr<EquivalenceFilter> copy(filter->clone());
-	StrategyTree tree = BuildStrategyTree(e, strat, copy.get(), options);
 	double t = timer.stop();
 
-	StrategyTreeInfo info(strat->name(), tree, t);
+	StrategyTreeInfo info(name, tree, t);
 	if (verbose)
 	{
 		std::cout << util::header;
@@ -328,27 +348,36 @@ int main(int argc, char* argv[])
 		DefaultMode = 0,
 		StrategyMode = 1,
 		PlayerMode = 2,
-		AnalystMode = 3,
+		DebugMode = 3,
 		TestMode = 4,
 	} mode = DefaultMode;
 	std::string strat_name, strat_file, filter_name;
+	Codeword secret;
 #ifdef _OPENMP
 	int mt = 1;
 #endif
+	int max_depth = 1000;
+	bool pos_only = false;
 
 	// Parse command line arguments.
 	for (int i = 1; i < argc; i++)
 	{
 		std::string s = argv[i];
-		if (s == "-a")
+		if (s == "-d")
 		{
 			USAGE_REQUIRE(mode == DefaultMode, "only one mode may be specified");
-			mode = AnalystMode;
+			mode = DebugMode;
 		}
 		else if (s == "-p")
 		{
 			USAGE_REQUIRE(mode == DefaultMode, "only one mode may be specified");
 			mode = PlayerMode;
+			if (i+1 < argc && argv[i+1][0] != '-')
+			{
+				std::string arg(argv[++i]);
+				USAGE_REQUIRE((std::istringstream(arg) >> secret) && 
+					secret.valid(rules), "expecting secret after -p");
+			}
 		}
 		else if (s == "-s")
 		{
@@ -367,7 +396,7 @@ int main(int argc, char* argv[])
 			USAGE_REQUIRE(mode == DefaultMode, "only one mode may be specified");
 			mode = TestMode;
 		}
-		else if (s == "-f")
+		else if (s == "-e")
 		{
 			USAGE_REQUIRE(filter_name.empty(), "only one equivalence filter may be specified");
 			USAGE_REQUIRE(++i < argc, "missing argument for option -f");
@@ -381,6 +410,7 @@ int main(int argc, char* argv[])
 		else if (s == "-r")
 		{
 			USAGE_REQUIRE(++i < argc, "missing argument for option -r");
+			USAGE_REQUIRE(secret.empty(), "-r rules must be specified before -p secret");
 			std::string name = argv[i];
 			if (name == "mm")
 				rules = Rules(4, 6, true);
@@ -391,6 +421,17 @@ int main(int argc, char* argv[])
 			else
 				rules = Rules(name.c_str());
 			USAGE_REQUIRE(rules.valid(), "invalid rules: " << argv[i]);
+		}
+		else if (s == "-md")
+		{
+			USAGE_REQUIRE(++i < argc, "missing argument for option -md");
+			std::string cnt(argv[i]);
+			USAGE_REQUIRE((std::istringstream(cnt) >> max_depth) && (max_depth > 0),
+				"positive integer argument expected for option -md");
+		}
+		else if (s == "-po")
+		{
+			pos_only = true;
 		}
 		else if (s == "-mt")
 		{
@@ -469,10 +510,11 @@ int main(int argc, char* argv[])
 	switch (mode)
 	{
 	case StrategyMode:
-		return build_strategy(e, filter, verbose, strat_name, strat_file);
+		return build_strategy(e, filter, verbose, strat_name, strat_file,
+			max_depth, pos_only);
 	case PlayerMode:
-		return interactive_player(e, verbose);
-	case AnalystMode:
+		return interactive_player(e, verbose, secret);
+	case DebugMode:
 		return interactive_analyst(e, verbose);
 	case TestMode:
 		return test(rules, verbose);
