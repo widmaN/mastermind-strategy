@@ -247,7 +247,7 @@ static void help_player()
 /// until either the user enter "quit" or reveals the secret.
 /// Important output are put to STDOUT. 
 /// Informational messages are put to STDOUT.
-int interactive_player(Engine &e, bool verbose, Codeword secret)
+int interactive_player(Engine &e, int verbose, Codeword secret)
 {
 	Analyst game(e.rules());
 
@@ -349,7 +349,7 @@ static void help_analyst()
 		"";
 }
 
-int interactive_analyst(Engine &e, bool /* verbose */)
+int interactive_analyst(Engine &e, int /* verbose */)
 {
 	Analyst game(e.rules());
 
