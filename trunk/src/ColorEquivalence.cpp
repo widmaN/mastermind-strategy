@@ -20,6 +20,7 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 	std::array<unsigned char,16> eqclass;
 
 	CodewordList filter_norep(CodewordConstRange candidates) const;
+	CodewordList filter_excluded_norep(CodewordConstRange candidates) const;
 	CodewordList filter_rep(CodewordConstRange candidates) const;
 
 	void update_eqclass()
@@ -78,7 +79,8 @@ public:
 		if (e.rules().repeatable())
 			return filter_rep(candidates);
 		else
-			return filter_norep(candidates);
+			//return filter_norep(candidates);
+			return filter_excluded_norep(candidates);
 	}
 
 	virtual void add_constraint(
@@ -172,6 +174,59 @@ CodewordList ColorEquivalenceFilter::filter_rep(
 			}
 		}
 		if (ok) 
+		{
+			canonical.push_back(guess);
+		}
+	}
+	return canonical;
+}
+
+CodewordList ColorEquivalenceFilter::filter_excluded_norep(
+	CodewordConstRange candidates) const
+{
+	// For each codeword without repetition, we check the color on each peg
+	// in turn. If the color is excluded, it must be the smallest excluded
+	// color, otherwise it is not canonical.
+	if (_excluded.empty())
+		return CodewordList(candidates.begin(), candidates.end());
+
+	// Find out the minimum equivalent codeword of each codeword. If it is
+	// equal to the codeword itself, keep it.
+	CodewordList canonical;
+	canonical.reserve(candidates.size());
+	for (CodewordConstIterator it = candidates.begin(); it != candidates.end(); ++it)
+	{
+		Codeword guess = *it;
+
+		ColorMask unguessed = _unguessed;
+		ColorMask excluded = _excluded;
+		bool ok = true;
+
+		for (int j = 0; j < e.rules().pegs(); j++) 
+		{
+			unsigned char c = guess[j];
+			if (excluded[c])
+			{
+				if ((excluded.value() & ((1 << c) - 1)) != 0)
+				{
+					ok = false;
+					break;
+				}
+				excluded.reset(c);
+			}
+#if 0
+			if (unguessed[c])
+			{
+				if ((unguessed.value() & ((1 << c) - 1)) != 0)
+				{
+					ok = false;
+					break;
+				}
+				unguessed.reset(c);
+			}
+#endif
+		}
+		if (ok)
 		{
 			canonical.push_back(guess);
 		}

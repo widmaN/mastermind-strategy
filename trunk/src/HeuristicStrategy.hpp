@@ -3,6 +3,7 @@
 
 #include "Strategy.hpp"
 #include "util/wrapped_float.hpp"
+#include "util/call_counter.hpp"
 
 /**
  * Define FAVOR_POSSIBILITY to 1 to make a heuristic strategy favor
@@ -81,6 +82,11 @@ public:
 		CodewordConstRange candidates,
 		score_type *scores) const
 	{
+		REGISTER_CALL_COUNTER(EvaluateHeuristic_Possibilities);
+		REGISTER_CALL_COUNTER(EvaluateHeuristic_Candidates);
+		UPDATE_CALL_COUNTER(EvaluateHeuristic_Possibilities, (unsigned int)possibilities.size());
+		UPDATE_CALL_COUNTER(EvaluateHeuristic_Candidates, (unsigned int)candidates.size());
+
 		if (candidates.empty())
 			return Codeword::emptyValue();
 

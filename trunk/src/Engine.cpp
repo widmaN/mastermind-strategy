@@ -129,6 +129,14 @@ void compare_frequencies_generic(
 	unsigned int freq[],
 	size_t size);
 
+void compare_frequencies_norepeat(
+	const Rules & /* rules */,
+	const Codeword &_secret,
+	const Codeword *_first,
+	const Codeword *_last,
+	unsigned int freq[],
+	size_t size);
+
 /// @todo Make the interface nicer and reduce duplicate code.
 /// @todo Implement it also for codeword without repetition.
 /// @todo If the codeword involved in comparison doesn't contain repetitive
@@ -144,7 +152,14 @@ Engine::frequencies(const Codeword &guess, CodewordConstRange secrets) const
 	freq.resize(fb_size);
 	size_t count = secrets.size();
 	const Codeword *first = &(*secrets.begin());
-	compare_frequencies_generic(_rules, guess, first, first + count, freq.data(), fb_size);
+	if (rules().repeatable())
+	{
+		compare_frequencies_generic(_rules, guess, first, first + count, freq.data(), fb_size);
+	}
+	else
+	{
+		compare_frequencies_norepeat(_rules, guess, first, first + count, freq.data(), fb_size);
+	}
 	return freq;
 #endif
 }

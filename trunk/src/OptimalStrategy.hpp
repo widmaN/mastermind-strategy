@@ -11,6 +11,16 @@
 namespace Mastermind {
 
 /**
+ * Define MINIMIZE_WORSTCASE_COUNT = 1 to include code to minimize the 
+ * number of secrets that are revealed by the maximum number of steps.
+ * This will produce a better-looking result, but will take more time
+ * to run.
+ */
+#ifndef MINIMIZE_WORSTCASE_COUNT
+#define MINIMIZE_WORSTCASE_COUNT 0
+#endif
+
+/**
  * Represents the cost of a strategy in terms of the number of guesses
  * required to reveal the secrets.
  *
@@ -32,6 +42,7 @@ struct StrategyCost
 {
 	union
 	{
+#if MINIMIZE_WORSTCASE_COUNT
 		unsigned long long value;
 		struct {
 			int worst2 : 16; //
@@ -39,6 +50,13 @@ struct StrategyCost
 			int depth  : 8;  // number of guesses needed in the worst case
 			int steps  : 24; // number of steps needed to reveal all secrets
 		};
+#else
+		unsigned long value;
+		struct {
+			int depth  : 8;  // number of guesses needed in the worst case
+			int steps  : 24; // number of steps needed to reveal all secrets
+		};
+#endif
 	};
 
 	StrategyCost() : value(0) { }
@@ -81,8 +99,10 @@ public:
 		{
 			cost.steps += remaining;
 			cost.depth++;
+#if MINIMIZE_WORSTCASE_COUNT
 			cost.worst2 = cost.worst1;
 			cost.worst1 = std::min(count, remaining);
+#endif
 			remaining -= count;
 			count *= b;
 		}
@@ -131,7 +151,7 @@ public:
 			{
 				score_t tmp = simple_estimate(freq[j]);
 				lb.steps += tmp.steps;
-#if 1
+#if MINIMIZE_WORSTCASE_COUNT
 				if (tmp.depth > lb.depth)
 				{
 					lb.depth = tmp.depth;

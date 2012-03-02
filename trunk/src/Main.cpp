@@ -211,7 +211,7 @@ static void usage()
 #endif
 		"    -po         make guess from remaining possibilities only\n"
 		//"    -q          display minimal information\n"
-		"    -v          verbose mode; display more information\n"
+		"    -v,-vv      verbose mode; extra v for even more verbose\n"
 		"Rules: 'p' pegs 'c' colors ['r'|'n']\n"
 		"    mm,p4c6r    [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
 		"    bc,p4c10n   Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
@@ -239,8 +239,8 @@ static void usage()
 // TODO: Output strategy tree after finishing a run
 
 // extern int strategy(std::string strat);
-extern int interactive_player(Engine & e, bool verbose, Codeword secret);
-extern int interactive_analyst(Engine & e, bool verbose);
+extern int interactive_player(Engine & e, int verbose, Codeword secret);
+extern int interactive_analyst(Engine & e, int verbose);
 extern int test(const Rules &rules, bool verbose);
 
 extern void pause_output();
@@ -255,7 +255,7 @@ extern void pause_output();
 	} while (0)
 
 static int build_heuristic_strategy_tree(
-	Engine &e, const EquivalenceFilter *filter, bool /* verbose */,
+	Engine &e, const EquivalenceFilter *filter, int /* verbose */,
 	const std::string &name, bool pos_only, StrategyTree &tree)
 {
 	using namespace Mastermind::Heuristics;
@@ -292,8 +292,9 @@ static int build_heuristic_strategy_tree(
 
 extern StrategyTree build_optimal_strategy_tree(Engine &e, int max_depth = 1000);
 
+// verbose: 0 = quiet, 1 = verbose, 2 = very verbose
 static int build_strategy(
-	Engine &e, const EquivalenceFilter *filter, bool verbose,
+	Engine &e, const EquivalenceFilter *filter, int verbose,
 	const std::string &name, const std::string &file,
 	int max_depth, bool pos_only)
 {
@@ -327,6 +328,15 @@ static int build_strategy(
 		std::cout << util::header;
 	}
 	std::cout << info;
+
+	// Display debug info if required.
+	if (verbose >= 2)
+	{
+		std::cout << "Call statistics for EvaluateHeuristic_Possibilities:" << std::endl;
+		std::cout << util::call_counter::get("EvaluateHeuristic_Possibilities") << std::endl;
+		std::cout << "Call statistics for EvaluateHeuristic_Candidates:" << std::endl;
+		std::cout << util::call_counter::get("EvaluateHeuristic_Candidates") << std::endl;
+	}
 	return 0;
 }
 
@@ -342,7 +352,7 @@ int main(int argc, char* argv[])
 	Rules rules(4, 6, true);
 #endif
 
-	bool verbose = false;
+	int verbose = 0;
 	enum Mode
 	{
 		DefaultMode = 0,
@@ -464,7 +474,11 @@ int main(int argc, char* argv[])
 		}
 		else if (s == "-v")
 		{
-			verbose = true;
+			verbose = 1;
+		}
+		else if (s == "-vv")
+		{
+			verbose = 2;
 		}
 		else
 		{

@@ -256,19 +256,21 @@ static int fill_strategy_tree(
 	estimator.make_guess(secrets, candidates, &scores[0]);
 
 	std::vector<int> order(candidates.size());
-#if 0
-	for (size_t i = 0; i < order.size(); ++i)
-		order[i] = (int)i;
-#else
 	std::iota(order.begin(), order.end(), 0);
-#endif
 
-	// Perform a stable sort of the candidate guesses. This ensures
-	// the same results are obtained under different implementations
-	// of std::sort().
+	// Define SORT_CANDIDATES to 1 to explicitly sort the candidate guesses.
+	// Since many guesses will be pruned right away (especially if we have
+	// a good estimate of the lower-bound of the cost), it is usually faster
+	// to (linearly) search for the smallest element in each iteration, 
+	// instead of sorting the whole array at the beginning. However, the
+	// results will be the same as long as we perform a stable sort.
+#define SORT_CANDIDATES 0
+
+#if SORT_CANDIDATES
 	std::sort(order.begin(), order.end(), [&](int i, int j) -> bool {
 		return (scores[i] < scores[j]) || (!(scores[j] < scores[i]) && (i < j));
 	});
+#endif
 
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
@@ -279,6 +281,15 @@ static int fill_strategy_tree(
 	size_t candidate_count = candidates.size();
 	for (size_t index = 0; index < candidate_count; ++index)
 	{
+#if !SORT_CANDIDATES
+		// Find the guess with the lowest estimated cost in the remaining 
+		// candidates, and swap it to the front.
+		auto min_it = std::min_element(order.begin() + index, order.end(), 
+			[&](int i, int j) -> bool {
+				return (scores[i] < scores[j]) || (!(scores[j] < scores[i]) && (i < j));
+		});
+		std::swap(*min_it, order[index]);
+#endif
 		size_t i = order[index];
 		Codeword guess = candidates[i];
 
