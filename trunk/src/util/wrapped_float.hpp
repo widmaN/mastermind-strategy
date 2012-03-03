@@ -14,6 +14,7 @@ public:
 	wrapped_float() : _value(0) { }
 	explicit wrapped_float(const T &value) : _value(value) { }
 	T value() const { return _value; }
+	operator T () const { return _value; }
 };
 
 template <class T, unsigned int NEps>

@@ -50,6 +50,14 @@ public:
 	/// Tests whether the codeword is empty.
 	bool empty() const { return _digit[0] == 0xFF; }
 
+	/// Tests whether the codeword is valid.
+	/// The obscure form is a work-around for the lack of 
+	/// <code>explicit bool</code>.
+	operator void* () const { return empty()? 0 : (void*)this; }
+
+	/// Tests whether the codeword is empty.
+	bool operator ! () const { return empty(); }
+
 	/// Returns the color on a given peg.
 	unsigned char operator [] (int peg) const 
 	{

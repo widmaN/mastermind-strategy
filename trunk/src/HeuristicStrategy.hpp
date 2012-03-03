@@ -1,6 +1,7 @@
 #ifndef MASTERMIND_HEURISTIC_STRATEGY_HPP
 #define MASTERMIND_HEURISTIC_STRATEGY_HPP
 
+#include <stdlib.h>
 #include "Strategy.hpp"
 #include "util/wrapped_float.hpp"
 #include "util/call_counter.hpp"
@@ -58,7 +59,44 @@ class HeuristicStrategy : public Strategy
 {
 	Engine &e;
 	Heuristic h;
-	
+
+	struct choice_t
+	{
+		typedef typename Heuristic::score_t score_t;
+
+		int i; // index to the choice, -1 = undefined
+		typename Heuristic::score_t score; // score of the choice
+#if FAVOR_POSSIBILITY
+		bool ispos; // whether the choice is a remaining possibility
+		choice_t() : i(-1), score(), ispos(false) { }
+		choice_t(int _i, const score_t _score, bool _ispos)
+			: i(_i), score(_score), ispos(_ispos) { }
+#else
+		choice_t() : i(-1), score() { }
+		choice_t(int _i, const score_t &_score)
+			: i(_i), score(_score) { }
+#endif
+
+		bool operator < (const choice_t &other) const
+		{
+			if (i < 0)
+				return false;
+			if (other.i < 0)
+				return true;
+			if (score < other.score)
+				return true;
+			if (other.score < score)
+				return false;
+#if FAVOR_POSSIBILITY
+			if (!ispos && other.ispos)
+				return true;
+			if (ispos && !other.ispos)
+				return false;
+#endif
+			return i < other.i;
+		}
+	};
+
 public:
 
 	typedef typename Heuristic::score_t score_type;
@@ -75,6 +113,46 @@ public:
 		 return h.name();
 	}
 
+#if 0
+	/// Evaluates an array of candidates, and stores the heuristic score
+	/// of each candidate.
+	/// Makes the guess that produces the lowest heuristic score.
+	/// Optionally stores the score of all candidates in an array.
+	void evaluate(
+		CodewordConstRange possibilities,
+		CodewordConstRange candidates,
+		score_type *scores) const
+	{
+		REGISTER_CALL_COUNTER(EvaluateHeuristic_Possibilities);
+		REGISTER_CALL_COUNTER(EvaluateHeuristic_Candidates);
+		UPDATE_CALL_COUNTER(EvaluateHeuristic_Possibilities, (unsigned int)possibilities.size());
+		UPDATE_CALL_COUNTER(EvaluateHeuristic_Candidates, (unsigned int)candidates.size());
+
+		if (candidates.empty() || !scores)
+			return;
+
+		int n = (int)candidates.size();
+
+		// OpenMP index variable (i) must have signed integer type.
+#if _OPENMP
+		#pragma omp parallel for schedule(static)
+#endif
+		for (int i = 0; i < n; ++i)
+		{
+			// Partition the possibilities.
+			// @todo Make the size of freq smaller (redundant elements unnecessary).
+			Codeword guess = candidates[i];
+			FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+
+			// Compute a score of the partition.
+			score_type score = h.compute(freq);
+
+			// Store the score.
+			scores[i] = score;
+		}
+	}
+#endif
+
 	/// Makes the guess that produces the lowest heuristic score.
 	/// Optionally stores the score of all candidates in an array.
 	Codeword make_guess(
@@ -90,42 +168,45 @@ public:
 		if (candidates.empty())
 			return Codeword::emptyValue();
 
-		struct choice_t
+#if 0
+		// Pure debug output: when there are a few possibilities left,
+		// what are the typical structure of these remaining possibilities?
+		if (possibilities.size() < 14 && rand() % 2000 == 0)
 		{
-			typedef typename Heuristic::score_t score_t;
-
-			int i; // index to the choice, -1 = undefined
-			typename Heuristic::score_t score; // score of the choice
-#if FAVOR_POSSIBILITY
-			bool ispos; // whether the choice is a remaining possibility
-			choice_t() : i(-1), score(), ispos(false) { }
-			choice_t(int _i, const score_t _score, bool _ispos)
-				: i(_i), score(_score), ispos(_ispos) { }
-#else
-			choice_t() : i(-1), score() { }
-			choice_t(int _i, const score_t &_score)
-				: i(_i), score(_score) { }
-#endif
-
-			bool operator < (const choice_t &other) const
+			for (size_t j = 0; j < possibilities.size(); ++j)
 			{
-				if (i < 0)
-					return false;
-				if (other.i < 0)
-					return true;
-				if (score < other.score)
-					return true;
-				if (other.score < score)
-					return false;
-#if FAVOR_POSSIBILITY
-				if (!ispos && other.ispos)
-					return true;
-				if (ispos && !other.ispos)
-					return false;
-#endif
-				return i < other.i;
+				std::cout << possibilities[j] << ' ';
 			}
-		};
+
+			// Find the best possibility.
+			score_type best = score_type();
+			for (size_t i = 0; i < possibilities.size(); ++i)
+			{
+				Codeword guess = possibilities[i];
+				FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+				score_type score = h.compute(freq);
+				if (i == 0 || score < best)
+				{
+					best = score;
+				}
+			}
+			std::cout << "(" << best << " v ";
+
+			// Find the best in all.
+			for (size_t i = 0; i < candidates.size(); ++i)
+			{
+				Codeword guess = candidates[i];
+				FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+				score_type score = h.compute(freq);
+				if (i == 0 || score < best)
+				{
+					best = score;
+				}
+			}
+			std::cout << best << ")";
+			std::cout << std::endl;
+		}
+#endif
 
 #if _OPENMP
 		choice_t global_choice;
