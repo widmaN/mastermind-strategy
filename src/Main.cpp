@@ -204,7 +204,7 @@ static void usage()
 		"    -t          run tests\n"
 		"Options:\n"
 		"    -h          display this help screen and exit\n"
-		"    -md [depth] set the maximum depth (number of guesses) for any secret\n"
+		"    -md [depth] limit the maximum number of guesses to reveal any secret\n"
 #ifdef _OPENMP
 		"    -mt [n]     enable parallel execution with n threads [default="
 		<< omp_get_max_threads() << "]\n"
@@ -216,6 +216,8 @@ static void usage()
 		"    mm,p4c6r    [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
 		"    bc,p4c10n   Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
 		"    lg,p5c8r    Logik (5 pegs, 8 colors, with repetition)\n"
+		// @todo descriptions for heuristic strategies 
+		// @todo -file switch to process a strategy tree file directly
 		"Strategies: (~ indicates no favor of remaining possibility as guess)\n"
 		"    file path   read strategy from 'path'; use - for STDIN\n"
 		"    simple      simple strategy\n"
@@ -224,7 +226,10 @@ static void usage()
 		"    entropy[~]  max-entropy heuristic strategy\n"
 		"    parts[~]    max-parts heuristic strategy\n"
 		"    minlb       min-lowerbound heuristic strategy\n"
-		"    optimal     optimal strategy\n"
+		"    optimal[+]  optimal strategy that minimizes the total number of steps\n"
+		"                + : in case of a tie, minimizes the worst-case depth\n"
+		//"    optimal++   in addition to 'optimal+', minimizes the number of secrets\n"
+		//"                revealed using the worst-case number of steps\n"
 		"Equivalence filters:\n"
 		"    default     composite filter (color + constraint)\n"
 		"    color       filter by color equivalence\n"
@@ -290,7 +295,8 @@ static int build_heuristic_strategy_tree(
 	return 0;
 }
 
-extern StrategyTree build_optimal_strategy_tree(Engine &e, int max_depth = 1000);
+extern StrategyTree build_optimal_strategy_tree(
+	Engine &e, bool min_depth = false, int max_depth = 100);
 
 // verbose: 0 = quiet, 1 = verbose, 2 = very verbose
 static int build_strategy(
@@ -310,9 +316,11 @@ static int build_strategy(
 	}
 	else if (name == "optimal")
 	{
-		//USAGE_REQUIRE(e.rules().size() <= 1296, 
-		//	"optimal strategy supports up to 1296 secrets");
-		tree = build_optimal_strategy_tree(e, max_depth);
+		tree = build_optimal_strategy_tree(e, false, max_depth);
+	}
+	else if (name == "optimal+")
+	{
+		tree = build_optimal_strategy_tree(e, true, max_depth);
 	}
 	else
 	{
@@ -336,6 +344,10 @@ static int build_strategy(
 		std::cout << util::call_counter::get("EvaluateHeuristic_Possibilities") << std::endl;
 		std::cout << "Call statistics for EvaluateHeuristic_Candidates:" << std::endl;
 		std::cout << util::call_counter::get("EvaluateHeuristic_Candidates") << std::endl;
+		std::cout << "Call statistics for ComputeLowerBound_Steps:" << std::endl;
+		std::cout << util::call_counter::get("ComputeLowerBound_Steps") << std::endl;
+		std::cout << "Call statistics for ComputeLowerBound_Depth:" << std::endl;
+		std::cout << util::call_counter::get("ComputeLowerBound_Depth") << std::endl;
 	}
 	return 0;
 }

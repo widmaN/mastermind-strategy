@@ -7,6 +7,7 @@
 
 #include "Engine.hpp"
 #include "Strategy.hpp"
+#include "util/call_counter.hpp"
 
 namespace Mastermind {
 
@@ -67,6 +68,11 @@ struct StrategyCost
 inline bool operator < (const StrategyCost &c1, const StrategyCost &c2)
 {
 	return c1.value < c2.value;
+}
+
+inline std::ostream& operator << (std::ostream &os, const StrategyCost &c)
+{
+	return os << c.steps << ':' << c.depth;
 }
 
 namespace Heuristics {
@@ -172,6 +178,11 @@ public:
 #endif
 			}
 		}
+
+		REGISTER_CALL_COUNTER(ComputeLowerBound_Steps);
+		UPDATE_CALL_COUNTER(ComputeLowerBound_Steps, lb.steps);
+		REGISTER_CALL_COUNTER(ComputeLowerBound_Depth);
+		UPDATE_CALL_COUNTER(ComputeLowerBound_Depth, lb.depth);
 		return lb;
 	}
 
@@ -236,13 +247,15 @@ public:
 /// @ingroup Optimal
 struct OptimalStrategyOptions
 {
-	unsigned short max_depth; // maximum number of steps to reveal a secret
+	char max_depth; // maximum number of steps to reveal a secret
 	bool find_last; // find the last optimal strategy
+	bool min_depth; // minimize the worst-case number of guesses when 
+	                // several guess have the same total number of steps
 	bool min_worst; // minimize the number of secrets revealed using
 	                // the worst-case number of steps
 
 	OptimalStrategyOptions()
-		: max_depth(0xFFFF), find_last(false), min_worst(false) { }
+		: max_depth(100), find_last(false), min_depth(false), min_worst(false) { }
 };
 
 /// Real-time optimal strategy. To be practical, the search space

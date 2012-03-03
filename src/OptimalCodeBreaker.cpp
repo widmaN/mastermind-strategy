@@ -216,9 +216,9 @@ static int fill_strategy_tree(
 	// Let n be the number of secrets.
 	int nsecrets = (int)secrets.size();
 
-	// From now on, we are allowed to make at least 2 more steps
-	// to reveal all the secrets. We reduce the max-steps limit
-	// by one so that it can be passed to recursive routines.
+	// From now on, we are allowed to make at least 2 extra guesses
+	// to reveal all the secrets. We reduce the max-depth limit by
+	// one so that it can be passed on to recursive routines.
 	--options.max_depth;
 
 	// If find_last is true, then we only cut-off a guess when it's
@@ -482,7 +482,7 @@ static int fill_strategy_tree(
 	return best;
 }
 
-StrategyTree build_optimal_strategy_tree(Engine &e, int max_depth = 1000)
+StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int max_depth = 100)
 {
 	CodewordList all = e.generateCodewords();
 
@@ -507,10 +507,11 @@ StrategyTree build_optimal_strategy_tree(Engine &e, int max_depth = 1000)
 	// Set options.
 	OptimalStrategyOptions options;
 #if 1
-	options.max_depth = (unsigned short)max_depth;
+	options.max_depth = (char)std::min(100, max_depth);
 #else
 	options.max_depth = 5;
 #endif
+	options.min_depth = min_depth;
 	options.min_worst = false;
 	options.find_last = false;
 
