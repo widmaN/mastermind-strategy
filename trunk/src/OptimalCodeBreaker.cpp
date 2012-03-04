@@ -105,36 +105,64 @@ partition(Engine &e, CodewordRange secrets, const Codeword &guess)
 // Searches for an obviously optimal strategy.
 // If one exists, returns the total cost of the strategy.
 // Otherwise, returns -1.
+// @todo Change return type to StrategyCost.
 static int fill_obviously_optimal_strategy(
 	Engine &e,
 	CodewordRange secrets,
+	bool min_depth,    // whether to minimize the worst-case depth
+	int max_depth,     // maximum number of extra guesses, not counting 
+	                   // the initial guess
 	StrategyTree &tree // Strategy tree that stores the best strategy
 	)
 {
-	Codeword guess = ObviousStrategy(e).make_guess(secrets, secrets);
-	if (guess.empty())
+	int extra;
+	Codeword guess = ObviousStrategy(e).make_guess(secrets, &extra);
+	--extra;
+	if (!guess || (extra > max_depth) || (min_depth && extra > 1))
 		return -1;
 
 	//	VERBOSE_COUT << "Found obvious guess: " << obvious << std::endl;
-
-	int n = (int)secrets.size();
-	int cost = 2*n - 1;
-
+	
+	// Automatically fill the strategy tree using this guess.This requires
+	// all cells in the partition to have no more than two possibilities.
+	// This is equivalent to Knuth's 'x' notation in writing a strategy.
 	Feedback perfect = Feedback::perfectValue(e.rules());
 	FeedbackList fbs = e.compare(guess, secrets);
+	size_t n = secrets.size();
 	int depth = tree.currentDepth();
-	for (size_t i = 0; i < fbs.size(); ++i)
+	int cost = 0;
+
+	for (size_t j = 0; j < Feedback::size(e.rules()); ++j)
 	{
-		StrategyTree::Node node(depth + 1, guess, fbs[i]);
-		//node.npossibilities = 1;
-		tree.append(node);
-		if (fbs[i] != perfect)
+		Codeword first;
+		for (size_t i = 0; i < n; ++i)
 		{
-			StrategyTree::Node leaf(depth + 2, secrets[i], perfect);
-			tree.append(leaf);
+			if (fbs[i] == Feedback(j))
+			{
+				if (!first)
+				{
+					++cost;
+					first = secrets[i];
+					StrategyTree::Node node(depth + 1, guess, fbs[i]);
+					tree.append(node);
+					if (fbs[i] != perfect)
+					{
+						++cost;
+						StrategyTree::Node leaf(depth + 2, first, perfect);
+						tree.append(leaf);
+					}
+				}
+				else
+				{
+					cost += 3;
+					tree.append(StrategyTree::Node(depth + 2,
+						first, e.compare(secrets[i], first)));
+					tree.append(StrategyTree::Node(depth + 3,
+						secrets[i], perfect));					
+				}
+			}
 		}
 	}
-
 	return cost;
 	// @todo: try guesses from non-secrets.
 }
@@ -180,7 +208,7 @@ static int fill_strategy_tree(
 	CodewordRange secrets,
 	EquivalenceFilter *filter,
 	LowerBoundEstimator &estimator,
-	int depth,     // Number of guesses already made
+	int depth,         // Number of guesses already made
 	int cut_off,       // Upper bound of additional cost; used for pruning
 	OptimalStrategyOptions options,
 	StrategyTree &tree // Strategy tree that stores the best strategy
@@ -255,6 +283,8 @@ static int fill_strategy_tree(
 	std::vector<lowerbound_t> scores(candidates.size());
 	estimator.make_guess(secrets, candidates, &scores[0]);
 
+	// @todo We might opt to remove the need to create an index array.
+	// Instead, we could scan for the element in each iteration.
 	std::vector<int> order(candidates.size());
 	std::iota(order.begin(), order.end(), 0);
 
@@ -411,7 +441,8 @@ static int fill_strategy_tree(
 
 			// If there's an obviously optimal guess for this cell,
 			// use it.
-			int cell_cost = fill_obviously_optimal_strategy(e, cell, tree);
+			int cell_cost = fill_obviously_optimal_strategy(
+				e, cell, options.min_depth, options.max_depth, tree);
 			if (cell_cost >= 0)
 			{
 				//VERBOSE_COUT("- Checking cell " << cell.feedback
