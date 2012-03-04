@@ -169,9 +169,13 @@ public:
 			return Codeword::emptyValue();
 
 #if 0
+		extern int estimate_obvious_lowerbound(
+			const Rules &rules,
+			CodewordConstRange possibilities);
+
 		// Pure debug output: when there are a few possibilities left,
 		// what are the typical structure of these remaining possibilities?
-		if (possibilities.size() < 14 && rand() % 2000 == 0)
+		if (possibilities.size() < 14 && rand() % 1200 == 0)
 		{
 			for (size_t j = 0; j < possibilities.size(); ++j)
 			{
@@ -203,7 +207,9 @@ public:
 					best = score;
 				}
 			}
-			std::cout << best << ")";
+			std::cout << best;
+			std::cout << " : " << estimate_obvious_lowerbound(e.rules(), possibilities);
+			std::cout << ")";
 			std::cout << std::endl;
 		}
 #endif
