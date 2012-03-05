@@ -120,7 +120,7 @@ int estimate_obvious_lowerbound(
 	CodewordConstRange possibilities)
 {
 	int p = rules.pegs();
-	if (possibilities.size() > p*(p+3)/2)
+	if ((int)possibilities.size() > p*(p+3)/2)
 		return -1;
 
 	// Partition the possibilities by the colors they contain. Only the
@@ -150,15 +150,15 @@ int estimate_obvious_lowerbound(
 
 	// Now we have classified the remaining possibilities into ngroup groups
 	// according to the colors they contain. For any given guess, the secrets
-	// in the same group must have the same number of common colors with 
+	// in the same group must have the same number of common colors with
 	// this guess.
-	
+
 	// We next classify the possible feedback values by the number of common
 	// colors, like below:
-	//   0: 0A0B				
-	//   1: 0A1B 1A0B			
-	//   2: 0A2B 1A1B 2A0B		
-	//   3: 0A3B 1A2B 2A1B 3A0B	
+	//   0: 0A0B
+	//   1: 0A1B 1A0B
+	//   2: 0A2B 1A1B 2A0B
+	//   3: 0A3B 1A2B 2A1B 3A0B
 	//   4: 0A4B 1A3B 2B2B - -
 	// Note that 3A1B is impossible and 4A0B is excluded because the guess is
 	// assumed to be outside the remaining possibilities.
@@ -166,11 +166,11 @@ int estimate_obvious_lowerbound(
 	// Next, we assign each secret group a feedback group. Note that multiple
 	// secret groups may be assigned the same feedback group, but two secrets
 	// in the same secret group may not be split into different feedback groups.
-	// We try to find a simple assignment that is guaranteed to minimize the 
-	// total number of steps needed to reveal all secrets. If a simple 
+	// We try to find a simple assignment that is guaranteed to minimize the
+	// total number of steps needed to reveal all secrets. If a simple
 	// assignment cannot be found easily, we give up and return -1.
 
-	// The algorithm is to assign each secret group, in order of decreasing 
+	// The algorithm is to assign each secret group, in order of decreasing
 	// size, the largest remaining feedback group if this feedback group is
 	// no larger than the secret group. If this can be done, the resulting
 	// assignment is guaranteed (??? proof needed) to yield a lower bound
@@ -204,11 +204,11 @@ int estimate_obvious_lowerbound(
 	return extra + (int)possibilities.size();
 }
 
-static Codeword 
+static Codeword
 make_less_obvious_guess(
 	Engine &e,
-	CodewordConstRange possibilities, 
-	int *max_depth) 
+	CodewordConstRange possibilities,
+	int *max_depth)
 {
 	assert(max_depth != NULL);
 	size_t count = possibilities.size();
@@ -228,19 +228,19 @@ make_less_obvious_guess(
 	}
 
 	// If there are only two possibilities left, guess the first one.
-	if (count == 2) 
+	if (count == 2)
 	{
 		*max_depth = 2;
 		return *possibilities.begin();
 	}
 
-	// If the number of possibilities is greater than the number of 
+	// If the number of possibilities is greater than the number of
 	// distinct feedbacks, there will be no obvious guess.
 	size_t p = e.rules().pegs();
 	if (count > p*(p+3)/2)
 		return Codeword();
 
-	// Check each remaining possiblity as guess in turn. 
+	// Check each remaining possiblity as guess in turn.
 	// - If a guess partitions the remaining possibilities into singleton
 	//   cells, return it immediately.
 	// - If no such guess exists but one exists that partitions them into
@@ -281,7 +281,7 @@ make_less_obvious_guess(
 			best_guess = guess;
 		}
 	}
-	
+
 	if (best_extra < 0)
 		return Codeword();
 
@@ -311,7 +311,7 @@ static int fill_obviously_optimal_strategy(
 	Engine &e,
 	CodewordRange secrets,
 	bool min_depth,    // whether to minimize the worst-case depth
-	int max_depth,     // maximum number of extra guesses, not counting 
+	int max_depth,     // maximum number of extra guesses, not counting
 	                   // the initial guess
 	StrategyTree &tree // Strategy tree that stores the best strategy
 	)
@@ -326,7 +326,7 @@ static int fill_obviously_optimal_strategy(
 		return -1;
 
 	//	VERBOSE_COUT << "Found obvious guess: " << obvious << std::endl;
-	
+
 	// Automatically fill the strategy tree using this guess.This requires
 	// all cells in the partition to have no more than two possibilities.
 	// This is equivalent to Knuth's 'x' notation in writing a strategy.
@@ -362,7 +362,7 @@ static int fill_obviously_optimal_strategy(
 					tree.append(StrategyTree::Node(depth + 2,
 						first, e.compare(secrets[i], first)));
 					tree.append(StrategyTree::Node(depth + 3,
-						secrets[i], perfect));					
+						secrets[i], perfect));
 				}
 			}
 		}
@@ -495,7 +495,7 @@ static int fill_strategy_tree(
 	// Define SORT_CANDIDATES to 1 to explicitly sort the candidate guesses.
 	// Since many guesses will be pruned right away (especially if we have
 	// a good estimate of the lower-bound of the cost), it is usually faster
-	// to (linearly) search for the smallest element in each iteration, 
+	// to (linearly) search for the smallest element in each iteration,
 	// instead of sorting the whole array at the beginning. However, the
 	// results will be the same as long as we perform a stable sort.
 #define SORT_CANDIDATES 0
@@ -516,9 +516,9 @@ static int fill_strategy_tree(
 	for (size_t index = 0; index < candidate_count; ++index)
 	{
 #if !SORT_CANDIDATES
-		// Find the guess with the lowest estimated cost in the remaining 
+		// Find the guess with the lowest estimated cost in the remaining
 		// candidates, and swap it to the front.
-		auto min_it = std::min_element(order.begin() + index, order.end(), 
+		auto min_it = std::min_element(order.begin() + index, order.end(),
 			[&](int i, int j) -> bool {
 				return (scores[i] < scores[j]) || (!(scores[j] < scores[i]) && (i < j));
 		});

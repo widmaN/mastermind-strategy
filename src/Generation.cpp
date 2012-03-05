@@ -51,7 +51,7 @@ static size_t generate_codewords(
 	const Rules &rules,
 	Codeword *results)
 {
-	assert(rules.valid());
+	assert(rules);
 
 	const int colors = rules.colors(), pegs = rules.pegs();
 	const size_t count = rules.repeatable()?
