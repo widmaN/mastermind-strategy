@@ -8,6 +8,7 @@
 #include "Engine.hpp"
 #include "Strategy.hpp"
 #include "util/call_counter.hpp"
+#include "util/intrinsic.hpp"
 
 namespace Mastermind {
 
@@ -43,21 +44,12 @@ struct StrategyCost
 {
 	union
 	{
-#if MINIMIZE_WORSTCASE_COUNT
 		unsigned long long value;
 		struct {
-			int worst2 : 16; //
-			int worst1 : 16; //
-			int depth  : 8;  // number of guesses needed in the worst case
-			int steps  : 24; // number of steps needed to reveal all secrets
+			unsigned short worst; // number of secrets revealed using max depth
+			unsigned short depth; // number of guesses needed in the worst case
+			unsigned int   steps; // total number of steps to reveal all secrets
 		};
-#else
-		unsigned long value;
-		struct {
-			int depth  : 8;  // number of guesses needed in the worst case
-			int steps  : 24; // number of steps needed to reveal all secrets
-		};
-#endif
 	};
 
 	StrategyCost() : value(0) { }
@@ -146,38 +138,63 @@ public:
 		return _cache[n];
 	}
 
-	/// Computes the heuristic score.
+	/// Computes the heuristic score. The score consist of two parts:
+	/// - The total number of steps needed to reveal all secrets, excluding
+	///   the initial guess
+	/// - The maximum depth (i.e. number of extra guesses) needed to reveal
+	///   every secret.
 	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
-		Feedback perfect = Feedback::perfectValue(e.rules());
-		score_t lb;
-		for (size_t j = 0; j < freq.size(); ++j)
+		// Note: we make the critical assumptions that:
+		// - Feedback::size()-1 is the perfect feedback, and
+		// - Feedback::size()-2 is the impossible (p-1,1) feedback
+		// Both cases can be ignored for the purpose of computing this
+		// heuristic score. This reduces branching in the tight loop
+		// and hence improves performance.
+
+		// In addition, in order to find the maximum depth of all paritions,
+		// we use a bitset for quicker operation.
+		// Note: We could further save two instructions by storing tmp.depth
+		// as a bit-mask directly. However, this has two drawbacks:
+		// 1) it obscures the source code;
+		// 2) it makes it harder to implement 'worst' optimization in the
+		//    future.
+		// Therefore, we will not use that approach for now.
+		unsigned int depth_bitset = 0;
+		int steps = 0;
+		for (size_t j = 0; j < freq.size() - 2; ++j)
 		{
-			if (freq[j] > 0 && Feedback(j) != perfect)
-			{
-				score_t tmp = simple_estimate(freq[j]);
-				lb.steps += tmp.steps;
-#if MINIMIZE_WORSTCASE_COUNT
-				if (tmp.depth > lb.depth)
-				{
-					lb.depth = tmp.depth;
-					lb.worst1 = tmp.worst1;
-					lb.worst2 = tmp.worst2;
-				}
-				else if (tmp.depth == lb.depth)
-				{
-					lb.worst1 += tmp.worst1;
-					lb.worst2 += tmp.worst2;
-				}
-				else if (tmp.depth == lb.depth - 1)
-				{
-					lb.worst2 += tmp.worst1;
-				}
-#else
-				lb.depth = std::max(lb.depth, tmp.depth);
+#if 0
+			if (freq[j] == 0) 
+				continue;
 #endif
+			score_t tmp = simple_estimate(freq[j]);
+			steps += tmp.steps;
+#if MINIMIZE_WORSTCASE_COUNT
+			if (tmp.depth > lb.depth)
+			{
+				lb.depth = tmp.depth;
+				lb.worst1 = tmp.worst1;
+				lb.worst2 = tmp.worst2;
 			}
+			else if (tmp.depth == lb.depth)
+			{
+				lb.worst1 += tmp.worst1;
+				lb.worst2 += tmp.worst2;
+			}
+			else if (tmp.depth == lb.depth - 1)
+			{
+				lb.worst2 += tmp.worst1;
+			}
+#else
+			//lb.depth = std::max(lb.depth, tmp.depth);
+			depth_bitset |= (1 << tmp.depth);
+#endif
 		}
+		score_t lb;
+		lb.steps = steps;
+		lb.depth = (unsigned short)(depth_bitset == 0 ? 
+			0 : 1 + util::intrinsic::bit_scan_reverse(depth_bitset));
 
 		REGISTER_CALL_COUNTER(ComputeLowerBound_Steps);
 		UPDATE_CALL_COUNTER(ComputeLowerBound_Steps, lb.steps);

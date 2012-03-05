@@ -12,6 +12,15 @@
  * @defgroup util Utility Routines
  */
 
+/// @defgroup Rules Rules
+/// @ingroup type
+
+/// @defgroup Codeword Codeword
+/// @ingroup type
+
+/// @defgroup Feedback Feedback
+/// @ingroup type
+
 /// @defgroup Obvious Obvious Strategy
 /// A strategy that makes an obviously-optimal guess when one exists.
 /// @ingroup strat
@@ -397,8 +406,9 @@ int main(int argc, char* argv[])
 			if (i+1 < argc && argv[i+1][0] != '-')
 			{
 				std::string arg(argv[++i]);
-				USAGE_REQUIRE((std::istringstream(arg) >> secret) && 
-					secret.valid(rules), "expecting secret after -p");
+				std::istringstream ss(arg);
+				USAGE_REQUIRE(ss >> setrules(rules) >> secret,
+					"expecting secret after -p");
 			}
 		}
 		else if (s == "-s")
@@ -442,7 +452,7 @@ int main(int argc, char* argv[])
 				rules = Rules(5, 8, true);
 			else
 				rules = Rules(name.c_str());
-			USAGE_REQUIRE(rules.valid(), "invalid rules: " << argv[i]);
+			USAGE_REQUIRE(rules, "invalid rules: " << argv[i]);
 		}
 		else if (s == "-md")
 		{

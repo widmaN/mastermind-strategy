@@ -310,16 +310,19 @@ int interactive_player(Engine &e, int verbose, Codeword secret)
 		else // guess
 		{
 			Codeword guess;
-			if (!(std::istringstream(cmd) >> guess))
+			std::istringstream ss(cmd);
+			if (!(ss >> setrules(e.rules()) >> guess))
 			{
-				std::cout << "Unknown command: " << cmd << std::endl;
+				std::cout << "Invalid command or guess: " << cmd << std::endl;
 				continue;
 			}
-			if (!guess.valid(e.rules()))
+#if 0
+			if (!guess.conforming(e.rules()))
 			{
 				std::cout << "Invalid guess: " << guess << std::endl;
 				continue;
 			}
+#endif
 			Feedback response = e.compare(guess, secret);
 			if (verbose)
 				std::cout << guess << " ";
@@ -382,11 +385,12 @@ int interactive_analyst(Engine &e, int /* verbose */)
 		{
 			Codeword guess;
 			Feedback response;
-			if (!(ss >> guess >> response))
+			if (!(ss >> setrules(e.rules()) >> guess >> response))
 			{
 				std::cout << "Expecting: push guess response\n";
 				continue;
 			}
+#if 0
 			if (!guess.valid(e.rules()))
 			{
 				std::cout << "Invalid guess: " << guess << std::endl;
@@ -397,6 +401,7 @@ int interactive_analyst(Engine &e, int /* verbose */)
 				std::cout << "Invalid response: " << response << std::endl;
 				continue;
 			}
+#endif
 			game.push_constraint(guess, response);
 			displayInfo(game);
 		}
@@ -427,13 +432,15 @@ int interactive_analyst(Engine &e, int /* verbose */)
 			else
 			{
 				ss.unget();
-				for (Codeword guess; ss >> guess; )
+				for (Codeword guess; ss >> setrules(e.rules()) >> guess; )
 				{
+#if 0
 					if (!guess.valid(e.rules()))
 					{
 						std::cout << "Invalid guess: " << guess << std::endl;
 						continue;
 					}
+#endif
 					guesses.push_back(guess);
 				}
 				if (ss.fail())

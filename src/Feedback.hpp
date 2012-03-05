@@ -51,7 +51,7 @@ namespace Mastermind
  * To convert a feedback from its ordinal position, there is no
  * simple formula. Therefore we build a lookup table for this purpose.
  *
- * @ingroup type
+ * @ingroup Feedback
  */
 class Feedback
 {
@@ -128,18 +128,11 @@ public:
 	/// Tests whether the feedback is empty.
 	bool empty() const { return _value < 0; }
 
-	/// Tests whether the feedback is valid under a given set of rules.
-	bool valid(const Rules &rules) const
-	{
-		if (!rules.valid())
-			return false;
-		
-		if (empty())
-			return false;
+	/// Tests whether the feedback is empty.
+	bool operator ! () const { return empty(); }
 
-		int a = nA(), b = nB(), p = rules.pegs();
-		return (a >= 0 && b >= 0 && a + b <= p && !(a == p - 1 && b == 1));
-	}
+	/// Tests whether the feedback is non-empty.
+	operator void* () const { return empty() ? 0 : (void*)this; }
 
 	/// Returns <code>nA</code>, the number of correct colors
 	/// in the correct pegs.
@@ -148,6 +141,19 @@ public:
 	/// Returns <code>nB</code>, the number of correct colors
 	/// in the wrong pegs.
 	int nB() const { return compact_format_unpacker::unpack(_value).second; }
+
+	/// Tests whether the feedback conforms to the given set of rules.
+	bool conforming(const Rules &rules) const
+	{
+		if (!rules)
+			return false;
+		
+		if (empty())
+			return false;
+
+		int a = nA(), b = nB(), p = rules.pegs();
+		return (a >= 0 && b >= 0 && a + b <= p);
+	}
 
 	/**
 	 * Compact format of a feedback.
@@ -191,49 +197,62 @@ public:
 };
 
 /// Tests whether two feedbacks are equal.
-/// @ingroup type
+/// @ingroup Feedback
 inline bool operator == (const Feedback &a, const Feedback &b)
 {
 	return a.value() == b.value();
 }
 
 /// Tests whether two feedbacks are not equal.
-/// @ingroup type
+/// @ingroup Feedback
 inline bool operator != (const Feedback &a, const Feedback &b)
 {
 	return a.value() != b.value();
 }
 
 /// Outputs the feedback to a stream in the form "1A2B".
-/// @ingroup type
+/// @ingroup Feedback
 inline std::ostream& operator << (std::ostream &os, const Feedback &feedback)
 {
 	char s[5] = "-A-B";
-	int a = feedback.nA(), b = feedback.nB();
-	if (a >= 0 && a <= MM_MAX_PEGS)
-		s[0] = (char)('0' + a);
-	if (b >= 0 && b <= MM_MAX_PEGS)
-		s[2] = (char)('0' + b);
-
+	if (feedback)
+	{
+		s[0] = (char)('0' + feedback.nA());
+		s[2] = (char)('0' + feedback.nB());
+	}
 	return os << s;
 }
 
 /// Inputs the feedback from a stream in the form "1A2B".
-/// @ingroup type
+/// @ingroup Feedback
 inline std::istream& operator >> (std::istream &is, Feedback &feedback)
 {
-	std::string s;
-	if (!(is >> s))
+	char s[5];
+
+	// Read the first character, skipping whitespaces.
+	if (!(is >> s[0]))
 		return is;
 
-	Feedback f(s.c_str());
-	if (f.empty())
+	// Read the next three characters without skipping whitespaces.
+	for (int i = 1; i <= 3; ++i)
 	{
-		is.setstate(std::ios_base::failbit);
+		if ((s[i] = (char)is.get()) == EOF)
+			return is;
+	}
+	s[4] = '\0';
+
+	// Get the rules associated with the stream.
+	Rules rules = getrules(is);
+
+	// Parse the input.
+	Feedback ret(s);
+	if (ret && (!rules || ret.conforming(rules)))
+	{
+		feedback = ret;
 	}
 	else
 	{
-		feedback = f;
+		is.setstate(std::ios_base::failbit);
 	}
 	return is;
 }

@@ -15,7 +15,7 @@ namespace Mastermind {
 
 /// Represents a codeword.
 /// For performance reason, a codeword is interchangable with __m128i.
-/// @ingroup type
+/// @ingroup Codeword
 class Codeword /* __declspec(align(16)) */
 {
 	// The internal representation of the codeword value.
@@ -24,8 +24,8 @@ class Codeword /* __declspec(align(16)) */
 		__m128i _value;
 		struct
 		{
-			unsigned char _counter[MM_MAX_COLORS];
-			unsigned char _digit[MM_MAX_PEGS];
+			char _counter[MM_MAX_COLORS];
+			char _digit[MM_MAX_PEGS];
 		};
 	};
 
@@ -42,24 +42,24 @@ public:
 	}
 
 	/// Creates a codeword from its internal representation.
+	/// No validation of arguments is performed, so the caller must ensure
+	/// the arguments are valid.
 	Codeword(value_type value) : _value(value) { }
 
 	/// Gets the internal representation of the codeword.
 	value_type value() const { return _value; }
 
 	/// Tests whether the codeword is empty.
-	bool empty() const { return _digit[0] == 0xFF; }
+	bool empty() const { return _digit[0] < 0; }
 
-	/// Tests whether the codeword is valid.
-	/// The obscure form is a work-around for the lack of 
-	/// <code>explicit bool</code>.
+	/// Tests whether the codeword is non-empty.
 	operator void* () const { return empty()? 0 : (void*)this; }
 
 	/// Tests whether the codeword is empty.
 	bool operator ! () const { return empty(); }
 
 	/// Returns the color on a given peg.
-	unsigned char operator [] (int peg) const 
+	char operator [] (int peg) const 
 	{
 		assert(peg >= 0 && peg < MM_MAX_PEGS);
 		return _digit[peg]; 
@@ -69,10 +69,10 @@ public:
 	void set(int peg, int color)
 	{
 		assert(peg >= 0 && peg < MM_MAX_PEGS);
-		assert(color == 0xFF || (color >= 0 && color < MM_MAX_COLORS));
-		if (_digit[peg] != 0xFF)
+		assert(color == -1 || (color >= 0 && color < MM_MAX_COLORS));
+		if (_digit[peg] >= 0)
 			--_counter[_digit[peg]];
-		if ((_digit[peg] = (unsigned char)color) != 0xFF)
+		if ((_digit[peg] = (char)color) >= 0)
 			++_counter[color];
 	}
 
@@ -83,35 +83,37 @@ public:
 		return _counter[color];
 	}
 
+#if 0
 	/// Tests whether the codeword contains any color more than once.
 	bool repeated() const
 	{
-		return std::any_of(&_counter[0], &_counter[MM_MAX_COLORS],
-			[](unsigned char c) -> bool { return c > 1; });
+		for (int i = 0; i < MM_MAX_COLORS; ++i)
+		{
+			if (_counter[i] > 1)
+				return true;
+		}
+		return false;
 	}
+#endif
 
+#if 0
 	/// Returns the number of pegs in the codeword.
-	int pegs() const;
+	int pegs() const
+	{
+		int n = 0;
+		for (int i = 0; i < MM_MAX_PEGS; ++i)
+		{
+			if (_digit[i] >= 0)
+				++n;
+		}
+		return n;
+	}
+#endif
 
 	/// Checks whether this codeword conforms to the supplied rules.
-	bool valid(const Rules &rules) const;
+	bool conforming(const Rules &rules) const;
 
-	/// Tests whether two codewords are equal.
-	bool operator == (const Codeword &c) const
-	{
-		//return a.value() == b.value();
-		return memcmp(this, &c, sizeof(Codeword)) == 0;
-	}
-
-	/// Tests whether two codewords are not equal.
-	bool operator != (const Codeword &c) const { return ! operator == (c); }
-
-	/// Returns an empty codeword.
-	static Codeword emptyValue()
-	{
-		return Codeword();
-	}
-
+	/// Type of the packed value.
 	typedef uint32_t compact_type;
 
 	/// Packs a codeword into a 4-byte representation.
@@ -120,8 +122,8 @@ public:
 		uint32_t w = 0xffffffff;
 		for (int i = 0; i < MM_MAX_PEGS; i++) 
 		{
-			unsigned char d = _digit[i];
-			if (d == 0xFF)
+			char d = _digit[i];
+			if (d < 0)
 				break;
 			w <<= 4;
 			w |= d;
@@ -132,92 +134,39 @@ public:
 	/// Unpacks a codeword from a 4-byte representation.
 	static Codeword unpack(compact_type w)
 	{
-		Codeword c = emptyValue();
+		Codeword c;
 		int i = 0;
 		for (int nibble = 7; nibble >= 0; --nibble)
 		{
-			unsigned char d = (w >> (nibble*4)) & 0xFF;
-			if (d != 0xFF)
+			char d = (w >> (nibble*4)) & 0xF;
+			if (d != 0xF)
 				c.set(i++, d);
 		}
 		return c;
 	}
 };
 
+/// Tests whether two codewords are equal.
+/// @ingroup Codeword
+inline bool operator == (const Codeword &a, const Codeword &b)
+{
+	return memcmp(&a, &b, sizeof(Codeword)) == 0;
+}
+
+/// Tests whether two codewords are not equal.
+/// @ingroup Codeword
+inline bool operator != (const Codeword &a, const Codeword &b)
+{
+	return ! operator == (a, b);
+}
+
 /// Outputs a codeword to a stream.
+/// @ingroup Codeword
 std::ostream& operator << (std::ostream &os, const Codeword &c);
 
-/// Inputs a codeword from a stream. No rules are enforced.
+/// Inputs a codeword from a stream.
+/// @ingroup Codeword
 std::istream& operator >> (std::istream &is, Codeword &c);
-
-#if 0
-/// Utility class that computes the lexicographical index of a codeword.
-/// For performance reason, we ALWAYS computes the index as if repetition
-/// was allowed in the colors. This improves speed at the cost of a little
-/// waste of memory.
-class CodewordIndexer
-{
-	Rules _rules;
-	int _weights[MM_MAX_COLORS];
-
-public:
-
-	CodewordIndexer(const Rules &rules) : _rules(rules)
-	{
-#if 0
-		if (_rules.repeatable())
-		{
-#endif
-			int w = 1;
-			for (int i = _rules.pegs() - 1; i >= 0; --i)
-			{
-				_weights[i] = w;
-				w *= _rules.colors();
-			}
-#if 0
-		}
-		else
-		{
-			int w = 1;
-			for (int i = _rules.pegs() - 1; i >= 0; --i)
-			{
-				_weights[i] = w;
-				w *= (_rules.colors() - i);
-			}
-		}
-#endif
-	}
-
-	int size() const { return _weights[0] * _rules.colors(); }
-
-	int operator()(const Codeword &c) const 
-	{
-#if 0
-		if (_rules.repeatable())
-		{
-#endif
-			int index = 0;
-			for (int i = 0; i < _rules.pegs(); ++i)
-				index += c[i] * _weights[i];
-			return index;
-#if 0
-		}
-		else
-		{
-			unsigned short bitmask = 0;
-			int index = 0;
-			for (int i = 0; i < _rules.pegs(); ++i)
-			{
-				int t = c[i] - util::intrinsic::pop_count(bitmask & ((1 << c[i]) - 1));
-				index += t * _weights[i];
-				bitmask |= (1 << c[i]);
-			}
-			return index;
-		}
-#endif
-	}
-};
-#endif
 
 } // namespace Mastermind
 

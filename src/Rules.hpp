@@ -1,14 +1,13 @@
 #ifndef MASTERMIND_RULES_HPP
 #define MASTERMIND_RULES_HPP
 
-#include <cstddef>
+#include <iostream>
+#include "util/choose.hpp"
 
 #ifndef MM_MAX_PEGS
 /// The maximum number of pegs supported by the program.
-/// For performance reasons, certain data structures or algorithms
-/// pose a limit on the maximum number of pegs allowed in a codeword.
-/// If this constant is defined higher than the limit, the program
-/// will produce a compile-time error.
+/// This value must be smaller than or equal to @c 9.
+/// @ingroup Rules
 #define MM_MAX_PEGS 6
 #endif
 
@@ -18,10 +17,8 @@
 
 #ifndef MM_MAX_COLORS
 /// The maximum number of colors supported by the program.
-/// For performance reasons, certain data structures or algorithms
-/// pose a limit on the maximum number of colors allowed in a codeword.
-/// If this constant is defined higher than the limit, the program
-/// will produce a compile-time error.
+/// This value must be smaller than or equal to @c 10.
+/// @ingroup Rules
 #define MM_MAX_COLORS 10
 #endif
 
@@ -36,34 +33,35 @@
 namespace Mastermind {
 
 /// Defines the rules that a codeword conforms to.
+/// @ingroup Rules
 class Rules
 {
-	int _pegs;        // number of pegs.
-	int _colors;      // number of colors.
-	bool _repeatable; // whether the same color can appear more than once.
-
-	/// Checks whether a set of rules is valid.
-	static bool valid(int pegs, int colors, bool repeatable)
+	union 
 	{
-		return (pegs > 0 && pegs <= MM_MAX_PEGS)
-			&& (colors > 0 && colors <= MM_MAX_COLORS)
-			&& (repeatable || colors >= pegs);
-	}
+		long _value;          // packed value
+		struct 
+		{
+			char _pegs;       // number of pegs
+			char _colors;     // number of colors
+			bool _repeatable; // whether the same color can appear more than once
+		};
+	};
 
 public:
 
-	/// Constructs an empty (invalid) set of rules.
-	Rules() 	: _pegs(0), _colors(0), _repeatable(false) { }
+	/// Constructs an empty set of rules.
+	Rules() 	: _value(0) { }
 
-	/// Constructs a set of rules. If the input is invalid, an empty 
-	/// set of rules is constructed.
-	Rules(int pegs, int colors, bool repeatable)
-		: _pegs(0), _colors(0), _repeatable(false)
+	/// Constructs a set of rules with the given parameters.
+	/// If the input is invalid, an empty set of rules is constructed.
+	Rules(int pegs, int colors, bool repeatable) : _value(0)
 	{
-		if (valid(pegs, colors, repeatable))
+		if ((pegs > 0 && pegs <= MM_MAX_PEGS)
+			&& (colors > 0 && colors <= MM_MAX_COLORS)
+			&& (repeatable || colors >= pegs))
 		{
-			_pegs = pegs;
-			_colors = colors;
+			_pegs = (char)pegs;
+			_colors = (char)colors;
 			_repeatable = repeatable;
 		}
 	}
@@ -107,44 +105,75 @@ public:
 	/// Returns whether the same color can appear more than once.
 	bool repeatable() const { return _repeatable; }
 
-	/// Checkes whether this set of rules is valid (i.e. non-empty).
-	bool valid() const
-	{
-		return _pegs > 0;
-	}
+	/// Tests whether this set of rules is empty.
+	bool empty() const { return _value == 0; }
 
-#if 0
-	/// Checks whether this set of rules is valid.
-	bool valid() const
-	{
-		return (_pegs > 0 && _pegs <= MM_MAX_PEGS)
-			&& (_colors > 0 && _colors <= MM_MAX_COLORS)
-			&& (_repeatable || _colors >= _pegs);
-	}
-#endif
+	/// Tests whether this set of rules is non-empty.
+	operator void* () const { return empty()? 0 : (void*)this; }
+
+	/// Tests whether this set of rules is empty.
+	bool operator ! () const { return empty(); }
 
 	/// Gets the number of codewords conforming to this set of rules.
 	size_t size() const
 	{
-		if (!valid())
+		if (empty())
 			return 0;
-
-		if (repeatable())
-		{
-			size_t n = 1;
-			for (int i = 0; i < _pegs; ++i)
-				n *= (size_t)_colors;
-			return n;
-		}
 		else
-		{
-			size_t n = 1;
-			for (int i = _colors; i > _colors - _pegs; --i)
-				n *= (size_t)i;
-			return n;
-		}
+			return util::choice<size_t>(_colors, _pegs, true, _repeatable);
+	}
+
+	/// Returns a packed value representing this set of rules.
+	long pack() const { return _value; }
+
+	/// Unpacks a set of rules from a packed value.
+	/// No validity check is performed, so the caller is responsible for
+	/// ensuring the correctness of the operation.
+	static Rules unpack(long value)
+	{
+		Rules r;
+		r._value = value;
+		return r;
 	}
 };
+
+namespace details {
+
+struct RulesFormatter
+{
+	Rules rules;
+
+	RulesFormatter(const Rules &r) : rules(r) { }
+
+	/// Returns the index to a custom ios format field.
+	static int index()
+	{
+		static int i = std::ios_base::xalloc();
+		return i;
+	}
+};
+
+inline std::istream& operator >> (std::istream &s, const RulesFormatter &f)
+{
+	s.iword(RulesFormatter::index()) = f.rules.pack();
+	return s;
+}
+
+} // namespace details
+
+/// Sets the rules to be associated with a stream.
+/// @ingroup Rules
+inline details::RulesFormatter setrules(const Rules &rules)
+{
+	return details::RulesFormatter(rules);
+}
+
+/// Gets the rules associated with a stream.
+/// @ingroup Rules
+inline Rules getrules(std::ios_base &s)
+{
+	return Rules::unpack(s.iword(details::RulesFormatter::index()));
+}
 
 } // namespace Mastermind
 
