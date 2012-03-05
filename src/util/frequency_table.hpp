@@ -1,3 +1,6 @@
+/// @defgroup FreqTable Frequency Table
+/// @ingroup util
+
 #ifndef UTILITIES_FREQUENCY_TABLE_HPP
 #define UTILITIES_FREQUENCY_TABLE_HPP
 
@@ -8,7 +11,9 @@
 
 namespace util {
 
-
+/// Represents a frequency table of (value, frequency) pairs where
+/// the values are mapped to and from zero-based indices.
+/// @ingroup FreqTable
 template <class TKey, class TVal, size_t Capacity>
 class frequency_table
 {
@@ -16,22 +21,33 @@ class frequency_table
 	size_t _count;
 
 public:
+
+	/// Constructs an empty frequency table.
 	frequency_table() : _count(0) { }
 
+	/// Returns the size of the frequency table.
 	size_t size() const { return _count; }
 
+	/// Sets the size of the frequency table.
 	void resize(size_t n)
 	{
 		assert(n <= Capacity);
 		_count = n;
 	}
 
+	/// Returns a pointer to the first frequency value.
 	TVal* data() { return _freq; }
+
+	/// Returns a const pointer to the first frequency value.
 	const TVal* data() const { return _freq; }
 
+	/// Returns a begin iterator of the frequency table.
 	const TVal* begin() const { return _freq + 0; }
+
+	/// Returns an end iterator of the frequency table.
 	const TVal* end() const { return _freq + _count; }
 
+	/// Returns the frequency of the <code>k</code>-th element.
 	TVal operator [] (size_t k) const
 	{
 		assert(k < _count);
@@ -52,28 +68,10 @@ public:
 		});
 	}
 
-#if 0
-	/// Computes the entropy of the frequencies.
-	double entropy() const
-	{
-		double s = 0.0;
-		for (size_t i = 0; i < _count; ++i)
-		{
-			TVal f = _freq[i];
-			if (f > 0)
-				s += std::log((double)f) * (double)f;
-		}
-		return s;
-	}
-#endif
-
 };
 
-/**
- * Outputs a frequency table to a stream.
- * @timecomplexity <code>O(N)</code> where @c N is the size of the table.
- * @spacecomplexity Constant.
- */
+/// Outputs a frequency table to a stream.
+/// @ingroup FreqTable
 template <class TKey, class TVal, size_t Capacity>
 std::ostream&
 operator << (std::ostream& os, const frequency_table<TKey,TVal,Capacity> &f)

@@ -66,9 +66,6 @@
     <ClCompile Include="src\OptimalCodeBreaker.cpp">
       <Filter>Strategies</Filter>
     </ClCompile>
-    <ClCompile Include="src\Types.cpp">
-      <Filter>Types</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Algorithm.hpp">
