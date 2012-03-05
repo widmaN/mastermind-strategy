@@ -25,7 +25,7 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 	const int max_display = 9;
 
 	// Display header.
-	if (os.iword(util::header_index()))
+	if (util::hasheader(os))
 	{
 		//os << "Stategy Statistics" << std::endl;
 		//os << "--------------------" << std::endl;
@@ -316,17 +316,19 @@ static bool ReadSituation_TextFormat(
 	{
 		// Read the guess.
 		Codeword guess;
-		if (!(is >> guess))
+		if (!(is >> setrules(e.rules()) >> guess))
 		{
 			is.clear();
 			PARSING_ERROR("expecting guess");
 			return false;
 		}
+#if 0
 		if (!guess.valid(e.rules()))
 		{
 			PARSING_ERROR("invalid guess: " << guess);
 			return false;
 		}
+#endif
 
 		// The next character determines the following format:
 		// ) means this guess partitions the remaining possibilities

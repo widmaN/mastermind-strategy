@@ -32,7 +32,7 @@ opponents when a win by any number of moves scores the same as a win by a
 single move.] What does this mean??
 
 
-\section{Obviously-optimal guesses}
+\section{Obvious Guesses}
 
 Some definitions. Partitions, feedback count, etc.
 
@@ -82,7 +82,13 @@ h(P) = k \le n = h(Q).
 
 Since all four heuristics introduced yield an obviously optimal guess when one exists, we can insert the step to find an optimal guess into the strategy as a shortcut to save computation time, knowing that this will not alter the output of the heuristic strategy.
 
+\section{Less Obvious Guesses}
+
+
+
 \section{Search space pruning}
+
+Two techniques are important in reducing the search space: visit candidate guesses in order of their lower bound, and visit partitions in order of their size.
 
 \section{Other techniques}
 

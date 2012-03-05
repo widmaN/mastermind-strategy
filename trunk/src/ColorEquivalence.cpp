@@ -181,6 +181,9 @@ CodewordList ColorEquivalenceFilter::filter_rep(
 	return canonical;
 }
 
+// @todo
+// 1) clean up the code
+// 2) we might use SSE2 to speed up part of the code
 CodewordList ColorEquivalenceFilter::filter_excluded_norep(
 	CodewordConstRange candidates) const
 {

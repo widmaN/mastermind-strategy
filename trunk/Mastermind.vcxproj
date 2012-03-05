@@ -152,6 +152,7 @@
     <ClCompile Include="src\OptimalCodeBreaker.cpp" />
     <ClCompile Include="src\StrategyTree.cpp" />
     <ClCompile Include="src\Test.cpp" />
+    <ClCompile Include="src\Types.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Algorithm.hpp" />
@@ -181,7 +182,6 @@
     <ClInclude Include="src\util\range.hpp" />
     <ClInclude Include="src\util\simd.hpp" />
     <ClInclude Include="src\util\wrapped_float.hpp" />
-    <ClInclude Include="src\util\zip_iterator.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

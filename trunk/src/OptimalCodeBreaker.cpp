@@ -217,7 +217,7 @@ make_less_obvious_guess(
 	if (count == 0)
 	{
 		*max_depth = 0;
-		return Codeword::emptyValue();
+		return Codeword();
 	}
 
 	// If there is only one possibility left, guess it.
@@ -238,7 +238,7 @@ make_less_obvious_guess(
 	// distinct feedbacks, there will be no obvious guess.
 	size_t p = e.rules().pegs();
 	if (count > p*(p+3)/2)
-		return Codeword::emptyValue();
+		return Codeword();
 
 	// Check each remaining possiblity as guess in turn. 
 	// - If a guess partitions the remaining possibilities into singleton
@@ -320,6 +320,8 @@ static int fill_obviously_optimal_strategy(
 	//Codeword guess = ObviousStrategy(e).make_guess(secrets, &extra);
 	Codeword guess = make_less_obvious_guess(e, secrets, &extra);
 	--extra;
+	// @todo Take into account the lower-bound estimate of non-possible
+	// guesses.
 	if (!guess || (extra > max_depth) || (min_depth && extra > 1))
 		return -1;
 
@@ -529,7 +531,7 @@ static int fill_strategy_tree(
 		// and we sort the candidates by their lower bound,
 		// we need to check here whether the remaining candidates
 		// are still worth checking.
-		if (scores[i].steps + nsecrets >= cut_off + cut_off_delta)
+		if ((int)scores[i].steps + nsecrets >= cut_off + cut_off_delta)
 		{
 			VERBOSE_COUT("Pruned " << (candidate_count - index)
 				<< " remaining guesses: lower bound (" << scores[i].steps

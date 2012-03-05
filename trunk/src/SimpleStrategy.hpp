@@ -29,7 +29,7 @@ public:
 		CodewordConstRange /* candidates */) const
 	{
 		if (possibilities.empty())
-			return Codeword::emptyValue();
+			return Codeword();
 		else
 			return *possibilities.begin();
 	}

@@ -13,7 +13,7 @@ Codeword MakeGuess(
 {
 	size_t count = secrets.size();
 	if (count == 0)
-		return Codeword::emptyValue();
+		return Codeword();
 
 	// stat->NPossibilities = count;
 

@@ -90,7 +90,7 @@ public:
 		if (count == 0)
 		{
 			*max_depth = 0;
-			return Codeword::emptyValue();
+			return Codeword();
 		}
 
 		// If there is only one possibility left, guess it.
@@ -111,7 +111,7 @@ public:
 		// distinct feedbacks, there will be no obvious guess.
 		size_t p = e.rules().pegs();
 		if (count > p*(p+3)/2)
-			return Codeword::emptyValue();
+			return Codeword();
 
 		// Returns the first obviously optimal guess in the possibility 
 		// set (if any). If a less-obviously optimal guess is found, 

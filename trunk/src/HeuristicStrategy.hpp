@@ -166,17 +166,19 @@ public:
 		UPDATE_CALL_COUNTER(EvaluateHeuristic_Candidates, (unsigned int)candidates.size());
 
 		if (candidates.empty())
-			return Codeword::emptyValue();
+			return Codeword();
 
 #if 0
+		static int debug_i = 0;
 		extern int estimate_obvious_lowerbound(
 			const Rules &rules,
 			CodewordConstRange possibilities);
 
 		// Pure debug output: when there are a few possibilities left,
 		// what are the typical structure of these remaining possibilities?
-		if (possibilities.size() < 14 && rand() % 1200 == 0)
+		if (possibilities.size() < 14 && rand() % 750 == 0)
 		{
+			std::cout << '[' << (++debug_i) << "] ";
 			for (size_t j = 0; j < possibilities.size(); ++j)
 			{
 				std::cout << possibilities[j] << ' ';

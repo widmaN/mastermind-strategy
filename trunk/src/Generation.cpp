@@ -60,7 +60,7 @@ static size_t generate_codewords(
 	if (results)
 	{
 		generate_recursion(pegs, colors, rules.repeatable()? pegs : 1,
-			0, Codeword::emptyValue(), results);
+			0, Codeword(), results);
 	}
 	return count;
 }
