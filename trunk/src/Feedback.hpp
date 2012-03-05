@@ -9,8 +9,7 @@
 
 #include "Rules.hpp"
 
-namespace Mastermind
-{
+namespace Mastermind {
 
 /**
  * Represents the feedback from comparing two codewords.
@@ -31,13 +30,25 @@ namespace Mastermind
  * </pre>
  * The arrangement looks like a Pythagoras triangle, in that the
  * feedbacks in any diagonal have the same sum <code>nA+nB</code>.
- * A game with <code>p</code> pegs can have any feedback outcome
- * up to the <code>p</code>-th diagonal (starting from zero),
- * except for the last feedback in the row marked with [*]. For
- * example, in a game with 4 pegs, an outcome can never be 3A1B.
- * It follows that the total number of possible feedbacks in a
- * <code>p</code>-peg game is <code>(1+2+...+(p+1))-1</code>,
- * which is equal to <code>p*(p+3)/2</code>.
+ * The feedbacks are then ordered like this:
+ *   0A0B -> 0A1B -> 1A0B -> 0A2B -> 1A1B -> 2A0B -> ...
+ * That is, they are first sorted by <code>nA+nB</code>, and then
+ * by <code>nA</code>. Such ordering can be conveniently interpreted
+ * as increasing level of matching. For example, 0A0B is no match,
+ * and 4A0B is a perfect match.
+ *
+ * A game with <code>p</code> pegs can have a range of feedbacks
+ * up to the <code>p</code>-th diagonal (starting from zero).
+ * Thus the total number of valid feedbacks in a <code>p</code>-peg
+ * game is <code>1+2+...+(p+1)</code>, which is equal to
+ * <code>(p+1)*(p+2)/2</code>. 
+ *
+ * Note, however, that the last feedback in the row marked with [*]
+ * is a practically-impossible feedback for a <code>p</code>-peg game. 
+ * For example, in a game with 4 pegs, an outcome can never be 3A1B. 
+ * Therefore, the total number of practically possible feedbacks in a
+ * <code>p</code>-peg game is <code>(p+1)*(p+2)-1</code>, which is 
+ * equal to <code>p*(p+3)/2</code>.
  *
  * To convert a feedback <code>(nA,nB)</code> to its ordinal position
  * in the above arrangement, first compute <code>nAB=nA+nB</code> and
@@ -55,33 +66,45 @@ namespace Mastermind
  */
 class Feedback
 {
+public:
+
+	/// Type of the internal representation of the feedback.
+	typedef signed char value_type;
+
+	/// Maximum number of distinct feedback outcomes.
+	static const int MaxOutcomes = (MM_MAX_PEGS+1)*(MM_MAX_PEGS+2)/2;
+
+private:
+
 	/// Ordinal position of the feedback. The special value @c -1
-	/// is reserved to indicate an <i>empty</i> feedback.
-	char _value;
+	/// is reserved to represent an empty feedback.
+	value_type _value;
 
-	/// Lookup table that maps an ordinal position to a feedback.
-	struct compact_format_unpacker
+	/// Lookup table that maps an ordinal position to a pair of
+	/// <code>(nA,nB)</code>.
+	struct outcome_table
 	{
-		std::pair<int,int> table[129];
-		compact_format_unpacker()
+		std::pair<int,int> table[MaxOutcomes];
+		
+		outcome_table()
 		{
-			std::fill(table+0, table+129, std::pair<int,int>(-1,-1));
-
 			for (int nAB = 0; nAB <= MM_MAX_PEGS; ++nAB)
 			{
 				for (int nA = 0; nA <= nAB; ++nA)
 				{
 					int nB = nAB - nA;
 					int k = (nAB+1)*nAB/2+nA;
+					assert(k < MaxOutcomes);
 					table[k] = std::pair<int,int>(nA, nB);
 				}
 			}
 		}
 
-		static std::pair<int,int> unpack(char value)
+		static std::pair<int,int> lookup(value_type value)
 		{
-			static const compact_format_unpacker unpacker;
-			return (value >= 0)? unpacker.table[(size_t)value] : unpacker.table[128];
+			static const outcome_table ot;
+			return (value >= 0 && value < MaxOutcomes)?
+				ot.table[(size_t)value] : std::pair<int,int>(-1,-1);
 		}
 	};
 
@@ -91,7 +114,7 @@ public:
 	Feedback() : _value(-1) { }
 
 	/// Creates a feedback from its ordinal position.
-	explicit Feedback(size_t index) : _value((char)index) { }
+	explicit Feedback(size_t index) : _value((value_type)index) { }
 
 	/// Creates a feedback with the given <code>nA</code> and <code>nB</code>.
 	/// If the arguments are not valid, an empty feedback is created.
@@ -99,7 +122,7 @@ public:
 	{
 		int nAB = nA + nB;
 		if (nA >= 0 && nB >= 0 && nAB <= MM_MAX_PEGS)
-			_value = (char)((nAB+1)*nAB/2+nA);
+			_value = (value_type)((nAB+1)*nAB/2+nA);
 		else
 			_value = -1;
 	}
@@ -115,12 +138,9 @@ public:
 			(s[3] == 'B' || s[3] == 'b') &&
 			(s[4] == '\0'))
 		{
-			_value = Feedback(s[0]-'0', s[2]-'0')._value;
+			*this = Feedback(s[0]-'0', s[2]-'0');
 		}
 	}
-
-	/// Type of the internal representation of the feedback.
-	typedef char value_type;
 
 	/// Returns the internal representation of the feedback.
 	value_type value() const { return _value; }
@@ -134,13 +154,13 @@ public:
 	/// Tests whether the feedback is non-empty.
 	operator void* () const { return empty() ? 0 : (void*)this; }
 
-	/// Returns <code>nA</code>, the number of correct colors
-	/// in the correct pegs.
-	int nA() const { return compact_format_unpacker::unpack(_value).first; }
+	/// Returns <code>nA</code>, the number of correct colors in the 
+	/// correct pegs. If this feedback is empty, returns -1.
+	int nA() const { return outcome_table::lookup(_value).first; }
 
-	/// Returns <code>nB</code>, the number of correct colors
-	/// in the wrong pegs.
-	int nB() const { return compact_format_unpacker::unpack(_value).second; }
+	/// Returns <code>nB</code>, the number of correct colors in the
+	/// wrong pegs. If this feedback is empty, returns -1.
+	int nB() const { return outcome_table::lookup(_value).second; }
 
 	/// Tests whether the feedback conforms to the given set of rules.
 	bool conforming(const Rules &rules) const
@@ -168,7 +188,7 @@ public:
 	/// Converts the feedback into compact form.
 	compact_type pack() const
 	{
-		std::pair<int,int> ab = compact_format_unpacker::unpack(_value);
+		std::pair<int,int> ab = outcome_table::lookup(_value);
 		return (compact_type)((ab.first << 4) | ab.second);
 	}
 
@@ -181,7 +201,8 @@ public:
 	}
 
 	/// Returns the feedback for a perfect match under a given set
-	/// of rules.
+	/// of rules. This is the largest valid feedback value for this
+	/// set of rules.
 	static Feedback perfectValue(const Rules &rules)
 	{
 		return Feedback(rules.pegs(), 0);

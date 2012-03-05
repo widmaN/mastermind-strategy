@@ -152,7 +152,6 @@
     <ClCompile Include="src\OptimalCodeBreaker.cpp" />
     <ClCompile Include="src\StrategyTree.cpp" />
     <ClCompile Include="src\Test.cpp" />
-    <ClCompile Include="src\Types.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Algorithm.hpp" />

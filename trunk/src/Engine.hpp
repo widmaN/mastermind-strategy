@@ -39,7 +39,10 @@ typedef std::vector<Feedback,util::pool_allocator<Feedback>> FeedbackList;
 ///////////////////////////////////////////////////////////////////////////
 // Definition of FeedbackFrequencyTable.
 
-typedef util::frequency_table<Feedback,unsigned int,256> FeedbackFrequencyTable;
+//typedef util::frequency_table<Feedback,unsigned int,256> FeedbackFrequencyTable;
+typedef 
+	util::frequency_table<Feedback,unsigned int,Feedback::MaxOutcomes>
+	FeedbackFrequencyTable;
 
 ///////////////////////////////////////////////////////////////////////////
 // Definition of ColorMask.
