@@ -34,7 +34,7 @@ public:
 
 #if 0
 	/// Returns the inverse of the permutation.
-	CodewordPermutation inverse() const 
+	CodewordPermutation inverse() const
 	{
 		CodewordPermutation ret(_rules);
 		for (int i = 0; i < _rules.pegs(); ++i)
@@ -64,7 +64,7 @@ public:
 		Codeword ret;
 		for (int i = 0; i < MM_MAX_PEGS && w[i] != 0xFF; ++i)
 		{
-			ret.set(peg[i], color[w[i]]);
+			ret.set(peg[i], color[(int)w[i]]);
 		}
 		return ret;
 	}
@@ -89,7 +89,7 @@ public:
 #endif
 
 	friend std::ostream& operator << (
-		std::ostream& os, const CodewordPermutation &p) 
+		std::ostream& os, const CodewordPermutation &p)
 	{
 		// Output peg permutation.
 		os << "(";

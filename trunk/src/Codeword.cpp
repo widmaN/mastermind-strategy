@@ -45,13 +45,13 @@ std::ostream& operator << (std::ostream &os, const Codeword &c)
 {
 	// Build a string.
 	char s[MM_MAX_PEGS + 1] = {0};
-	for (int k = 0; k < MM_MAX_PEGS; k++) 
+	for (int k = 0; k < MM_MAX_PEGS; k++)
 	{
 		char d = c[k];
 		if (d < 0)
 			break;
 		assert(d < 16);
-		s[k] = codeword_alphabet[d];
+		s[k] = codeword_alphabet[(int)d];
 	}
 	return os << s;
 }

@@ -59,10 +59,10 @@ public:
 	bool operator ! () const { return empty(); }
 
 	/// Returns the color on a given peg.
-	char operator [] (int peg) const 
+	char operator [] (int peg) const
 	{
 		assert(peg >= 0 && peg < MM_MAX_PEGS);
-		return _digit[peg]; 
+		return _digit[peg];
 	}
 
 	/// Sets the color on a given peg.
@@ -71,13 +71,13 @@ public:
 		assert(peg >= 0 && peg < MM_MAX_PEGS);
 		assert(color == -1 || (color >= 0 && color < MM_MAX_COLORS));
 		if (_digit[peg] >= 0)
-			--_counter[_digit[peg]];
+			--_counter[(int)_digit[peg]];
 		if ((_digit[peg] = (char)color) >= 0)
 			++_counter[color];
 	}
 
 	/// Returns the number of occurrences of a given color.
-	int count(int color) const 
+	int count(int color) const
 	{
 		assert(color >= 0 && color < MM_MAX_COLORS);
 		return _counter[color];
@@ -120,7 +120,7 @@ public:
 	compact_type pack() const
 	{
 		uint32_t w = 0xffffffff;
-		for (int i = 0; i < MM_MAX_PEGS; i++) 
+		for (int i = 0; i < MM_MAX_PEGS; i++)
 		{
 			char d = _digit[i];
 			if (d < 0)

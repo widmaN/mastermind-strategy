@@ -62,13 +62,13 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 
 public:
 
-	ColorEquivalenceFilter(Engine &engine) 
+	ColorEquivalenceFilter(Engine &engine)
 		: e(engine), _unguessed(ColorMask::fill(e.rules().colors()))
 	{
 		update_eqclass();
 	}
-	
-	virtual EquivalenceFilter* clone() const 
+
+	virtual EquivalenceFilter* clone() const
 	{
 		return new ColorEquivalenceFilter(*this);
 	}
@@ -85,7 +85,7 @@ public:
 
 	virtual void add_constraint(
 		const Codeword & guess,
-		Feedback /* response */, 
+		Feedback /* response */,
 		CodewordConstRange remaining)
 	{
 		_excluded = ColorMask::fill(e.rules().colors());
@@ -105,12 +105,12 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 	// equivalent to 5 is 3.
 	std::array<unsigned char,16> head;
 	std::fill(head.begin(), head.end(), (unsigned char)0xFF);
-	for (int i = 0; i < 16; i++) 
+	for (int i = 0; i < 16; i++)
 	{
 		if (i < head[i])
 			head[i] = (unsigned char)i;
 		int c = 0; // counter to avoid dead loop in case _eqclass_ is malformed.
-		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++) 
+		for (int p = eqclass[i]; (p != i) && (c <= 16); p=eqclass[p], c++)
 		{
 			if (i < head[p])
 				head[p] = (unsigned char)i;
@@ -127,18 +127,18 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 		Codeword guess = *it;
 		std::array<unsigned char,16> chain(head);
 		bool ok = true;
-		for (int j = 0; j < e.rules().pegs(); j++) 
+		for (int j = 0; j < e.rules().pegs(); j++)
 		{
 			unsigned char d = guess[j];
 			unsigned char d0 = head[d];
-			if (chain[d0] != d) 
+			if (chain[d0] != d)
 			{
 				ok = false;
 				break;
 			}
 			chain[d0] = eqclass[d];
 		}
-		if (ok) 
+		if (ok)
 		{
 			canonical.push_back(guess);
 		}
@@ -164,7 +164,7 @@ CodewordList ColorEquivalenceFilter::filter_rep(
 	{
 		Codeword guess = *it;
 		bool ok = true;
-		for (int j = 0; j < e.rules().pegs(); j++) 
+		for (int j = 0; j < e.rules().pegs(); j++)
 		{
 			unsigned char c = guess[j];
 			if (_excluded[c] && c > first)
@@ -173,7 +173,7 @@ CodewordList ColorEquivalenceFilter::filter_rep(
 				break;
 			}
 		}
-		if (ok) 
+		if (ok)
 		{
 			canonical.push_back(guess);
 		}
@@ -201,11 +201,13 @@ CodewordList ColorEquivalenceFilter::filter_excluded_norep(
 	{
 		Codeword guess = *it;
 
+#if 0
 		ColorMask unguessed = _unguessed;
+#endif
 		ColorMask excluded = _excluded;
 		bool ok = true;
 
-		for (int j = 0; j < e.rules().pegs(); j++) 
+		for (int j = 0; j < e.rules().pegs(); j++)
 		{
 			unsigned char c = guess[j];
 			if (excluded[c])
@@ -279,7 +281,7 @@ static size_t FilterByEquivalenceClass_norep_v1(
 	// Find out the largest digit each digit is equivalent to.
 	unsigned char head[16];
 	memset(head, -1, 16);
-	for (int i = 0; i < 16; i++) 
+	for (int i = 0; i < 16; i++)
 	{
 		if (i < head[i])
 			head[i] = i;
@@ -293,13 +295,13 @@ static size_t FilterByEquivalenceClass_norep_v1(
 	// Find out the minimum equivalent codeword of each codeword. If it is
 	// equal to the codeword itself, keep it.
 	size_t ndest = 0;
-	for (int i = 0; i < nsrc; i++) 
+	for (int i = 0; i < nsrc; i++)
 	{
 		unsigned long cw = codeword_to_dword(src[i]);
 		unsigned long cw_remapped = 0;
 		unsigned char chain[16];
 		memcpy(chain, head, 16);
-		for (int j = 0; j < 8; j++) 
+		for (int j = 0; j < 8; j++)
 		{
 			cw = util::intrinsic::rotate_left(cw, 4);
 			unsigned char k = (cw & 0x0f);
@@ -308,7 +310,7 @@ static size_t FilterByEquivalenceClass_norep_v1(
 			cw_remapped <<= 4;
 			cw_remapped |= k_remapped;
 		}
-		if (cw == cw_remapped) 
+		if (cw == cw_remapped)
 		{
 			dest[ndest++] = src[i];
 		}

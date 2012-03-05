@@ -148,7 +148,7 @@ void compare_frequencies_generic(
 #endif
 
 		Feedback nAnB = generic_feedback_mapping.table[(nA<<4)|nAB];
-		++freq[nAnB.value()];
+		++freq[(int)nAnB.value()];
 	}
 }
 
@@ -258,7 +258,7 @@ void compare_frequencies_norepeat(
 	{
 		Feedback nAnB = norepeat_feedback_mapping.table
 			[ util::simd::byte_mask(*(guesses++) == secret) ];
-		++freq[nAnB.value()];
+		++freq[(int)nAnB.value()];
 	}
 }
 
