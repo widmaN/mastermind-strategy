@@ -2,17 +2,19 @@
 
 namespace Mastermind {
 
-// TODO: Does this function take a lot of time?
+// @todo We could move the implementation of compare() to a header file
+// and then implement a custom updater to do the filtering.
 CodewordList Engine::filterByFeedback(
 	const CodewordList &list,
 	const Codeword &guess,
-	Feedback feedback) const
+	const Feedback &feedback) const
 {
 	//Feedback fb = feedback.value();
-	FeedbackList fblist = compare(guess, list);
+	FeedbackList fblist(list.size());
+	FeedbackFrequencyTable freq = compare(guess, list, fblist.data());
 
 	// Count feedbacks equal to feedback.
-	size_t count = std::count(fblist.begin(), fblist.end(), feedback);
+	size_t count = freq[feedback.value()];
 #if 0
 	if (1)
 	{
@@ -45,8 +47,8 @@ FeedbackFrequencyTable Engine::partition(
 		return FeedbackFrequencyTable();
 
 	// Compare the guess to each codeword in the list.
-	FeedbackList fbl = compare(guess, codewords);
-	FeedbackFrequencyTable freq = frequency(fbl);
+	FeedbackList fbl(codewords.size());
+	FeedbackFrequencyTable freq = compare(guess, codewords, fbl.data());
 
 	// Build a table to store the range of each partition.
 	struct partition_location
@@ -102,6 +104,7 @@ FeedbackFrequencyTable Engine::partition(
 	return freq;
 }
 
+#if 0
 void Engine::countFrequencies(
 	FeedbackList::const_iterator first,
 	FeedbackList::const_iterator last,
@@ -120,7 +123,9 @@ void Engine::countFrequencies(
 		freq.resize(0);
 	}
 }
+#endif
 
+#if 0
 void compare_frequencies_generic(
 	const Rules & /* rules */,
 	const Codeword &_secret,
@@ -163,6 +168,6 @@ Engine::frequencies(const Codeword &guess, CodewordConstRange secrets) const
 	return freq;
 #endif
 }
-
+#endif
 
 } // namespace Mastermind

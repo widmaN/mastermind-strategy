@@ -241,7 +241,7 @@ public:
 			for (int i = 0; i < n; ++i)
 			{
 				Codeword guess = candidates[i];
-				FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+				FeedbackFrequencyTable freq = e.compare(guess, possibilities, 0);
 
 				// Compute a score of the partition.
 				score_type score = h.compute(freq);

@@ -239,57 +239,13 @@ struct CompositeUpdater
 	}
 };
 
-#if 0
-/// Specialized function object that keeps track of frequency statistics 
-/// for no more than 16 distinct feedbacks and no more than 15 frequencies.
-class TinyFrequencyUpdater
-{
-	unsigned int * _freq;
-	size_t _size;
-	unsigned long long _counter;
-
-	TinyFrequencyUpdater& operator = (const TinyFrequencyUpdater &) { }
-
-public:
-	
-	TinyFrequencyUpdater(unsigned int *freq, size_t size) 
-		: _freq(freq), _size(size), _counter(0)
-	{
-		assert(size <= 16);
-	}
-
-	TinyFrequencyUpdater(TinyFrequencyUpdater &u)
-		: _freq(u._freq), _size(u._size), _counter(u._counter)
-	{
-		u._freq = 0;
-	}
-
-	~TinyFrequencyUpdater()
-	{
-		if (_freq)
-		{
-			for (size_t i = 0; i < _size; ++i)
-			{
-				_freq[i] = (unsigned int)(_counter >> (i * 4)) & 0x0FU;
-			}
-		}
-	}
-
-	void operator () (const Feedback &fb) 
-	{
-		assert(fb.value() < 16);
-		_counter += (1ULL << (fb.value() * 4));
-	}
-};
-#endif
-
 /// Compares a secret to a list of codewords using @c Comparer, and 
 /// processes each feedback using @c Updater.
 template <class Comparer, class Updater>
 static void compare_codewords(
 	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
+	const Codeword *_guesses,
+	size_t _count,
 	Updater _update)
 {
 	// The following redundant copy is to make VC++ happy treat the value
@@ -297,8 +253,8 @@ static void compare_codewords(
 	Updater update(_update);
 
 	Comparer compare(secret);
-	size_t count = last - first;
-	const Codeword *guesses = first;
+	size_t count = _count;
+	const Codeword *guesses = _guesses;
 	for (; count > 0; --count)
 	{
 		Feedback nAnB = compare(*guesses++);
@@ -306,8 +262,62 @@ static void compare_codewords(
 	}
 }
 
+/// Compares a secret to a list of guesses and stores the feedbacks.
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result)
+{
+	FeedbackUpdater update(result);
+	if (rules.repeatable())
+		compare_codewords<GenericComparer>(secret, guesses, count, update);
+	else
+		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
+}
+
+/// Compares a secret to a list of guesses and stores the feedback 
+/// frequencies.
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	unsigned int *freq,
+	size_t size)
+{
+	FrequencyUpdater update(freq, size);
+	if (rules.repeatable())
+		compare_codewords<GenericComparer>(secret, guesses, count, update);
+	else
+		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
+}
+
+/// Compares a secret to a list of guesses and stores the feedback 
+/// as well as their frequencies.
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq,
+	size_t size)
+{
+	CompositeUpdater<FeedbackUpdater,FrequencyUpdater> 
+		update(FeedbackUpdater(result), FrequencyUpdater(freq, size));
+	if (rules.repeatable())
+		compare_codewords<GenericComparer>(secret, guesses, count, update);
+	else
+		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
+}
+
+#if 0
+/// Compares a secret to a list of codewords using @c Comparer, and 
+/// update the feedback and/or frequencies.
 template <class Comparer>
-static void compare_codewords_impl(
+static void compare_codewords(
 	const Codeword &secret,
 	const Codeword *first,
 	const Codeword *last,
@@ -333,86 +343,57 @@ static void compare_codewords_impl(
 	}
 }
 
-// SSE2-based implementation for comparing generic codewords.
-// Repeated colors are allowed.
-static void compare_long_codeword_generic(
-	const Rules & /* rules */,
+/// Compares a secret to a list of codewords, and update the feedback
+/// and/or frequencies. The appropriate routine is selected based on
+/// the rules.
+void compare_codewords(
+	const Rules &rules,
 	const Codeword &secret,
 	const Codeword *first,
 	const Codeword *last,
-	Feedback result[])
-{
-#if 0
-	FeedbackUpdater update(result);
-	compare_codewords<GenericComparer>(secret, first, last, update);
-#else
-	compare_codewords_impl<GenericComparer>(secret, first, last, result, 0, 0);
-#endif
-}
-
-// Comparison routine for codewords without repetition.
-static void compare_long_codeword_norepeat(
-	const Rules & /* rules */,
-	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
-	Feedback result[])
-{
-#if 0
-	FeedbackUpdater update(result);
-	compare_codewords<NoRepeatComparer>(secret, first, last, update);
-#else
-	compare_codewords_impl<NoRepeatComparer>(secret, first, last, result, 0, 0);
-#endif
-}
-
-void compare_frequencies_generic(
-	const Rules & /* rules */,
-	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
-	unsigned int freq[],
+	Feedback *result,
+	unsigned int *freq,
 	size_t size)
 {
-#if 0
-	FrequencyUpdater update(freq, size);
-	compare_codewords<GenericComparer>(secret, first, last, update);
-#else
-	compare_codewords_impl<GenericComparer>(secret, first, last, 0, freq, size);
-#endif
-}
-
-void compare_frequencies_norepeat(
-	const Rules & /* rules */,
-	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
-	unsigned int freq[],
-	size_t size)
-{
-#if 0
-	size_t count = last - first;
-	if (count <= 15 && size <= 16)
+	if (rules.repeatable())
 	{
-		TinyFrequencyUpdater update(freq, size);
-		compare_codewords<NoRepeatComparer>(secret, first, last, update);
+		compare_codewords<GenericComparer>(secret, first, last, result, freq, size);
 	}
 	else
-#endif
 	{
-#if 0
-		FrequencyUpdater update(freq, size);
-		compare_codewords<NoRepeatComparer>(secret, first, last, update);
-#else
-		compare_codewords_impl<NoRepeatComparer>(secret, first, last, 0, freq, size);
-#endif
+		compare_codewords<NoRepeatComparer>(secret, first, last, result, freq, size);
 	}
+}
+#endif
+
+#if 0
+static void compare_codewords_impl_generic(
+	const Codeword &secret,
+	const Codeword *first,
+	const Codeword *last,
+	Feedback *result,
+	unsigned int *freq,
+	size_t size)
+{
+	compare_codewords_impl<GenericComparer>(secret, first, last, result, freq, size);
+}
+
+static void compare_codewords_impl_norepeat(
+	const Codeword &secret,
+	const Codeword *first,
+	const Codeword *last,
+	Feedback *result,
+	unsigned int *freq,
+	size_t size)
+{
+	compare_codewords_impl<NoRepeatComparer>(secret, first, last, result, freq, size);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // Routine registration.
 
-REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_long_codeword_generic)
-REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_long_codeword_norepeat)
+REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_codewords_impl_generic)
+REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_codewords_impl_norepeat)
+#endif
 
 } // namespace Mastermind

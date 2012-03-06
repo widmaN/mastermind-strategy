@@ -152,8 +152,10 @@ public:
 
 	void operator()()
 	{
+#if 0
 		f(e.rules(), secret, &codewords.front(), &codewords.back()+1,
 			feedbacks.data());
+#endif
 	}
 
 	bool operator == (const TestDriver &r) const
@@ -179,7 +181,7 @@ public:
 	friend std::ostream& operator << (std::ostream &os, const TestDriver &r)
 	{
 		FeedbackFrequencyTable freq;
-		r.e.countFrequencies(r.feedbacks.begin(), r.feedbacks.end(), freq);
+		// r.e.countFrequencies(r.feedbacks.begin(), r.feedbacks.end(), freq);
 		return os << freq;
 	}
 };
