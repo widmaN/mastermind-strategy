@@ -22,51 +22,6 @@ namespace Mastermind {
 #define MINIMIZE_WORSTCASE_COUNT 0
 #endif
 
-/**
- * Represents the cost of a strategy in terms of the number of guesses
- * required to reveal the secrets.
- *
- * The cost of a strategy consists of the following parts, in order of
- * decreasing priority:
- * - @c steps: the total number of guesses needed to reveal all
- *   secrets, excluding the initial guess.
- * - @c depth: the maximum number of guesses needed to reveal a
- *   secret, excluding the initial guess.
- * - @c worst1: the number of secrets revealed by the worst number
- *   of steps.
- * - @c worst2: the number of secrets revealed by the (worst - 1)
- *   number of steps.
- *
- * @remarks The machine MUST be little-endian!
- * @ingroup Optimal
- */
-struct StrategyCost
-{
-	union
-	{
-		unsigned long long value;
-		struct {
-			unsigned short worst; // number of secrets revealed using max depth
-			unsigned short depth; // number of guesses needed in the worst case
-			unsigned int   steps; // total number of steps to reveal all secrets
-		};
-	};
-
-	StrategyCost() : value(0) { }
-};
-
-/// Compares two costs.
-/// @ingroup Optimal
-inline bool operator < (const StrategyCost &c1, const StrategyCost &c2)
-{
-	return c1.value < c2.value;
-}
-
-inline std::ostream& operator << (std::ostream &os, const StrategyCost &c)
-{
-	return os << c.steps << ':' << c.depth;
-}
-
 namespace Heuristics {
 
 /**

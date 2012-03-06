@@ -103,206 +103,6 @@ partition(Engine &e, CodewordRange secrets, const Codeword &guess)
 	return cells;
 }
 
-static bool contain_same_colors(const Codeword &a, const Codeword &b)
-{
-	for (int c = 0; c < MM_MAX_COLORS; ++c)
-	{
-		if (a.count(c) != b.count(c))
-			return false;
-	}
-	return true;
-}
-
-// Estimate an obvious lower-bound of the cost of making a non-possible
-// guess against a set of remaining possibilities.
-int estimate_obvious_lowerbound(
-	const Rules &rules,
-	CodewordConstRange possibilities)
-{
-	int p = rules.pegs();
-	if ((int)possibilities.size() > p*(p+3)/2)
-		return -1;
-
-	// Partition the possibilities by the colors they contain. Only the
-	// size of the partitions matter; the particular colors don't.
-	// @todo Since we will only be processing with MM_MAX_PEGS+1 groups,
-	// we can return -1 if there are more secret groups.
-	const int M = MM_MAX_PEGS * (MM_MAX_PEGS + 3) / 2;
-	bool visited[M] = { false };
-	int group[M] = { 0 };
-	int ngroup = 0;
-	size_t n = possibilities.size();
-	for (size_t i = 0; i < n; ++i)
-	{
-		if (!visited[i])
-		{
-			for (size_t j = i + 1; j < n; ++j)
-			{
-				if (!visited[j] && contain_same_colors(possibilities[i], possibilities[j]))
-				{
-					++group[ngroup];
-					visited[j] = true;
-				}
-			}
-			++ngroup;
-		}
-	}
-
-	// Now we have classified the remaining possibilities into ngroup groups
-	// according to the colors they contain. For any given guess, the secrets
-	// in the same group must have the same number of common colors with
-	// this guess.
-
-	// We next classify the possible feedback values by the number of common
-	// colors, like below:
-	//   0: 0A0B
-	//   1: 0A1B 1A0B
-	//   2: 0A2B 1A1B 2A0B
-	//   3: 0A3B 1A2B 2A1B 3A0B
-	//   4: 0A4B 1A3B 2B2B - -
-	// Note that 3A1B is impossible and 4A0B is excluded because the guess is
-	// assumed to be outside the remaining possibilities.
-
-	// Next, we assign each secret group a feedback group. Note that multiple
-	// secret groups may be assigned the same feedback group, but two secrets
-	// in the same secret group may not be split into different feedback groups.
-	// We try to find a simple assignment that is guaranteed to minimize the
-	// total number of steps needed to reveal all secrets. If a simple
-	// assignment cannot be found easily, we give up and return -1.
-
-	// The algorithm is to assign each secret group, in order of decreasing
-	// size, the largest remaining feedback group if this feedback group is
-	// no larger than the secret group. If this can be done, the resulting
-	// assignment is guaranteed (??? proof needed) to yield a lower bound
-	// of the total number of steps.
-	if (ngroup > p*(p+3)/2-1)
-		return -1;
-
-#if 0
-	int navail = MM_MAX_PEGS + 1;
-	char avail[MM_MAX_PEGS + 1];
-	for (int i = 0; i < p; ++i)
-		avail[i] = (char)(p - i);
-	--avail[0];
-	--avail[1];
-#endif
-
-	std::sort(group + 0, group + ngroup, std::greater<char>());
-	int extra = 0;
-	for (int i = 0; i < ngroup; ++i)
-	{
-		int avail = p - i - ((i < 2)? 1 : 0);
-		if (group[i] >= avail)
-		{
-			extra += (group[i] - avail);
-		}
-		else // if (i != ngroup - 1)
-		{
-			return -1;
-		}
-	}
-	return extra + (int)possibilities.size();
-}
-
-static Codeword
-make_less_obvious_guess(
-	Engine &e,
-	CodewordConstRange possibilities,
-	int *max_depth)
-{
-	assert(max_depth != NULL);
-	size_t count = possibilities.size();
-
-	// If there are no remaining possibilities, no guess is needed.
-	if (count == 0)
-	{
-		*max_depth = 0;
-		return Codeword();
-	}
-
-	// If there is only one possibility left, guess it.
-	if (count == 1)
-	{
-		*max_depth = 1;
-		return *possibilities.begin();
-	}
-
-	// If there are only two possibilities left, guess the first one.
-	if (count == 2)
-	{
-		*max_depth = 2;
-		return *possibilities.begin();
-	}
-
-	// If the number of possibilities is greater than the number of
-	// distinct feedbacks, there will be no obvious guess.
-	size_t p = e.rules().pegs();
-	if (count > p*(p+3)/2)
-		return Codeword();
-
-	// Check each remaining possiblity as guess in turn.
-	// - If a guess partitions the remaining possibilities into singleton
-	//   cells, return it immediately.
-	// - If no such guess exists but one exists that partitions them into
-	//   (n-1) singleton cells and one cell with 2 secrets, return it.
-	// - Otherwise, keep the best guess that partitions the remaining
-	//   possibilities into cells with no more than two secrets. Compare
-	//   this cost with an estimated obvious lower bound of a non-possible
-	//   guess. If the lower bound is >= this cost, return this guess.
-	Codeword best_guess;
-	int best_extra = -1;
-	for (size_t i = 0; i < count; ++i)
-	{
-		Codeword guess = possibilities[i];
-		FeedbackFrequencyTable freq = e.compare(guess, possibilities);
-		unsigned int nonzero = 0;
-		unsigned int maxfreq = 0;
-		for (size_t j = 0; j < freq.size(); ++j)
-		{
-			if (freq[j])
-			{
-				maxfreq = std::max(maxfreq, freq[j]);
-				++nonzero;
-			}
-		}
-		if (maxfreq == 1)
-		{
-			*max_depth = 2;
-			return guess;
-		}
-		if (maxfreq > 2)
-		{
-			continue;
-		}
-		int extra = (int)(count - nonzero);
-		if (best_extra < 0 || extra < best_extra)
-		{
-			best_extra = extra;
-			best_guess = guess;
-		}
-	}
-
-	if (best_extra < 0)
-		return Codeword();
-
-	if (best_extra == 1)
-	{
-		*max_depth = 3;
-		return best_guess;
-	}
-
-#if 1
-	int lb = estimate_obvious_lowerbound(e.rules(), possibilities);
-	if (lb > 0 && lb >= (int)count - 1 + best_extra)
-	{
-		*max_depth = 3;
-		return best_guess;
-	}
-#endif
-
-	return Codeword();
-}
-
 // Searches for an obviously optimal strategy.
 // If one exists, returns the total cost of the strategy.
 // Otherwise, returns -1.
@@ -316,14 +116,21 @@ static int fill_obviously_optimal_strategy(
 	StrategyTree &tree // Strategy tree that stores the best strategy
 	)
 {
+#if 0
 	int extra;
-	//Codeword guess = ObviousStrategy(e).make_guess(secrets, &extra);
 	Codeword guess = make_less_obvious_guess(e, secrets, &extra);
 	--extra;
 	// @todo Take into account the lower-bound estimate of non-possible
 	// guesses.
 	if (!guess || (extra > max_depth) || (min_depth && extra > 1))
 		return -1;
+#else
+	StrategyCost _cost;
+	StrategyObjective obj = min_depth? MinDepth : MinSteps;
+	Codeword guess = make_obvious_guess(e, secrets, max_depth+1, obj, _cost, obj);
+	if (!guess)
+		return -1;
+#endif
 
 	//	VERBOSE_COUT << "Found obvious guess: " << obvious << std::endl;
 
