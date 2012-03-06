@@ -5,10 +5,10 @@
 #include <utility>
 #include "util/simd.hpp"
 #include "util/intrinsic.hpp"
-#include "util/call_counter.hpp"
 #include "Algorithm.hpp"
 
-REGISTER_CALL_COUNTER(Comparison)
+//#include "util/call_counter.hpp"
+//REGISTER_CALL_COUNTER(Comparison)
 
 namespace Mastermind {
 
@@ -196,7 +196,7 @@ class FeedbackUpdater
 
 public:
 	
-	FeedbackUpdater(Feedback *fbs) : feedbacks(fbs) { }
+	explicit FeedbackUpdater(Feedback *fbs) : feedbacks(fbs) { }
 
 	void operator () (const Feedback &fb) 
 	{
@@ -211,10 +211,8 @@ class FrequencyUpdater
 
 public:
 	
-	FrequencyUpdater(unsigned int *_freq, size_t size) : freq(_freq) 
-	{
-		memset(freq, 0, sizeof(unsigned int)*size);
-	}
+	// We do not zero the memory here. It must be initialized by the caller.
+	explicit FrequencyUpdater(unsigned int *_freq) : freq(_freq) { }
 
 	void operator () (const Feedback &fb) 
 	{
@@ -224,10 +222,12 @@ public:
 
 /// Function object that invokes two functions.
 template <class T1, class T2>
-struct CompositeUpdater
+class CompositeUpdater
 {
 	T1 u1;
 	T2 u2;
+
+public:
 
 	CompositeUpdater(T1 updater1, T2 updater2) 
 		: u1(updater1), u2(updater2) { }
@@ -262,138 +262,38 @@ static void compare_codewords(
 	}
 }
 
-/// Compares a secret to a list of guesses and stores the feedbacks.
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *guesses,
-	size_t count,
-	Feedback *result)
-{
-	FeedbackUpdater update(result);
-	if (rules.repeatable())
-		compare_codewords<GenericComparer>(secret, guesses, count, update);
-	else
-		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
-}
-
-/// Compares a secret to a list of guesses and stores the feedback 
-/// frequencies.
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *guesses,
-	size_t count,
-	unsigned int *freq,
-	size_t size)
-{
-	FrequencyUpdater update(freq, size);
-	if (rules.repeatable())
-		compare_codewords<GenericComparer>(secret, guesses, count, update);
-	else
-		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
-}
-
-/// Compares a secret to a list of guesses and stores the feedback 
-/// as well as their frequencies.
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *guesses,
-	size_t count,
-	Feedback *result,
-	unsigned int *freq,
-	size_t size)
-{
-	CompositeUpdater<FeedbackUpdater,FrequencyUpdater> 
-		update(FeedbackUpdater(result), FrequencyUpdater(freq, size));
-	if (rules.repeatable())
-		compare_codewords<GenericComparer>(secret, guesses, count, update);
-	else
-		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
-}
-
-#if 0
 /// Compares a secret to a list of codewords using @c Comparer, and 
 /// update the feedback and/or frequencies.
 template <class Comparer>
 static void compare_codewords(
 	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
+	const Codeword *guesses,
+	size_t count,
 	Feedback *result,
-	unsigned int *freq,
-	size_t size)
+	unsigned int *freq)
 {
 	if (result && freq)
 	{
-		CompositeUpdater<FeedbackUpdater,FrequencyUpdater> 
-			update(FeedbackUpdater(result), FrequencyUpdater(freq, size));
-		compare_codewords<Comparer>(secret, first, last, update);
+		FeedbackUpdater u1(result);
+		FrequencyUpdater u2(freq);
+		CompositeUpdater<FeedbackUpdater,FrequencyUpdater> update(u1,u2);
+		compare_codewords<Comparer>(secret, guesses, count, update);
 	}
 	else if (freq)
 	{
-		FrequencyUpdater update(freq, size);
-		compare_codewords<Comparer>(secret, first, last, update);
+		FrequencyUpdater update(freq);
+		compare_codewords<Comparer>(secret, guesses, count, update);
 	}
 	else if (result)
 	{
 		FeedbackUpdater update(result);
-		compare_codewords<Comparer>(secret, first, last, update);
+		compare_codewords<Comparer>(secret, guesses, count, update);
 	}
 }
 
-/// Compares a secret to a list of codewords, and update the feedback
-/// and/or frequencies. The appropriate routine is selected based on
-/// the rules.
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
-	Feedback *result,
-	unsigned int *freq,
-	size_t size)
-{
-	if (rules.repeatable())
-	{
-		compare_codewords<GenericComparer>(secret, first, last, result, freq, size);
-	}
-	else
-	{
-		compare_codewords<NoRepeatComparer>(secret, first, last, result, freq, size);
-	}
-}
-#endif
+ComparisonRoutine* compare_codewords_generic = compare_codewords<GenericComparer>;
 
-#if 0
-static void compare_codewords_impl_generic(
-	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
-	Feedback *result,
-	unsigned int *freq,
-	size_t size)
-{
-	compare_codewords_impl<GenericComparer>(secret, first, last, result, freq, size);
-}
+ComparisonRoutine* compare_codewords_norepeat = compare_codewords<NoRepeatComparer>;
 
-static void compare_codewords_impl_norepeat(
-	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
-	Feedback *result,
-	unsigned int *freq,
-	size_t size)
-{
-	compare_codewords_impl<NoRepeatComparer>(secret, first, last, result, freq, size);
-}
-
-///////////////////////////////////////////////////////////////////////////
-// Routine registration.
-
-REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_codewords_impl_generic)
-REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_codewords_impl_norepeat)
-#endif
 
 } // namespace Mastermind

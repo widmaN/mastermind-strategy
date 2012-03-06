@@ -30,9 +30,6 @@
     <ClCompile Include="src\Codeword.cpp">
       <Filter>Types</Filter>
     </ClCompile>
-    <ClCompile Include="src\Frequency.cpp">
-      <Filter>Algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="src\StrategyTree.cpp">
       <Filter>Types</Filter>
     </ClCompile>
@@ -148,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="src\util\wrapped_float.hpp">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Benchmark.hpp">
+      <Filter>Program</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -254,7 +254,7 @@ make_less_obvious_guess(
 	for (size_t i = 0; i < count; ++i)
 	{
 		Codeword guess = possibilities[i];
-		FeedbackFrequencyTable freq = e.compare(guess, possibilities, 0);
+		FeedbackFrequencyTable freq = e.compare(guess, possibilities);
 		unsigned int nonzero = 0;
 		unsigned int maxfreq = 0;
 		for (size_t j = 0; j < freq.size(); ++j)
@@ -331,8 +331,8 @@ static int fill_obviously_optimal_strategy(
 	// all cells in the partition to have no more than two possibilities.
 	// This is equivalent to Knuth's 'x' notation in writing a strategy.
 	Feedback perfect = Feedback::perfectValue(e.rules());
-	FeedbackList fbs(secrets.size());
-	e.compare(guess, secrets, fbs.data());
+	FeedbackList fbs;
+	e.compare(guess, secrets, fbs);
 	size_t n = secrets.size();
 	int depth = tree.currentDepth();
 	int cost = 0;
