@@ -9,17 +9,51 @@
 
 namespace Mastermind {
 
+/// Compares a secret to a list of guesses and stores the feedbacks.
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result);
+
+/// Compares a secret to a list of guesses and stores the feedback 
+/// frequencies.
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	unsigned int *freq,
+	size_t size);
+
+/// Compares a secret to a list of guesses and stores the feedback 
+/// as well as their frequencies.
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq,
+	size_t size);
+
 /// Compares an array of guesses to the secret.
-/// @param[in]	secret	The secret codeword
-/// @param[in]	guesses	An array of guesses
-/// @param[in]	count	Number of guesses in the array
-/// @param[out]	results	An array to store feedbacks
+/// @param[in]  rules   Game rules.
+/// @param[in]	secret  The secret.
+/// @param[in]	first   First guess.
+/// @param[in]	last    Last guess.
+/// @param[out]	result  If not null, stores the feedback on return.
+/// @param[out] freq    If not null, stores the frequencies on return.
+/// @param[in]  size    Size of freq.
 typedef void (*ComparisonRoutine)(
 	const Rules &rules,
 	const Codeword &secret,
 	const Codeword *first,
 	const Codeword *last,
-	Feedback result[]);
+	Feedback *result,
+	unsigned int *freq,
+	size_t size);
 
 /**
  * Counts the frequencies of each feedback in a feedback list.

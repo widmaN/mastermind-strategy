@@ -120,7 +120,7 @@ public:
 		for (size_t i = 0; i < count; ++i)
 		{
 			Codeword guess = possibilities[i];
-			FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+			FeedbackFrequencyTable freq = e.compare(guess, possibilities, 0);
 			size_t nonzero = freq.nonzero_count();
 			if (nonzero == count)
 			{

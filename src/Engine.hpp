@@ -55,7 +55,7 @@ typedef util::bitmask<MM_MAX_COLORS> ColorMask;
 class Engine
 {
 	Rules _rules;
-	ComparisonRoutine _compare;
+	//ComparisonRoutine _compare;
 	FrequencyRoutine _freq;
 	GenerationRoutine _generate;
 	MaskRoutine _mask;
@@ -64,8 +64,8 @@ class Engine
 public:
 
 	Engine(const Rules &rules) : _rules(rules),
-		_compare(RoutineRegistry<ComparisonRoutine>::get(
-			_rules.repeatable()? "generic" : "norepeat")),
+		//_compare(RoutineRegistry<ComparisonRoutine>::get(
+		//	_rules.repeatable()? "generic" : "norepeat")),
 		_freq(RoutineRegistry<FrequencyRoutine>::get("generic")),
 		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
 		_mask(RoutineRegistry<MaskRoutine>::get("generic")),
@@ -77,37 +77,54 @@ public:
 
 	CodewordConstRange universe() const { return _all; }
 
-	void select(ComparisonRoutine f) { _compare = f; }
+	//void select(ComparisonRoutine f) { _compare = f; }
 
-	/// Compares a codeword to a list of codewords.
-	/// @returns A list of feedbacks.
-	/// @timecomplexity <code>O(N)</code>.
-	/// @spacecomplexity <code>O(N)</code>.
-	FeedbackList compare(
-		const Codeword &guess, 
-		CodewordConstRange codewords) const
+	/// Compares two codewords and returns the feedback.
+	Feedback compare(const Codeword& guess, const Codeword& secret) const
+	{
+		Feedback feedback;
+		compare_codewords(_rules, guess, &secret, 1, &feedback);
+		return feedback;
+	}
+
+#if 0
+	/// Compares a codeword to a list of codewords and returns the feedbacks.
+	FeedbackList compare(const Codeword &guess, CodewordConstRange codewords) const
 	{
 		size_t count = codewords.size();
 		FeedbackList feedbacks(count);
 		if (count > 0)
 		{
 			const Codeword *first = &(*codewords.begin());
-			_compare(_rules, guess, first, first + count, feedbacks.data());
+			compare_codewords(_rules, guess, first, count, feedbacks.data());
 		}
 		return feedbacks;
 	}
+#endif
 
-	/// Compares two codewords.
-	/// @returns The feedback.
-	/// @timecomplexity Constant.
-	/// @spacecomplexity Constant.
-	Feedback compare(
-		const Codeword& guess,
-		const Codeword& secret) const
+	/// Compares a codeword to a list of codewords and returns the feedback
+	/// frequencies. Optionally stores the feedbacks.
+	FeedbackFrequencyTable compare(
+		const Codeword &guess, 
+		CodewordConstRange secrets,
+		Feedback *feedbacks) const
 	{
-		Feedback feedback;
-		_compare(_rules, guess, &secret, &secret + 1, &feedback);
-		return feedback;
+		FeedbackFrequencyTable freq;
+		size_t fb_size = Feedback::size(rules());
+		freq.resize(fb_size);
+		size_t count = secrets.size();
+		const Codeword *first = &(*secrets.begin());
+		if (feedbacks)
+		{
+			compare_codewords(_rules, guess, first, count, 
+				feedbacks, freq.data(), freq.size());
+		}
+		else
+		{
+			compare_codewords(_rules, guess, first, count, 
+				freq.data(), freq.size());
+		}
+		return freq;
 	}
 
 	/// Generates all codewords that conforms to the given set of rules.
@@ -128,7 +145,7 @@ public:
 	CodewordList filterByFeedback(
 		const CodewordList &list,
 		const Codeword &guess, 
-		Feedback feedback) const;
+		const Feedback &feedback) const;
 
 	/**
 	 * Partitions a list of codewords by their feedback when compared to
@@ -144,22 +161,26 @@ public:
 		CodewordRange codewords, 
 		const Codeword &guess) const;
 
+#if 0
 	/// Counts the frequencies of each feedback in a feedback list.
 	void countFrequencies(
 		FeedbackList::const_iterator first,
 		FeedbackList::const_iterator last,
 		FeedbackFrequencyTable &freq) const;
 
+	FeedbackFrequencyTable frequencies(
+		const Codeword &guess, 
+		CodewordConstRange codewords) const;
+#endif
+
+#if 0
 	FeedbackFrequencyTable frequency(const FeedbackList &feedbacks) const
 	{
 		FeedbackFrequencyTable table;
 		countFrequencies(feedbacks.begin(), feedbacks.end(), table);
 		return table;
 	}
-
-	FeedbackFrequencyTable frequencies(
-		const Codeword &guess, 
-		CodewordConstRange codewords) const;
+#endif
 
 	/// Returns a bit-mask of the colors that are present in the codeword.
 	ColorMask colorMask(const Codeword &c) const
