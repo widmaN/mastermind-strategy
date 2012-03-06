@@ -9,101 +9,39 @@
 
 namespace Mastermind {
 
-/// Compares a secret to a list of guesses and stores the feedbacks.
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *guesses,
-	size_t count,
-	Feedback *result);
-
-/// Compares a secret to a list of guesses and stores the feedback 
-/// frequencies.
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *guesses,
-	size_t count,
-	unsigned int *freq,
-	size_t size);
-
-/// Compares a secret to a list of guesses and stores the feedback 
-/// as well as their frequencies.
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *guesses,
-	size_t count,
-	Feedback *result,
-	unsigned int *freq,
-	size_t size);
-
-/// Compares an array of guesses to the secret.
-/// @param[in]  rules   Game rules.
-/// @param[in]	secret  The secret.
-/// @param[in]	first   First guess.
-/// @param[in]	last    Last guess.
-/// @param[out]	result  If not null, stores the feedback on return.
-/// @param[out] freq    If not null, stores the frequencies on return.
-/// @param[in]  size    Size of freq.
-typedef void (*ComparisonRoutine)(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *first,
-	const Codeword *last,
-	Feedback *result,
-	unsigned int *freq,
-	size_t size);
-
 /**
- * Counts the frequencies of each feedback in a feedback list.
- * @param first Begin of the feedback list.
- * @param last  End of the feedback list.
- * @param freq  Feedback frequency table.
- * @param size  Size of the frequency table.
+ * Prototype of a function that compares a codeword to a list of codewords
+ * and stores the feedbacks and/or frequencies of the comparision.
+ *
+ * @param secret  The secret.
+ * @param guesses Array of guesses.
+ * @param count   Number of guesses.
+ * @param result  If not null, stores the feedback on return.
+ * @param freq    If not null, stores the frequencies on return.
+ * @remarks The frequencies are not initialized in this function.
+ *      The caller must ensure the frequencies are set to zero before
+ *      calling the function.
  */
-typedef void (*FrequencyRoutine)(
-	const unsigned char *first,
-	const unsigned char *last,
-	unsigned int freq[],
-	size_t size);
+typedef void ComparisonRoutine(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq);
 
-/// Computes the sum of squares of a frequency table.
-/// @param[in]	freq	The frequency table to compute statistic on
-/// @param[in]	max_fb	The maximum feedback value allowed
-typedef unsigned int (*SumSquaresRoutine)(
-	const unsigned int *first,
-	const unsigned int *last);
+/// Pointer to the routine used for comparing generic codewords.
+extern ComparisonRoutine* compare_codewords_generic;
+
+/// Pointer to the routine used for comparing codewords without repetition.
+extern ComparisonRoutine* compare_codewords_norepeat;
+
 
 /// Generates all codewords that conforms to the given set of rules.
 typedef size_t (*GenerationRoutine)(
 	const Rules &rules,
 	Codeword *results);
 
-/**
- * Filters a list of codewords <code>[first,last)</code> by removing
- * duplicate elements according
- * to equivalence class <code>eqclass</code>.
- * Returns the number of (canonical) elements remaining.
- *
- * _eqclass_ is a 16-byte array where each element specifies the next digit
- * in the same equivalent class. Hence, each equivalence class is chained
- * through a loop. For example: (assume only 10 digits)
- *                  0  1  2  3  4  5  6  7  8  9
- *  all-different:  0  1  2  3  4  5  6  7  8  9
- *  all-same:       1  2  3  4  5  6  7  8  9  0
- *  1,3,5 same:     0  3  2  5  4  1  6  7  8  9
- *
- * This function keeps the lexicographical-minimum codeword of each
- * equivalence class. This process is known as "canonical labeling". 
- * Note that the minimum codeword for each equivalence class must exist 
- * in the list in order for the function to work correctly.
- */
-typedef size_t (*EquivalenceRoutine)(
-	const Codeword *first,
-	const Codeword *last,
-	const unsigned char eqclass[16],
-	Codeword *filtered);
+
 
 /**
  * Scans an array of codewords and returns a 16-bit mask of present 

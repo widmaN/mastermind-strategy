@@ -144,7 +144,6 @@
     <ClCompile Include="src\ConstraintEquivalence.cpp" />
     <ClCompile Include="src\DummyEquivalenceFilter.cpp" />
     <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\Frequency.cpp" />
     <ClCompile Include="src\Generation.cpp" />
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -155,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Algorithm.hpp" />
+    <ClInclude Include="src\Benchmark.hpp" />
     <ClInclude Include="src\CodeBreaker.hpp" />
     <ClInclude Include="src\Codeword.hpp" />
     <ClInclude Include="src\Engine.hpp" />

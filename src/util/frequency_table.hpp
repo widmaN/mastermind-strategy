@@ -25,15 +25,24 @@ public:
 	/// Constructs an empty frequency table.
 	frequency_table() : _count(0) { }
 
+	/// Constructs a frequency table of the given size.
+	frequency_table(size_t n) : _count(n) 
+	{
+		assert(n <= Capacity);
+		std::fill(_freq + 0, _freq + n, TVal(0));
+	}
+
 	/// Returns the size of the frequency table.
 	size_t size() const { return _count; }
 
+#if 0
 	/// Sets the size of the frequency table.
 	void resize(size_t n)
 	{
 		assert(n <= Capacity);
 		_count = n;
 	}
+#endif
 
 	/// Returns a pointer to the first frequency value.
 	TVal* data() { return _freq; }

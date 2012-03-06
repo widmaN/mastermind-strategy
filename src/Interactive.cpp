@@ -178,7 +178,7 @@ static void displayPartitions(Analyst &game, CodewordConstRange guesses,
 	for (size_t i = 0; i < n; ++i)
 	{
 		Codeword guess = guesses[i];
-		freqs[i] = e.compare(guess, game.possibilities(), 0);
+		freqs[i] = e.compare(guess, game.possibilities());
 		index[i] = i;
 	}
 

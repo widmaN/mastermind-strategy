@@ -9,23 +9,11 @@ CodewordList Engine::filterByFeedback(
 	const Codeword &guess,
 	const Feedback &feedback) const
 {
-	//Feedback fb = feedback.value();
-	FeedbackList fblist(list.size());
-	FeedbackFrequencyTable freq = compare(guess, list, fblist.data());
+	FeedbackList fblist;
+	FeedbackFrequencyTable freq = compare(guess, list, fblist);
 
 	// Count feedbacks equal to feedback.
 	size_t count = freq[feedback.value()];
-#if 0
-	if (1)
-	{
-		const unsigned char *pfb = fblist.GetData();
-		int total = fblist.GetCount();
-		while (total-- > 0) {
-			if (*(pfb++) == fb)
-				count++;
-		}
-	}
-#endif
 
 	// Copy elements whose feedback are equal to fb.
 	CodewordList result(count);
@@ -47,8 +35,8 @@ FeedbackFrequencyTable Engine::partition(
 		return FeedbackFrequencyTable();
 
 	// Compare the guess to each codeword in the list.
-	FeedbackList fbl(codewords.size());
-	FeedbackFrequencyTable freq = compare(guess, codewords, fbl.data());
+	FeedbackList fbl;
+	FeedbackFrequencyTable freq = compare(guess, codewords, fbl);
 
 	// Build a table to store the range of each partition.
 	struct partition_location
@@ -103,71 +91,5 @@ FeedbackFrequencyTable Engine::partition(
 	}
 	return freq;
 }
-
-#if 0
-void Engine::countFrequencies(
-	FeedbackList::const_iterator first,
-	FeedbackList::const_iterator last,
-	FeedbackFrequencyTable &freq) const
-{
-	if (first != last)
-	{
-		size_t fb_count = Feedback::size(_rules);
-		const unsigned char *buffer = (const unsigned char *)&(*first);
-		size_t count = last - first;
-		_freq(buffer, buffer + count, freq.data(), fb_count);
-		freq.resize(fb_count);
-	}
-	else
-	{
-		freq.resize(0);
-	}
-}
-#endif
-
-#if 0
-void compare_frequencies_generic(
-	const Rules & /* rules */,
-	const Codeword &_secret,
-	const Codeword *_first,
-	const Codeword *_last,
-	unsigned int freq[],
-	size_t size);
-
-void compare_frequencies_norepeat(
-	const Rules & /* rules */,
-	const Codeword &_secret,
-	const Codeword *_first,
-	const Codeword *_last,
-	unsigned int freq[],
-	size_t size);
-
-/// @todo Make the interface nicer and reduce duplicate code.
-/// @todo Implement it also for codeword without repetition.
-/// @todo If the codeword involved in comparison doesn't contain repetitive
-/// colors, can it be compared faster?
-FeedbackFrequencyTable
-Engine::frequencies(const Codeword &guess, CodewordConstRange secrets) const
-{
-#if 0
-	return frequency(compare(guess, secrets));
-#else
-	FeedbackFrequencyTable freq;
-	size_t fb_size = Feedback::size(rules());
-	freq.resize(fb_size);
-	size_t count = secrets.size();
-	const Codeword *first = &(*secrets.begin());
-	if (rules().repeatable())
-	{
-		compare_frequencies_generic(_rules, guess, first, first + count, freq.data(), fb_size);
-	}
-	else
-	{
-		compare_frequencies_norepeat(_rules, guess, first, first + count, freq.data(), fb_size);
-	}
-	return freq;
-#endif
-}
-#endif
 
 } // namespace Mastermind
