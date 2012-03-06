@@ -7,6 +7,14 @@
 
 namespace Mastermind {
 
+Codeword make_obvious_guess(
+	Engine &e,
+	CodewordConstRange possibilities,
+	int max_depth,
+	StrategyObjective min_obj,
+	StrategyCost &cost,
+	StrategyObjective &obj);
+
 /**
  * Strategy that makes an obviously-optimal guess when one exists.
  *

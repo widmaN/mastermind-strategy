@@ -15,6 +15,7 @@
 #include "HeuristicStrategy.hpp"
 #include "OptimalStrategy.hpp"
 #include "Equivalence.hpp"
+#include "Heuristics.hpp"
 
 #include "util/call_counter.hpp"
 #include "util/hr_timer.hpp"

@@ -148,6 +148,7 @@
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mask.cpp" />
+    <ClCompile Include="src\ObviousStrategy.cpp" />
     <ClCompile Include="src\OptimalCodeBreaker.cpp" />
     <ClCompile Include="src\StrategyTree.cpp" />
     <ClCompile Include="src\Test.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="src\Engine.hpp" />
     <ClInclude Include="src\Equivalence.hpp" />
     <ClInclude Include="src\Feedback.hpp" />
+    <ClInclude Include="src\Heuristics.hpp" />
     <ClInclude Include="src\HeuristicStrategy.hpp" />
     <ClInclude Include="src\ObviousStrategy.hpp" />
     <ClInclude Include="src\OptimalStrategy.hpp" />

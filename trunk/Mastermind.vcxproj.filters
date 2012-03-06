@@ -63,6 +63,9 @@
     <ClCompile Include="src\OptimalCodeBreaker.cpp">
       <Filter>Strategies</Filter>
     </ClCompile>
+    <ClCompile Include="src\ObviousStrategy.cpp">
+      <Filter>Strategies</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Algorithm.hpp">
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="src\Benchmark.hpp">
       <Filter>Program</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Heuristics.hpp">
+      <Filter>Strategies</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

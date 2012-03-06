@@ -272,7 +272,7 @@ static void compare_codewords(
 	Feedback *result,
 	unsigned int *freq)
 {
-	if (result && freq)
+	if (freq && result)
 	{
 		FeedbackUpdater u1(result);
 		FrequencyUpdater u2(freq);
@@ -291,9 +291,9 @@ static void compare_codewords(
 	}
 }
 
-ComparisonRoutine* compare_codewords_generic = compare_codewords<GenericComparer>;
+ComparisonRoutine * const compare_codewords_generic = compare_codewords<GenericComparer>;
 
-ComparisonRoutine* compare_codewords_norepeat = compare_codewords<NoRepeatComparer>;
+ComparisonRoutine * const compare_codewords_norepeat = compare_codewords<NoRepeatComparer>;
 
 
 } // namespace Mastermind

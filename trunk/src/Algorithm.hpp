@@ -30,10 +30,10 @@ typedef void ComparisonRoutine(
 	unsigned int *freq);
 
 /// Pointer to the routine used for comparing generic codewords.
-extern ComparisonRoutine* compare_codewords_generic;
+extern ComparisonRoutine* const compare_codewords_generic;
 
 /// Pointer to the routine used for comparing codewords without repetition.
-extern ComparisonRoutine* compare_codewords_norepeat;
+extern ComparisonRoutine* const compare_codewords_norepeat;
 
 
 /// Generates all codewords that conforms to the given set of rules.

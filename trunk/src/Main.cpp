@@ -56,6 +56,7 @@
 #include "HeuristicStrategy.hpp"
 #include "OptimalStrategy.hpp"
 #include "CodeBreaker.hpp"
+#include "Heuristics.hpp"
 #include "util/io_format.hpp"
 #include "util/hr_timer.hpp"
 
