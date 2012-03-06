@@ -79,26 +79,6 @@ public:
 
 	void select(ComparisonRoutine f) { _compare = f; }
 
-#if 0
-	/// Compares a codeword to a list of codewords.
-	/// @returns A list of feedbacks.
-	/// @timecomplexity <code>O(N)</code>.
-	/// @spacecomplexity <code>O(N)</code>.
-	FeedbackList compare(
-		const Codeword &guess, 
-		CodewordList::const_iterator first,
-		CodewordList::const_iterator last) const
-	{
-		size_t count = last - first;
-		FeedbackList feedbacks(count);
-		if (count > 0)
-		{
-			_compare(_rules, guess, &(*first), &(*first)+count, feedbacks.data());
-		}
-		return feedbacks;
-	}
-#else
-	
 	/// Compares a codeword to a list of codewords.
 	/// @returns A list of feedbacks.
 	/// @timecomplexity <code>O(N)</code>.
@@ -116,7 +96,6 @@ public:
 		}
 		return feedbacks;
 	}
-#endif
 
 	/// Compares two codewords.
 	/// @returns The feedback.
