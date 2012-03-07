@@ -42,6 +42,9 @@
 		<Unit filename="src/Algorithm.hpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
+		<Unit filename="src/Benchmark.hpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
 		<Unit filename="src/CodeBreaker.cpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
@@ -78,13 +81,13 @@
 		<Unit filename="src/Feedback.hpp">
 			<Option virtualFolder="Types/" />
 		</Unit>
-		<Unit filename="src/Frequency.cpp">
-			<Option virtualFolder="Algorithms/" />
-		</Unit>
 		<Unit filename="src/Generation.cpp">
 			<Option virtualFolder="Algorithms/" />
 		</Unit>
 		<Unit filename="src/HeuristicStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Heuristics.hpp">
 			<Option virtualFolder="Strategies/" />
 		</Unit>
 		<Unit filename="src/Interactive.cpp">
@@ -95,6 +98,9 @@
 		</Unit>
 		<Unit filename="src/Mask.cpp">
 			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/ObviousStrategy.cpp">
+			<Option virtualFolder="Strategies/" />
 		</Unit>
 		<Unit filename="src/ObviousStrategy.hpp">
 			<Option virtualFolder="Strategies/" />
@@ -154,6 +160,9 @@
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/util/io_format.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/partition.hpp">
 			<Option virtualFolder="Utilities/" />
 		</Unit>
 		<Unit filename="src/util/pool_allocator.hpp">

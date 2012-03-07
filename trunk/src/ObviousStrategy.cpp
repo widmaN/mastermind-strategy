@@ -48,7 +48,7 @@ StrategyCost estimate_obvious_lowerbound(
 	{
 		if (!visited[i])
 		{
-			for (size_t j = i + 1; j < n; ++j)
+			for (int j = i + 1; j < n; ++j)
 			{
 				if (!visited[j] && contain_same_colors(possibilities[i], possibilities[j]))
 				{
@@ -116,7 +116,7 @@ StrategyCost estimate_obvious_lowerbound(
  *
  * @param e Algorithm engine.
  * @param possibilities List of remaining possibilities.
- * @param max_depth Maximum number of guesses allowed, including the 
+ * @param max_depth Maximum number of guesses allowed, including the
  *      initial guess.
  * @param min_obj Minimum objective that an obvious guess must meet.
  * @param cost If an obvious guess is found, stores the cost of an optimal
@@ -125,7 +125,7 @@ StrategyCost estimate_obvious_lowerbound(
  *      guess optimal.
  *
  * @returns An obvious guess such that an optimal strategy starting with
- *      this guess has the smallest number of total steps, will not take 
+ *      this guess has the smallest number of total steps, will not take
  *      more than max_depth depth, and achieves at least min_obj.
  */
 Codeword make_obvious_guess(
@@ -231,7 +231,7 @@ Codeword make_obvious_guess(
 	// Update the cost.
 	cost = StrategyCost(2*count-1+best_extra, 3, 1);
 
-	// If exactly one cell contains two secrets and all the rest are 
+	// If exactly one cell contains two secrets and all the rest are
 	// singleton, then this guess is guaranteed to be optimal in steps,
 	// and we needn't check further if that's what's required.
 	if (best_extra == 1 && min_obj == MinSteps)
