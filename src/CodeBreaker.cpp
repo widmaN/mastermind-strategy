@@ -1,3 +1,4 @@
+#include <vector>
 #include "CodeBreaker.hpp"
 #include "ObviousStrategy.hpp"
 
@@ -50,63 +51,66 @@ Codeword MakeGuess(
 // Note: This actually can be turned into a tail recursion.
 //       We can do that later if necessary.
 static void FillStrategy(
-	StrategyTree &tree,
-	const StrategyTree::Node &partial_node,
-	Engine &e,
-	CodewordRange secrets,
+	StrategyTree &tree,     // the tree to fill
+	Engine &e,              // algorithm engine
+	unsigned char depth,    // number of guesses made so far
+	const CodewordRange &secrets,  // list of remaining possibilities
 	Strategy *strat,
 	const EquivalenceFilter *filter,
 	const CodeBreakerOptions &options,
 	int *progress)
 {
-	// Create a node.
-	StrategyTree::Node node(partial_node);
-		
 	// Make a guess.
 	Codeword guess = MakeGuess(e, secrets, strat, filter, options);
 	if (guess.empty())
-	{
-		tree.append(node);
 		return;
-	}
-
-	// Fill strategy-related fields and output this node/state.
-	//node.npossibilities = secrets.size();
-	//node.ncandidates = 0; // TBD
-	//node.suggestion = Codeword::pack(guess);
-	tree.append(node);
 
 	// Partition the possibility set using this guess.
 	CodewordPartition cells = e.partition(secrets, guess);
 
-	// Recursively fill the strategy for each non-empty cell in the partition.
+	// Recursively fill the strategy for each possible response.
 	Feedback perfect = Feedback::perfectValue(e.rules());
-	for (size_t k = 0; k < cells.size(); ++k)
+#if _OPENMP
+	// index variable in OpenMP 'for' statement must have signed integral type
+	#pragma omp parallel for schedule(dynamic)
+#endif
+	for (int k = 0; k < (int)cells.size(); ++k)
 	{
-		Feedback feedback(k);
+		// Skip if this cell is empty.
 		CodewordRange cell = cells[k];
 		if (cell.empty())
 			continue;
 
-		// Prepare a node for the child state.
-		StrategyTree::Node child(node.depth() + 1, guess, feedback);
+		// Create a subtree for this state, and add a root node for it.
+		Feedback response(k);
+		StrategyTree subtree(e.rules(), depth);
+		StrategyTree::Node node(depth + 1, guess, response);
+		subtree.append(node);
 
-		if (feedback == perfect)
+		if (response == perfect)
 		{
-			(*progress)++;
+			//(*progress)++;
 			//double pcnt = (double)(*progress) / m_all.size();
 			//printf("\rProgress: %3.0f%%", pcnt*100);
 			//fflush(stdout);
-			tree.append(child);
 		}
 		else
 		{
 			// Create a child filter.
 			std::unique_ptr<EquivalenceFilter> new_filter(filter->clone());
-			new_filter->add_constraint(guess, feedback, cell);
+			new_filter->add_constraint(guess, response, cell);
 
 			// Recursively build the strategy tree.
-			FillStrategy(tree, child, e, cell, strat, new_filter.get(), options, progress);
+			FillStrategy(subtree, e, depth + 1, cell, strat, 
+				new_filter.get(), options, progress);
+		}
+
+		// Add the subtree to the big tree.
+#if _OPENMP
+		#pragma omp critical (CodeBreaker_FillStrategy)
+#endif
+		{
+			tree.append(subtree);
 		}
 	}
 }
@@ -117,11 +121,14 @@ StrategyTree BuildStrategyTree(
 	const EquivalenceFilter *filter,
 	const CodeBreakerOptions &options)
 {
-	StrategyTree tree(e.rules());
 	CodewordList all = e.generateCodewords();
+
+	StrategyTree tree(e.rules());
 	StrategyTree::Node root;
+	tree.append(root);
+
 	int progress = 0;
-	FillStrategy(tree, root, e, all, strat, filter, options, &progress);
+	FillStrategy(tree, e, 0, all, strat, filter, options, &progress);
 	return tree;
 }
 

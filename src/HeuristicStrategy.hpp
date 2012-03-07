@@ -230,7 +230,7 @@ public:
 
 		// OpenMP index variable (i) must have signed integer type.
 #if _OPENMP
-		#pragma omp parallel
+		#pragma omp parallel if (0)
 		{
 			choice_t choice;
 

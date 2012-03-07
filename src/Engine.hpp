@@ -13,7 +13,6 @@
 #include "Algorithm.hpp"
 
 #include "util/aligned_allocator.hpp"
-#include "util/pool_allocator.hpp"
 #include "util/frequency_table.hpp"
 #include "util/range.hpp"
 #include "util/partition.hpp"
@@ -35,7 +34,7 @@ typedef util::range<CodewordList::const_iterator> CodewordConstRange;
 ///////////////////////////////////////////////////////////////////////////
 // Definition of FeedbackList.
 
-typedef std::vector<Feedback,util::pool_allocator<Feedback>> FeedbackList;
+typedef std::vector<Feedback> FeedbackList;
 
 ///////////////////////////////////////////////////////////////////////////
 // Definition of FeedbackFrequencyTable.
