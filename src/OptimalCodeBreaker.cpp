@@ -22,87 +22,6 @@ using namespace Mastermind;
 
 REGISTER_CALL_COUNTER(OptimalRecursion)
 
-/// Represents the partition of a set.
-#if 0
-template <class TKey, size_t Capacity, class Iter>
-class partition
-{
-public:
-
-	struct cell
-	{
-		TKey key;
-		Iter begin;
-		Iter end;
-
-		size_t size() const { return end - begin; }
-	};
-
-	std::array<cell,Capacity> _cells;
-	int _ncells;
-
-	template <class TVal>
-	partition(
-		const util::frequency_table<TKey,TVal,Capacity> &freq,
-		Iter first, Iter last) : _ncells(0)
-	{
-		util::range<Iter> r(first, first);
-		for (size_t i = 0; i < freq.size(); ++i)
-		{
-			if (freq[i] > 0)
-			{
-				r = util::range<Iter>(r.end(), r.end() + freq[j]);
-				cell c;
-				c.key = TKey(i);
-				c.begin = r.begin();
-				c.end = r.end();
-				_cells[_ncells++] = c;
-			}
-		}
-	}
-
-	size_t size() const { return _ncells; }
-
-	typename std::array<cell,Capacity>::iterator begin()
-	{
-		return _cells.begin();
-	}
-
-	typename std::array<cell,Capacity>::iterator end()
-	{
-		return _cells.begin() + _ncells;
-	}
-};
-#endif
-
-//typedef partition<Feedback,256,CodewordRange> CodewordPartition;
-struct CodewordCell : public CodewordRange
-{
-	Feedback feedback;
-	CodewordCell(Feedback fb, CodewordIterator first, CodewordIterator last)
-		: CodewordRange(first, last), feedback(fb) { }
-};
-
-typedef std::vector<CodewordCell> CodewordPartition;
-
-static CodewordPartition
-partition(Engine &e, CodewordRange secrets, const Codeword &guess)
-{
-	FeedbackFrequencyTable freq = e.partition(secrets, guess);
-	CodewordRange range(secrets.begin(), secrets.begin());
-	CodewordPartition cells;
-	for (size_t j = 0; j < freq.size(); ++j)
-	{
-		if (freq[j] > 0)
-		{
-			Feedback fb((unsigned char)j);
-			range = CodewordRange(range.end(), range.end() + freq[j]);
-			cells.push_back(CodewordCell(fb, range.begin(), range.end()));
-		}
-	}
-	return cells;
-}
-
 // Searches for an obviously optimal strategy.
 // If one exists, returns the total cost of the strategy.
 // Otherwise, returns -1.
@@ -183,29 +102,6 @@ static int fill_obviously_optimal_strategy(
 	<< "[" << (depth+1) << "] " << text << std::endl; } } while (0)
 
 typedef HeuristicStrategy<Heuristics::MinimizeLowerBound> LowerBoundEstimator;
-
-#if 0
-struct cost_comparer
-{
-	char max_depth;
-	bool min_worst;
-
-public:
-
-	typedef LowerBoundEstimator::score_type lowerbound_t;
-
-	bool operator () (const lowerbound_t &a, const lowerbound_t &b) const
-	{
-		if (a.steps < b.steps)
-			return true;
-		if (a.steps > b.steps)
-			return false;
-
-		options.min_worst = true;
-		options.find_last = false;
-	}
-};
-#endif
 
 /// @todo: Use heuristic code breaker to estimate an upper bound of total guesses
 /// This could be helpful in pruning obvious bad candidates
@@ -370,11 +266,26 @@ static int fill_strategy_tree(
 		// Partition the remaining secrets using this guess.
 		// Note that after successive calls to @c partition,
 		// the order of the secrets are shuffled. However,
-		// that should not impact the result.
-		CodewordPartition cells = partition(e, secrets, guess);
+		// that should not impact the optimality of the result.
+		CodewordPartition cells = e.partition(secrets, guess);
 
-		// Skip this guess if it generates only one partition.
-		if (cells.size() == 1)
+		// Sort the partitions by their size, so that smaller partitions
+		// (i.e. smaller search trees) are processed first. This helps
+		// to improve the lower bound (slack) at an earlier stage.
+		std::array<int,Feedback::MaxOutcomes> responses;
+		size_t nresponses = cells.size();
+		std::iota(responses.begin(), responses.begin() + nresponses, 0);
+		std::sort(responses.begin(), responses.begin() + nresponses,
+			[&cells](int i, int j) -> bool
+		{
+			return (cells[i].size() > 0) && (cells[i].size() < cells[j].size());
+		});
+
+		// Find the number of availble responses, and skip this guess if it 
+		// generates only one response.
+		while (nresponses > 0 && cells[responses[nresponses-1]].empty())
+			--nresponses;
+		if (nresponses <= 1)
 		{
 			if (verbose)
 				std::cout << "Skipped: guess produces unit partition"
@@ -382,31 +293,21 @@ static int fill_strategy_tree(
 			continue;
 		}
 
-#if 1
-		// Sort the partitions by their size, so that smaller partitions
-		// (i.e. smaller search trees) are processed first. This helps
-		// to improve the lower bound at an earlier stage.
-		std::sort(cells.begin(), cells.end(),
-			[](const CodewordCell &c1, const CodewordCell &c2) -> bool
-		{
-			return c1.size() < c2.size();
-		});
-#endif
-
 		// Estimate a lower bound of the number of steps required
 		// to reveal the secrets in each partition. If the total
 		// lower bound is greater than the cut-off threshold, we
 		// can skip this guess.
 		int lb_part[256]; // note: lb_part doesn't count the initial guess
 		int lb = (int)secrets.size(); // each secret takes 1 initial guess
-		for (size_t j = 0; j < cells.size(); ++j)
+		for (size_t j = 0; j < nresponses; ++j)
 		{
-			if (cells[j].feedback == perfect)
+			Feedback feedback = Feedback(responses[j]);
+			if (feedback == perfect)
 				lb_part[j] = 0;
 			else
 			{
 				lowerbound_t estimate =
-					estimator.heuristic().simple_estimate((int)cells[j].size());
+					estimator.heuristic().simple_estimate((int)cells[feedback.value()].size());
 				lb_part[j] = estimate.steps;
 			}
 			lb += lb_part[j];
@@ -417,29 +318,30 @@ static int fill_strategy_tree(
 		//assert(lb == scores[i]);
 
 		if (verbose)
-			std::cout << cells.size() << " cells, lower bound = "
+			std::cout << nresponses << " cells, lower bound = "
 			<< lb << ", best = " << best << std::endl;
 
 		// Find the best guess for each partition.
 		bool pruned = false;
 		int node_pos = (int)tree.nodes().size(); // -1;
-		for (size_t j = 0; j < cells.size() && !pruned; ++j)
+		for (size_t j = 0; j < nresponses && !pruned; ++j)
 		{
-			const CodewordCell &cell = cells[j];
+			Feedback feedback = Feedback(responses[j]);
+			const CodewordRange &cell = cells[feedback.value()];
 
 			// Add this node to the strategy tree.
-			StrategyTree::Node node(depth + 1, guess, cell.feedback);
+			StrategyTree::Node node(depth + 1, guess, feedback);
 			tree.append(node);
 
 			// Do not recurse for a perfect match.
-			if (cell.feedback == perfect)
+			if (feedback == perfect)
 			{
-				VERBOSE_COUT("- Checking cell " << cell.feedback
+				VERBOSE_COUT("- Checking cell " << feedback
 					<< " -> perfect");
 				continue;
 			}
 
-			VERBOSE_COUT("- Checking cell " << cell.feedback
+			VERBOSE_COUT("- Checking cell " << feedback
 				<< " -> lower bound = " << lb_part[j]);
 
 			// Short-cut if only one additional guess is allowed
@@ -471,7 +373,7 @@ static int fill_strategy_tree(
 				//	<< " -> lower bound = " << lb_part[j]);
 
 				std::unique_ptr<EquivalenceFilter> new_filter(filter->clone());
-				new_filter->add_constraint(guess, cell.feedback, cell);
+				new_filter->add_constraint(guess, feedback, cell);
 
 				cell_cost = fill_strategy_tree(e, cell, new_filter.get(), estimator,
 					depth + 1, cut_off - (lb - lb_part[j]), options, tree);
@@ -498,7 +400,7 @@ static int fill_strategy_tree(
 			lb_part[j] = cell_cost;
 			if (lb >= cut_off + cut_off_delta)
 			{
-				VERBOSE_COUT("Skipping " << (cells.size()-j-1) << " remaining "
+				VERBOSE_COUT("Skipping " << (nresponses-j-1) << " remaining "
 					<< "partitions because lower bound (" << lb << ") >= best ("
 					<< best << ")");
 				pruned = true;

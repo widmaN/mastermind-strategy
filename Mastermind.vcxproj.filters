@@ -155,5 +155,8 @@
     <ClInclude Include="src\Heuristics.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
+    <ClInclude Include="src\util\partition.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

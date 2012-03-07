@@ -34,38 +34,6 @@ struct Constraint
 		: guess(_guess), response(_response) { }
 };
 
-class CodewordPartition
-{
-	size_t _size;
-	CodewordIterator _begin[257];
-
-public:
-	CodewordPartition() : _size(0) { }
-	CodewordPartition(CodewordRange secrets, const FeedbackFrequencyTable &freq)
-		: _size(freq.size())
-	{
-		_begin[0] = secrets.begin();
-		for (size_t j = 0; j < freq.size(); ++j)
-		{
-			_begin[j+1] = _begin[j] + freq[j];
-		}
-		assert(_begin[_size] == secrets.end());
-	}
-
-	size_t size() const { return _size; }
-
-	CodewordRange operator [] (size_t i) const
-	{
-		assert(i >= 0 && i < _size);
-		return CodewordRange(_begin[i], _begin[i+1]);
-	}
-
-	CodewordRange operator [] (Feedback feedback) const
-	{
-		return operator [] ((size_t)feedback.value());
-	}
-};
-
 class Analyst
 {
 	Engine e;
@@ -102,9 +70,8 @@ public:
 	{
 		// Partition the remaining possibilities.
 		CodewordRange remaining = _secrets.back();
-		FeedbackFrequencyTable freq = e.partition(remaining, guess);
-		CodewordPartition part(remaining, freq);
-		remaining = part[response];
+		CodewordPartition cells = e.partition(remaining, guess);
+		remaining = cells[response.value()];
 
 		// Update internal state.
 		_constraints.push_back(Constraint(guess, response));

@@ -12,9 +12,15 @@ It is fair to expect that a tailored-heuristic to one configuration of the rules
 
 See \cite{pepperdine10} for a list of heuristic functions.
 
+[tie-breaker policy]
+
+All known heuristic strategies work on the partition of the remaining secrets by a candidate guess. Notations: Let $S$ be the set of remaining possibilities. Let $\tilde{S}$ be the set of remaining possibilities after the guess, which is a random variable depending on the guess and the secret. Let $n = \#\{S\}$ be the number of remaining possibilities, and let $\tilde{n} = \#\{\tilde{S}\}$ be the number of remaining possibilities after a guess. Let a guess partition the remaining possibilities into $r$ cells $V_1, \ldots, V_r$, where the number of secrets in cell $i$ is $n_i = \#\{V_i\}$. Let $x$ be the unknown secret.
+
+
+
 \section{The Min-Max heuristic}
 
-Knuth \cite{knuth76} published the first paper on Mastermind, where he introduced a heuristic strategy aiming at minimizing the worst-case number of remaining possibilities.
+Knuth \cite{knuth76} published the first systematic paper on Mastermind, where he introduced a heuristic strategy aiming at minimizing the worst-case number of remaining possibilities.
 
 The same heuristic function first appeared in \cite{aleph71} for the Bulls and cows game, but was not elaborated.
 
@@ -26,7 +32,28 @@ Note: If two guesses yield the same worst-case partition, the second-to-worst pa
 
 \section{The Min-Average heuristic}
 
-Rationale: fewer remaining possibilities is better. We want to minimize the expected partition size.
+Rationale: fewer remaining possibilities is better. We want to minimize the expected partition size (number of remaining possibilities).
+
+The objective function to minimize is
+\[
+E[\tilde{n}] = \sum_{i=1}^r P(x \in V_i) \# \{ V_i \}
+\]
+Now we assume each remaining possibility is equally likely to be the secret. Then the above is transformed to
+\[
+E[\tilde{n}] = \sum_{i=1}^r \frac{n_i}{n} n_i = \frac{1}{n}  \sum_{i=1}^r n_i^2 .
+\]
+Minimizing this expectation is equivalent to minimizing the heuristic function
+\[
+h(P) = \sum_{i=1}^r n_i^2 .
+\]
+
+
+[Gini Index]
+
+A correction for perfect match is useful. If the guess is among the remaining possibilities, then one of the responses is the perfect match, which accounts for a partition of size 1. However, we don't need to make any further guesses in this case. So this partition should be excluded when calculating the expected \emph{remaining} count. This can be corrected by applying the following correction term:
+\[
+-1 .
+\]
 
 \section{The Max-Entropy heuristic}
 

@@ -77,19 +77,16 @@ static void FillStrategy(
 	tree.append(node);
 
 	// Partition the possibility set using this guess.
-	FeedbackFrequencyTable freq = e.partition(secrets, guess);
+	CodewordPartition cells = e.partition(secrets, guess);
 
 	// Recursively fill the strategy for each non-empty cell in the partition.
-	CodewordRange cell(secrets.begin(), secrets.begin());
 	Feedback perfect = Feedback::perfectValue(e.rules());
-	for (size_t k = 0; k < freq.size(); ++k)
+	for (size_t k = 0; k < cells.size(); ++k)
 	{
-		Feedback feedback((unsigned char)k);
-		if (freq[k] == 0)
+		Feedback feedback(k);
+		CodewordRange cell = cells[k];
+		if (cell.empty())
 			continue;
-
-		// Select the possibility set with this feedback.
-		cell = CodewordRange(cell.end(), cell.end() + freq[k]);
 
 		// Prepare a node for the child state.
 		StrategyTree::Node child(node.depth() + 1, guess, feedback);
@@ -127,28 +124,5 @@ StrategyTree BuildStrategyTree(
 	FillStrategy(tree, root, e, all, strat, filter, options, &progress);
 	return tree;
 }
-
-#if 0
-// Minimize steps heuristic
-int Heuristics::MinimizeSteps::compute(const FeedbackFrequencyTable &freq)
-{
-	int minsteps = 0;
-	for (int fbv = 0; fbv <= freq.maxFeedback(); fbv++) {
-		Feedback fb(fbv);
-		int n = freq[fb];
-		if (n > 0) {
-			if (fb == Feedback::Perfect(4)) {
-				//
-			} else {
-				minsteps += n;
-				minsteps += partition_score[n];
-			}
-		}
-	}
-	return minsteps;
-}
-
-int Heuristics::MinimizeSteps::partition_score[10000];
-#endif
 
 } // namespace Mastermind

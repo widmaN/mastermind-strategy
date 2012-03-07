@@ -5,16 +5,18 @@
 #ifndef MASTERMIND_ENGINE_HPP
 #define MASTERMIND_ENGINE_HPP
 
+#include <vector>
+
 #include "Rules.hpp"
 #include "Codeword.hpp"
 #include "Feedback.hpp"
 #include "Algorithm.hpp"
 
-#include <vector>
 #include "util/aligned_allocator.hpp"
 #include "util/pool_allocator.hpp"
 #include "util/frequency_table.hpp"
 #include "util/range.hpp"
+#include "util/partition.hpp"
 #include "util/bitmask.hpp"
 
 namespace Mastermind {
@@ -38,9 +40,14 @@ typedef std::vector<Feedback,util::pool_allocator<Feedback>> FeedbackList;
 ///////////////////////////////////////////////////////////////////////////
 // Definition of FeedbackFrequencyTable.
 
-typedef 
-	util::frequency_table<Feedback,unsigned int,Feedback::MaxOutcomes>
+typedef util::frequency_table<Feedback,unsigned int,Feedback::MaxOutcomes>
 	FeedbackFrequencyTable;
+
+///////////////////////////////////////////////////////////////////////////
+// Definition of FeedbackFrequencyTable.
+
+typedef util::partition_cells<CodewordIterator,Feedback::MaxOutcomes>
+	CodewordPartition;
 
 ///////////////////////////////////////////////////////////////////////////
 // Definition of ColorMask.
@@ -133,15 +140,11 @@ public:
 
 	/**
 	 * Partitions a list of codewords by their feedback when compared to
-	 * a given guess.
-	 *
-	 * The codewords in the list are re-ordered in-place, such that codewords
-	 * with the same feedback when compared to @c guess are stored 
-	 * consecutively.
-	 *
-	 * The feedback frequency table is returned as a by-product.
+	 * a given guess. The codewords in the list are re-ordered in-place
+	 * such that codewords with the same feedback when compared to @c guess
+	 * are stored consecutively.
 	 */
-	FeedbackFrequencyTable partition(
+	CodewordPartition partition(
 		CodewordRange codewords, 
 		const Codeword &guess) const;
 
