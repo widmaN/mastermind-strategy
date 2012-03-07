@@ -29,6 +29,7 @@ REGISTER_CALL_COUNTER(OptimalRecursion)
 static int fill_obviously_optimal_strategy(
 	Engine &e,
 	CodewordRange secrets,
+	int current_depth,
 	bool min_depth,    // whether to minimize the worst-case depth
 	int max_depth,     // maximum number of extra guesses, not counting
 	                   // the initial guess
@@ -60,7 +61,7 @@ static int fill_obviously_optimal_strategy(
 	FeedbackList fbs;
 	e.compare(guess, secrets, fbs);
 	size_t n = secrets.size();
-	int depth = tree.currentDepth();
+	int depth = current_depth + 1; // tree.currentDepth();
 	int cost = 0;
 
 	for (size_t j = 0; j < Feedback::size(e.rules()); ++j)
@@ -358,7 +359,7 @@ static int fill_strategy_tree(
 			// @todo "mastermind -v -s optimal -r mm -md 5" doesn't
 			// respect the "-md 5" option.
 			int cell_cost = fill_obviously_optimal_strategy(
-				e, cell, options.min_depth, options.max_depth, tree);
+				e, cell, depth, options.min_depth, options.max_depth, tree);
 			if (cell_cost >= 0)
 			{
 				//VERBOSE_COUT("- Checking cell " << cell.feedback
@@ -448,8 +449,8 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 
 	// Create a strategy tree and add a level-0 root node.
 	StrategyTree tree(e.rules());
-	StrategyTree::Node root;
-	tree.append(root);
+	//StrategyTree::Node root;
+	//tree.append(root);
 
 	// Set options.
 	OptimalStrategyOptions options;

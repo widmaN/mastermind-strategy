@@ -81,11 +81,10 @@ static void FillStrategy(
 		if (cell.empty())
 			continue;
 
-		// Create a subtree for this state, and add a root node for it.
+		// Create a subtree rooted from this guess/response pair.
 		Feedback response(k);
-		StrategyTree subtree(e.rules(), depth);
 		StrategyTree::Node node(depth + 1, guess, response);
-		subtree.append(node);
+		StrategyTree subtree(e.rules(), node);
 
 		if (response == perfect)
 		{
@@ -124,8 +123,8 @@ StrategyTree BuildStrategyTree(
 	CodewordList all = e.generateCodewords();
 
 	StrategyTree tree(e.rules());
-	StrategyTree::Node root;
-	tree.append(root);
+	//StrategyTree::Node root;
+	//tree.append(root);
 
 	int progress = 0;
 	FillStrategy(tree, e, 0, all, strat, filter, options, &progress);
