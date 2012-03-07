@@ -8,6 +8,7 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <cstring>
 
 namespace util {
 
@@ -29,7 +30,11 @@ public:
 	frequency_table(size_t n) : _count(n) 
 	{
 		assert(n <= Capacity);
+#if 1
 		std::fill(_freq + 0, _freq + n, TVal(0));
+#else
+		memset(_freq, 0, sizeof(TVal)*n);
+#endif
 	}
 
 	/// Returns the size of the frequency table.

@@ -295,5 +295,20 @@ ComparisonRoutine * const compare_codewords_generic = compare_codewords<GenericC
 
 ComparisonRoutine * const compare_codewords_norepeat = compare_codewords<NoRepeatComparer>;
 
+#if 0
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	unsigned int *freq)
+{
+	FrequencyUpdater update(freq);
+	if (rules.repeatable())
+		compare_codewords<GenericComparer>(secret, guesses, count, update);
+	else
+		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
+}
+#endif
 
 } // namespace Mastermind
