@@ -340,12 +340,14 @@ static int build_strategy(
 	}
 	double t = timer.stop();
 
+	WriteStrategy_TextFormat(std::cout, tree);
+
 	StrategyTreeInfo info(name, tree, t);
 	if (verbose)
 	{
 		std::cout << util::header;
+		std::cout << info;
 	}
-	std::cout << info;
 
 	// Display debug info if required.
 	if (verbose >= 2)
