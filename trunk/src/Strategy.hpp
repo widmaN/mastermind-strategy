@@ -27,6 +27,26 @@ enum StrategyObjective
 	MinWorst = 3,
 };
 
+/** 
+ * Defines the constraints of the strategy.
+ */
+struct StrategyConstraints
+{
+	/// Maximum number of guesses allowed for any single secret.
+	unsigned char max_depth;
+
+	/// Flag indicating whether to make a guess only from the remaining
+	/// possibilities.
+	bool pos_only; 
+
+	/// Flag indicating if an obvious guess can be used if available.
+	bool use_obvious; 
+
+	/// Creates a default set of (non-)constraints.
+	StrategyConstraints()
+		: max_depth(100), pos_only(false), use_obvious(true) { }
+};
+
 /**
  * Represents the cost of a strategy in terms of the number of guesses
  * required to reveal the secrets.

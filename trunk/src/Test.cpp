@@ -226,12 +226,12 @@ static void test_initial_guesses_in_equivalence_filter(
 static void display_partition_size(
 	Engine &e, CodewordRange secrets, const Codeword &guess)
 {
-	FeedbackFrequencyTable freq = e.partition(secrets, guess);
-	for (size_t i = 0; i < freq.size(); ++i)
+	CodewordPartition parts = e.partition(secrets, guess);
+	for (size_t i = 0; i < parts.size(); ++i)
 	{
 		if (i > 0)
 			std::cout << ",";
-		std::cout << freq[i];
+		std::cout << parts[i].size();
 	}
 }
 
@@ -247,31 +247,29 @@ static void test_partition_size(Engine &e, const char *name)
 	// std::cout << g1 << std::endl;
 
 	// Partition the codeword set by g1.
-	FeedbackFrequencyTable freq = e.partition(all, g1);
-	int k = 0;
-	for (size_t i = 0; i < freq.size(); ++i)
+	CodewordPartition parts = e.partition(all, g1);
+	for (size_t i = 0; i < parts.size(); ++i)
 	{
-		if (freq[i] > 0)
-		{
-			// Add constraint.
-			auto child = std::unique_ptr<EquivalenceFilter>(filter->clone());
-			CodewordRange part(all.begin() + k, all.begin() + k + freq[i]);
-			child->add_constraint(g1, Feedback((unsigned char)i), part);
-			CodewordList canonical = child->get_canonical_guesses(e.universe());
-			std::cout << "Feedback: " << Feedback((unsigned char)i) << ", #remaining = "
-				<< part.size() <<  ", #{g2} = " << canonical.size() << std::endl;
+		CodewordRange part = parts[i];
+		if (part.empty())
+			continue;
 
-			if (1)
+		// Add constraint.
+		auto child = std::unique_ptr<EquivalenceFilter>(filter->clone());
+		child->add_constraint(g1, Feedback(i), part);
+		CodewordList canonical = child->get_canonical_guesses(e.universe());
+		std::cout << "Feedback: " << Feedback(i) << ", #remaining = "
+			<< part.size() <<  ", #{g2} = " << canonical.size() << std::endl;
+
+		if (1)
+		{
+			// Display how each guess partitions the remaining secrets.
+			for (size_t j = 0; j < canonical.size() && j < 5; ++j)
 			{
-				// Display how each guess partitions the remaining secrets.
-				for (size_t j = 0; j < canonical.size() && j < 5; ++j)
-				{
-					std::cout << canonical[j] << ": ";
-					display_partition_size(e, part, canonical[j]);
-					std::cout << std::endl;
-				}
+				std::cout << canonical[j] << ": ";
+				display_partition_size(e, part, canonical[j]);
+				std::cout << std::endl;
 			}
-			k += freq[i];
 		}
 	}
 }

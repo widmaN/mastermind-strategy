@@ -26,13 +26,13 @@ CodewordList Engine::filterByFeedback(
 	return result;
 }
 
-FeedbackFrequencyTable Engine::partition(
+CodewordPartition Engine::partition(
 	CodewordRange codewords,
 	const Codeword &guess) const
 {
 	// If there's no element in the list, do nothing.
 	if (codewords.empty())
-		return FeedbackFrequencyTable();
+		return CodewordPartition();
 
 	// Compare the guess to each codeword in the list.
 	FeedbackList fbl;
@@ -89,7 +89,8 @@ FeedbackFrequencyTable Engine::partition(
 			std::swap(fbl[i], fbl[j]);
 		}
 	}
-	return freq;
+	//return freq;
+	return CodewordPartition(codewords, freq);
 }
 
 } // namespace Mastermind

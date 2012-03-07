@@ -179,6 +179,7 @@
     <ClInclude Include="src\util\hr_timer.hpp" />
     <ClInclude Include="src\util\intrinsic.hpp" />
     <ClInclude Include="src\util\io_format.hpp" />
+    <ClInclude Include="src\util\partition.hpp" />
     <ClInclude Include="src\util\pool_allocator.hpp" />
     <ClInclude Include="src\util\range.hpp" />
     <ClInclude Include="src\util\simd.hpp" />

@@ -227,36 +227,6 @@ void WriteToFile<XmlFormat>(std::ostream &os, const StrategyTree &tree)
 	os << "</mastermind-strategy>" << std::endl;
 }
 
-#if 0
-//typedef partition<Feedback,256,CodewordRange> CodewordPartition;
-struct CodewordCell : public CodewordRange
-{
-	Feedback feedback;
-	CodewordCell(Feedback fb, CodewordIterator first, CodewordIterator last)
-		: CodewordRange(first, last), feedback(fb) { }
-};
-
-typedef std::vector<CodewordCell> CodewordPartition;
-
-static CodewordPartition
-partition(Engine &e, CodewordRange secrets, const Codeword &guess)
-{
-	FeedbackFrequencyTable freq = e.partition(secrets, guess);
-	CodewordRange range(secrets.begin(), secrets.begin());
-	CodewordPartition cells;
-	for (size_t j = 0; j < freq.size(); ++j)
-	{
-		if (freq[j] > 0)
-		{
-			Feedback fb((unsigned char)j);
-			range = CodewordRange(range.end(), range.end() + freq[j]);
-			cells.push_back(CodewordCell(fb, range.begin(), range.end()));
-		}
-	}
-	return cells;
-}
-#endif
-
 /*
 Example:
 1296 (1123: 2 (2311), 44A, 222B, 276C, 81D; 4 (1312), 84E, 230F, 182G; 5 (1321: 1, 0, 0, 0,
@@ -368,13 +338,15 @@ static bool ReadSituation_TextFormat(
 			// a04,a03,a02,a01,a00;a13,a12,a11,a10;a22,a21,a20;a30;a40
 
 			// Let's partition the remaining secrets first.
-			FeedbackFrequencyTable freq = e.partition(secrets, guess);
+			CodewordPartition parts = e.partition(secrets, guess);
+#if 0
 			CodewordIterator parts[257];
 			parts[0] = secrets.begin();
 			for (size_t j = 0; j < freq.size(); ++j)
 			{
 				parts[j+1] = parts[j] + freq[j];
 			}
+#endif
 
 			int p = e.rules().pegs();
 			for (int nA = 0; nA <= p; ++nA)
@@ -415,7 +387,7 @@ static bool ReadSituation_TextFormat(
 
 					// Check sub-situation size.
 					size_t j = Feedback(nA, nB).value();
-					CodewordRange cell(parts[j], parts[j+1]);
+					CodewordRange cell = parts[j];
 					if (n != cell.size())
 					{
 						PARSING_WARNING("mismatch in number of possibilities: "

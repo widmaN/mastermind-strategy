@@ -1,41 +1,36 @@
 \chapter{Optimal Strategies}
 
-After examining a variety of heuristic strategies that perform variably under different configuration of rules, a natural question arise: for a given set of rules, is there an optimal strategy? The answer is ``yes''. In this chapter, we are going to explore the techniques that enable us to find such a strategy.
+After examining a variety of heuristic strategies that perform variably under different configuration of rules, a natural question arise: for a given set of rules, does there exist an \emph{optimal} strategy? The answer is ``yes''. In this chapter, we will explore several techniques that enable us to find such a strategy.
 
 \section{Overview}
 
-An \emph{optimal strategy} is a strategy that achieves a certain objective in an optimal manner. Three types of objectives are typical:
+An \emph{optimal strategy} is a strategy that achieves a certain objective in an optimal manner. In this chapter, we will focus on the following three objectives, in order of  strength of optimality:\footnote{In each objective presented, we could replace ``reveal'' with ``determine'', which are subtly different from an information perspective (see 2.4). The overall methodology remains the same. Therefore in this chapter we will focus on strategies that aim to reveal the secret.}
 
-1) To minimize the worst-case number of guesses needed to reveal the secret.
+\emph{Min-Steps} objective. To minimize the average number of guesses needed to reveal a secret, assuming each codeword is equally likely to be the secret. This is equivalent to minimizing the total number of guesses needed to reveal all secrets.
 
-2) To minimize the average number of guesses needed to reveal the secret.
+\emph{Min-Depth} objective. Subject to being optimal in \emph{Min-Steps} sense, also minimize the maximum number of guesses required to reveal any single secret.
 
-3) To minimize the average number of guesses while keeping the worse-case steps to a minimum.
-
-Note that in each case, we could replace ``reveal'' with ``determine'', which are subtly different from an information perspective (see 2.4). However the overall methodology will remain the same. Therefore in the following we will proceed with the above goals and give results to the ``determine'' version along the way.
-
-For the first goal, the \minmax{} heuristic strategy (2.2) already provides an optimal solution, as it reveals all secrets with no more than 5 guesses and any strategy cannot use fewer [proof???]. So in this chapter we will focus on the second and third objectives.
+\emph{Min-Worst} objective. Subject to being optimal in \emph{Min-Depth} sense, also minimize the number of secrets that are revealed using the maximum number of guesses.
 
 Note that there may be other objectives for a strategy, such as minimizing the number of guesses evaluated. See, for example, Temporel and Kovacs (2003). However, those objectives are not studied in this chapter.
 
-The theory to find an optimal strategy is simple. Since the number of possible secrets as well as sequence of (non-redundant) guesses are finite, the code breaker can employ a depth-first search to find out the optimal guessing strategy.
+Optionally, additional constraints could be enforced for an optimal strategy. Commonly used constraints include:
 
-The optimal strategy minimizes the expected number of guesses, optionally subject to a maximum-guesses constraint. Finding such a strategy involves exhaustive search, and therefore is too slow to be suitable for real-time application. For more details on the implementation, see optimal strategies.
+\emph{Max-Depth} constraint. This constraint limits the maximum number of guesses allowed to reveal any single secret. For certain configuration of rules, this constraint does have a meaningful impact on the result. See Koyama(93) for an example.
+
+\emph{Possibility-Only} constraint. This constraint requires all guesses to be made from the remaining possibilities. This significantly reduces the complexity of searching at the cost of yielding sub-optimal solutions, and was employed in 1980's when computation power was limited. For example, see \cite{neuwirth81}.
+
+The theory to find an optimal strategy is simple. Since the number of possible secrets as well as sequence of (non-redundant) guesses are finite, the code breaker can employ an exhaustive search to find out the optimal guessing strategy. However, the scale of the problem is very big and many optimization techniques are required to achieve an efficient (or even feasible) implementation. These technique are discussed in this chapter.
+
+[could copy Neuwirth's illustration of finding an optimal strategy]
 
 [show the search scale of the problem]
 
 [show that an optimal strategy is not unique]
 
-[Tanaka also noted that a strategy which produces a minimum expected
-game length is not the optimal strategy for head-to-head play between two human
-opponents when a win by any number of moves scores the same as a win by a
-single move.] What does this mean??
-
-
 \section{Obvious Guesses}
 
 Some definitions. Partitions, feedback count, etc.
-
 
 
 While finding an optimal strategy for the general game is complex, in certain cases it's easy. For example, when there's only one possibility left, we should guess it. When there are only two possibilities left, we should guess (either) one of them. [these appear in Neuwirth 82]. When there are more than two possibilities, it's still possible.
