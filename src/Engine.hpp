@@ -5,6 +5,7 @@
 #ifndef MASTERMIND_ENGINE_HPP
 #define MASTERMIND_ENGINE_HPP
 
+#include <cassert>
 #include <vector>
 
 #include "Rules.hpp"
@@ -93,11 +94,13 @@ public:
 		const Codeword &guess, 
 		CodewordConstRange secrets) const
 	{
-		if (secrets.empty())
-			return FeedbackFrequencyTable();
-
+		// Note: it is critical to structure the code in such a way that
+		// enables Return Value Optimization for the compier. This can
+		// lead to 7-10% performance difference.
+		assert(!secrets.empty());
 		FeedbackFrequencyTable freq(Feedback::size(rules()));
 		_compare(guess, &secrets[0], secrets.size(), 0, freq.data());
+		//compare_codewords(_rules, guess, &secrets[0], secrets.size(), freq.data());
 		return freq;
 	}
 

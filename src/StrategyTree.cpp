@@ -150,11 +150,13 @@ void WriteState_TextFormat(
 
 	// Now we need to elaborate the sub-strategy for each possible response.
 	// If labelling is allowed, we will create a symbol for this.
+	int p = tree.rules().pegs();
+	bool use_symbol = (symbol_level > 0) && (root > 0) && 
+		(state.total_secrets() >= (unsigned int)(p*(p+3)/2));
 	std::ostringstream strs;
-	std::ostream &ss = (symbol_level > 0 && root > 0)? strs : os;
+	std::ostream &ss = use_symbol ? strs : os;
 
 	ss << " (" << state.suggestion() << ":";
-	int p = tree.rules().pegs();
 	for (int a = 0; a <= p; ++a)
 	{
 		for (int b = p - a; b >= 0; --b)
@@ -181,7 +183,7 @@ void WriteState_TextFormat(
 		}
 	}
 
-	if (symbol_level > 0 && root > 0)
+	if (use_symbol)
 	{
 		char label = (char)('A' + symbols.size());
 		symbols.insert(std::pair<char,std::string>(label, strs.str()));

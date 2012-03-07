@@ -35,6 +35,14 @@ extern ComparisonRoutine* const compare_codewords_generic;
 /// Pointer to the routine used for comparing codewords without repetition.
 extern ComparisonRoutine* const compare_codewords_norepeat;
 
+#if 0
+void compare_codewords(
+	const Rules &rules,
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	unsigned int *freq);
+#endif
 
 /// Generates all codewords that conforms to the given set of rules.
 typedef size_t (*GenerationRoutine)(
