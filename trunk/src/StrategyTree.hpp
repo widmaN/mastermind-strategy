@@ -101,6 +101,7 @@ private:
 	// std::string _name;
 	Rules _rules;
 	std::vector<Node> _nodes;
+	unsigned char _root_depth;
 
 	// Maintain an index to the first element of each depth in the
 	// latest branch.
@@ -108,7 +109,8 @@ private:
 
 public:
 
-	StrategyTree(const Rules &rules) : _rules(rules)
+	StrategyTree(const Rules &rules, unsigned char root_depth = 0)
+		: _rules(rules), _root_depth(root_depth)
 	{
 #if 0
 		// Add a root node.
@@ -167,7 +169,7 @@ public:
 	/// Returns the index of the added node.
 	size_t append(const Node &node) // rename as push?
 	{
-		assert(node._depth >= 0 && node._depth <= currentDepth() + 1);
+		// assert(node._depth >= 0 && node._depth <= currentDepth() + 1);
 
 		// Append the node to the tree.
 		size_t index = _nodes.size();
@@ -187,6 +189,11 @@ public:
 		}
 #endif
 		return index;
+	}
+
+	void append(const StrategyTree &subtree)
+	{
+		_nodes.insert(_nodes.end(), subtree._nodes.begin(), subtree._nodes.end());
 	}
 
 #if 0

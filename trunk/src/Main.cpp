@@ -512,6 +512,7 @@ int main(int argc, char* argv[])
 	// Set number of threads.
 #ifdef _OPENMP
 	omp_set_num_threads(mt);
+	omp_set_nested(0);
 #endif
 
 	// Create an algorithm engine.

@@ -98,6 +98,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <DisableSpecificWarnings>4127;4201;4512</DisableSpecificWarnings>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -180,7 +181,6 @@
     <ClInclude Include="src\util\intrinsic.hpp" />
     <ClInclude Include="src\util\io_format.hpp" />
     <ClInclude Include="src\util\partition.hpp" />
-    <ClInclude Include="src\util\pool_allocator.hpp" />
     <ClInclude Include="src\util\range.hpp" />
     <ClInclude Include="src\util\simd.hpp" />
     <ClInclude Include="src\util\wrapped_float.hpp" />
