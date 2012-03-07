@@ -7,7 +7,7 @@
 
 namespace Mastermind {
 
-/** 
+/**
  * Defines the objectives of a strategy. Here we implement three types of
  * objectives, in order of their strength (i.e. an objective with a larger
  * numeric value if strictly more optimal than an objective with a smaller
@@ -18,7 +18,7 @@ enum StrategyObjective
 	// Minimize the total number of guesses needed to reveal all secrets.
 	MinSteps = 1,
 
-	// In addition to @c MinSteps, also minimize the maximum number of 
+	// In addition to @c MinSteps, also minimize the maximum number of
 	// guesses required to reveal any given secret.
  	MinDepth = 2,
 
@@ -27,7 +27,7 @@ enum StrategyObjective
 	MinWorst = 3,
 };
 
-/** 
+/**
  * Defines the constraints of the strategy.
  */
 struct StrategyConstraints
@@ -37,10 +37,10 @@ struct StrategyConstraints
 
 	/// Flag indicating whether to make a guess only from the remaining
 	/// possibilities.
-	bool pos_only; 
+	bool pos_only;
 
 	/// Flag indicating if an obvious guess can be used if available.
-	bool use_obvious; 
+	bool use_obvious;
 
 	/// Creates a default set of (non-)constraints.
 	StrategyConstraints()
@@ -69,7 +69,7 @@ struct StrategyCost
 	union
 	{
 		unsigned long long value;
-		struct 
+		struct
 		{
 			unsigned short worst; // number of secrets revealed using max depth
 			unsigned short depth; // number of guesses needed in the worst case
@@ -79,7 +79,7 @@ struct StrategyCost
 
 	StrategyCost() : value(0) { }
 	StrategyCost(unsigned int _steps, unsigned short _depth, unsigned short _worst)
-		: steps(_steps), depth(_depth), worst(_worst) { }
+		: worst(_worst),  depth(_depth), steps(_steps) { }
 };
 
 /// Compares the costs of two strategies.
@@ -130,7 +130,7 @@ inline bool superior(const StrategyCost &a, const StrategyCost &b, StrategyObjec
  *   - heuristic strategy
  *   - optimal strategy
  *   - playback strategy (reads from a strategy tree)
- * 
+ *
  * @ingroup strat
  */
 struct Strategy
@@ -151,7 +151,7 @@ struct Strategy
 	 *      under which the call fails is implementation-specific.
 	 */
 	virtual Codeword make_guess(
-		CodewordConstRange possibilities, 
+		CodewordConstRange possibilities,
 		CodewordConstRange candidates) const = 0;
 };
 
