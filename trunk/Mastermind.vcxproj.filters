@@ -155,5 +155,8 @@
     <ClInclude Include="src\util\partition.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\util\simple_tree.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -4,10 +4,10 @@
 #ifndef UTILITIES_HR_TIMER_HPP
 #define UTILITIES_HR_TIMER_HPP
 
-#define HAS_CHRONO 1
-
-#if HAS_CHRONO
-#include <chrono>
+#if _OPENMP
+#include <omp.h>
+#else
+#include <ctime>
 #endif
 
 namespace util
@@ -17,21 +17,22 @@ namespace util
 /// @ingroup HRTimer
 class hr_timer
 {
-#if HAS_CHRONO
-	typedef std::chrono::high_resolution_clock clock;
-	clock::time_point m_start;
+#if _OPENMP
+	double _start;
 #endif
 
 public:
 
 	/// Creates a timer.
-	hr_timer() { }
+	hr_timer() : _start(0.0) { }
 
 	/// Starts timing.
 	void start()
 	{
-#if HAS_CHRONO
-		m_start = clock::now();
+#if _OPENMP
+		_start = omp_get_wtime();
+#else
+		_start = (double)time(NULL);
 #endif
 	}
 
@@ -39,11 +40,10 @@ public:
 	/// since the last call to <code>start()</code>.
 	double stop()
 	{
-#if HAS_CHRONO
-		std::chrono::duration<double> t1 = clock::now() - m_start;
-		return t1.count();
+#if _OPENMP
+		return omp_get_wtime() - _start;
 #else
-		return 0.0;
+		return (double)time(NULL) - _start;
 #endif
 	}
 };
