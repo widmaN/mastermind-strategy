@@ -14,9 +14,9 @@ template <class T, class TDepth> class simple_tree;
 template <class T, class TDepth, bool IsConst>
 class simple_tree_iterator
 {
-	typedef typename std::conditional<IsConst, 
+	typedef typename std::conditional<IsConst,
 		const simple_tree<T,TDepth>, simple_tree<T,TDepth> >::type Tree;
-	
+
 	// typedef simple_tree_iterator<T,TDepth,IsConst> self_type;
 
 	Tree * _tree;
@@ -34,14 +34,14 @@ public:
 	typedef std::ptrdiff_t difference_type;
 
 	/// Type of reference to data.
-	typedef typename std::conditional<IsConst, 
+	typedef typename std::conditional<IsConst,
 		const value_type &, value_type &>::type reference;
 
 	/// Type of const reference to data.
 	typedef const value_type & const_reference;
 
 	/// Type of pointer to data.
-	typedef typename std::conditional<IsConst, 
+	typedef typename std::conditional<IsConst,
 		const value_type *, value_type *>::type pointer;
 
 	/// Type of const pointer to data.
@@ -52,7 +52,7 @@ public:
 
 	/// Copy-constructs an iterator.
 	simple_tree_iterator(const simple_tree_iterator<T,TDepth,false> &other)
-		: _tree(other.tree()), _index(other.index()) { }
+		: _tree((Tree*)other.tree()), _index(other.index()) { }
 
 	/// Constructs an iterator that points to a specific node in a tree.
 	simple_tree_iterator(Tree *tree, size_t index)
@@ -131,7 +131,7 @@ bool operator != (
 	const simple_tree_iterator<T,TDepth,IsConst1> &it1,
 	const simple_tree_iterator<T,TDepth,IsConst2> &it2)
 {
-	return ! operator == (it);
+	return ! operator == (it1, it2);
 }
 
 /**
@@ -162,11 +162,11 @@ public:
 
 	/// Type of a node iterator.
 	typedef simple_tree_iterator<T,TDepth,false> iterator;
-	friend iterator;
+	friend class simple_tree_iterator<T,TDepth,false>;
 
 	/// Type of a const node iterator.
 	typedef simple_tree_iterator<T,TDepth,true> const_iterator;
-	friend const_iterator;
+	friend class simple_tree_iterator<T,TDepth,true>;
 
 public:
 

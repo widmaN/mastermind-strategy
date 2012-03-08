@@ -70,17 +70,17 @@ public:
 class StrategyTree : public util::simple_tree<StrategyNode, int>
 {
 	Rules _rules;
-	
+
 public:
 
 	/// Constructs a strategy tree (or branch) with the given rules.
 	/// If <code>root.depth() == 0</code>, a full tree is constructed; otherwise,
 	/// a branch is constructed.
 	StrategyTree(
-		const Rules &rules, 
+		const Rules &rules,
 		const StrategyNode &root_data = StrategyNode(),
 		int root_depth = 0)
-		: _rules(rules), simple_tree(root_data, root_depth)
+		: simple_tree(root_data, root_depth), _rules(rules)
 	{ }
 
 	//const std::string& name() const { return _name; }
