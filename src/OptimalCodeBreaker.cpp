@@ -29,7 +29,7 @@ REGISTER_CALL_COUNTER(OptimalRecursion)
 static int fill_obviously_optimal_strategy(
 	Engine &e,
 	CodewordRange secrets,
-	int current_depth,
+	int depth,
 	bool min_depth,    // whether to minimize the worst-case depth
 	int max_depth,     // maximum number of extra guesses, not counting
 	                   // the initial guess
@@ -61,7 +61,7 @@ static int fill_obviously_optimal_strategy(
 	FeedbackList fbs;
 	e.compare(guess, secrets, fbs);
 	size_t n = secrets.size();
-	int depth = current_depth + 1; // tree.currentDepth();
+	// int depth = current_depth + 1; // tree.currentDepth();
 	int cost = 0;
 
 	for (size_t j = 0; j < Feedback::size(e.rules()); ++j)
@@ -214,7 +214,7 @@ static int fill_strategy_tree(
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
 	int best = -1;
-	StrategyTree best_tree(e.rules(), StrategyTree::Node(depth+1, Codeword(), Feedback()));
+	StrategyTree best_tree(e.rules(), StrategyTree::Node(depth, Codeword(), Feedback()));
 
 	// Try each candidate guess.
 	size_t candidate_count = candidates.size();
@@ -324,7 +324,7 @@ static int fill_strategy_tree(
 
 		// Find the best guess for each partition.
 		bool pruned = false;
-		StrategyTree this_tree(e.rules(), StrategyTree::Node(depth+1, Codeword(), Feedback()));
+		StrategyTree this_tree(e.rules(), StrategyTree::Node(depth, Codeword(), Feedback()));
 		for (size_t j = 0; j < nresponses && !pruned; ++j)
 		{
 			Feedback feedback = Feedback(responses[j]);
@@ -359,7 +359,7 @@ static int fill_strategy_tree(
 			// @todo "mastermind -v -s optimal -r mm -md 5" doesn't
 			// respect the "-md 5" option.
 			int cell_cost = fill_obviously_optimal_strategy(
-				e, cell, depth, options.min_depth, options.max_depth, tree);
+				e, cell, depth + 1, options.min_depth, options.max_depth, this_tree);
 			if (cell_cost >= 0)
 			{
 				//VERBOSE_COUT("- Checking cell " << cell.feedback
