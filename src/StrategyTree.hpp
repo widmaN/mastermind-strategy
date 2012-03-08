@@ -8,8 +8,33 @@
 #include "Rules.hpp"
 #include "Codeword.hpp"
 #include "Feedback.hpp"
+#include "util/simple_tree.hpp"
 
 namespace Mastermind {
+
+/// Encapsulates information about a node on a strategy tree.
+class StrategyNode
+{
+	Codeword::compact_type _guess;    // [unsigned long]
+	Feedback::compact_type _response; // [unsigned char]
+
+public:
+
+	/// Constructs a node corresponding to the root state.
+	StrategyNode() { }
+
+	/// Constructs a node with the given guess and response.
+	StrategyNode(const Codeword &guess, const Feedback &response)
+		: _guess(guess.pack()), _response(response.pack())
+	{
+	}
+
+	/// Returns the guess of the node.
+	Codeword guess() const { return Codeword::unpack(_guess); }
+
+	/// Returns the response of the node.
+	Feedback response() const { return Feedback::unpack(_response); }
+};
 
 /**
  * Represents a guessing strategy of the code breaker.
@@ -42,55 +67,21 @@ namespace Mastermind {
  * game (with at least one guess/response pairs). The root depth of the tree
  * or branch is also stored for integrity-checking purpose.
  */
-class StrategyTree
+class StrategyTree : public util::simple_tree<StrategyNode, int>
 {
-public:
-
-	/// Storage type of a node in the strategy tree.
-	class Node
-	{
-		// Basic fields that identify the state.
-		Codeword::compact_type _guess;    // [unsigned long]
-		Feedback::compact_type _response; // [unsigned char]
-		unsigned char _depth;             // 0=root, 1=first guess, etc.
-
-	public:
-
-		/// Constructs a root node.
-		Node() : _depth(0) { }
-
-		/// Constructs a node with the given depth, guess and response.
-		Node(int depth, const Codeword &guess, const Feedback &response)
-			: _guess(guess.pack()), _response(response.pack()),
-			_depth((unsigned char)depth)
-		{
-		}
-
-		/// Returns the depth of the node; 0=root, 1=first guess, etc.
-		int depth() const { return _depth; }
-
-		/// Returns the guess of the node.
-		Codeword guess() const { return Codeword::unpack(_guess); }
-
-		/// Returns the response of the node.
-		Feedback response() const { return Feedback::unpack(_response); }
-	};
-
-private:
-
 	Rules _rules;
-	std::vector<Node> _nodes;
-
+	
 public:
 
-	/// Constructs a strategy tree (or branch) with the given root node.rules.
+	/// Constructs a strategy tree (or branch) with the given rules.
 	/// If <code>root.depth() == 0</code>, a full tree is constructed; otherwise,
 	/// a branch is constructed.
-	StrategyTree(const Rules &rules, const Node &root = Node())
-		: _rules(rules)
-	{
-		_nodes.push_back(root);
-	}
+	StrategyTree(
+		const Rules &rules, 
+		const StrategyNode &root_data = StrategyNode(),
+		int root_depth = 0)
+		: _rules(rules), simple_tree(root_data, root_depth)
+	{ }
 
 	//const std::string& name() const { return _name; }
 
@@ -98,29 +89,10 @@ public:
 	const Rules& rules() const { return _rules; }
 
 	/// Returns the collection of nodes in the tree.
-	const std::vector<Node>& nodes() const { return _nodes; }
+	//const std::vector<Node>& nodes() const { return _nodes; }
 
 	/// Returns the number of nodes in the tree.
-	size_t size() const { return _nodes.size(); }
-
-	/// Appends a node to the end of the tree.
-	///
-	/// @param node The node to append. The @c depth field of the node
-	///      specifies the logical position of the node in the tree.
-	///      This depth must be greater than the root depth of the tree
-	///      and smaller than or equal to one plus the depth of the last
-	///      node in the tree.
-	/// @returns Index of the added node.
-	size_t append(const Node &node)
-	{
-		assert(node.depth() > _nodes[0].depth());
-		assert(node.depth() <= _nodes.back().depth() + 1);
-
-		// Append the node to the tree.
-		size_t index = _nodes.size();
-		_nodes.push_back(node);
-		return index;
-	}
+	//size_t size() const { return _nodes.size(); }
 
 	/// Appends a branch to the end of the tree.
 	///
@@ -138,32 +110,6 @@ public:
 			_nodes.insert(_nodes.end(), subtree._nodes.begin()+1, subtree._nodes.end());
 		}
 	}
-
-	/// Appends a branch to the end of the tree.
-	///
-	/// @param subtree The branch to append. The depth of the root node of
-	///      the branch must be greater than the root depth of the tree
-	///      and smaller than or equal to one plus the depth of the last node
-	///      in the tree.
-	void append(const StrategyTree &subtree)
-	{
-		if (!subtree._nodes.empty())
-		{
-			assert(subtree._nodes[0].depth() > _nodes[0].depth());
-			assert(subtree._nodes[0].depth() <= _nodes.back().depth() + 1);
-
-			_nodes.insert(_nodes.end(), subtree._nodes.begin(), subtree._nodes.end());
-		}
-	}
-
-#if 0
-	/// Erase all nodes in the range [begin,end).
-	void erase(size_t first, size_t last)
-	{
-		_nodes.erase(_nodes.begin() + first, _nodes.begin() + last);
-	}
-#endif
-
 };
 
 /// Encapsulates information of a strategy tree or branch.
@@ -172,7 +118,7 @@ class StrategyTreeInfo
 	const StrategyTree &_tree;
 
 	// Index of the first sub-state within this branch.
-	size_t _root;
+	StrategyTree::const_iterator _root;
 
 	// Total number of secrets revealed in this branch. This is calculated as
 	// the number of child states with a perfect response.
@@ -189,7 +135,7 @@ class StrategyTreeInfo
 
 	// _children[j] = index of the child state corresponding to response j,
 	// or 0 if that response is not available.
-	std::vector<size_t> _children;
+	std::vector<StrategyTree::const_iterator> _children;
 
 	std::string _name;
 	double _time;
@@ -201,29 +147,21 @@ public:
 		const std::string &name,
 		const StrategyTree &tree,
 		double time,
-		size_t root = 0)
+		StrategyTree::const_iterator root)
 		: _tree(tree), _root(root), _total_secrets(0), _total_depth(0),
 		_children(Feedback::size(tree.rules())), _name(name), _time(time)
 	{
-		assert(root < tree.size());
-
-		auto &nodes = tree.nodes();
 		Feedback perfect = Feedback::perfectValue(tree.rules());
-		int root_depth = tree.nodes()[root].depth();
-
-		for (size_t i = root + 1; i < nodes.size() && nodes[i].depth() > root_depth; ++i)
+		int root_depth = root.depth();
+		util::traverse(root, [=](StrategyTree::const_iterator it)
 		{
-			if (nodes[i].depth() <= root_depth)
+			if (it.depth() == root_depth + 1)
 			{
-				break;
+				_children[it->response().value()] = it;
 			}
-			if (nodes[i].depth() == root_depth + 1)
+			if (it->response() == perfect)
 			{
-				_children[nodes[i].response().value()] = i;
-			}
-			if (nodes[i].response() == perfect)
-			{
-				unsigned int d = nodes[i].depth() - root_depth;
+				unsigned int d = it.depth() - root_depth;
 				if (d >= _depth_freq.size())
 				{
 					_depth_freq.resize(d+1);
@@ -232,26 +170,27 @@ public:
 				++_total_secrets;
 				_total_depth += d;
 			}
-		}
+		});
 	}
 
 #if 1
 	std::string name() const { return _name; }
 #endif
 
-	Codeword suggestion() const
+	Codeword suggestion() // const
 	{
-		if (_root + 1 < _tree.nodes().size() &&
-			_tree.nodes()[_root+1].depth() == _tree.nodes()[_root].depth() + 1)
-			return _tree.nodes()[_root+1].guess();
-		else
+		if (_root.child_begin() == _root.child_end())
 			return Codeword();
+		else
+			return _root.child_begin()->guess();
 	}
 
-	size_t child(Feedback feedback) const
+#if 1
+	StrategyTree::const_iterator child(Feedback feedback) const
 	{
 		return _children[feedback.value()];
 	}
+#endif
 
 	double time() const { return _time; }
 
