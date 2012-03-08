@@ -17,16 +17,20 @@ namespace util {
  * <code>std::bitset<N></code>.
  * @ingroup BitMask
  */
-template <size_t Bits>
+template <class T, size_t Bits>
 class bitmask
 {
+#if 0
 	static_assert(Bits <= 64, "Bitmask supports up to 64 bits.");
-
 	typedef typename std::conditional<Bits <= 8, uint8_t,
 		typename std::conditional<Bits <= 16, uint16_t,
 		typename std::conditional<Bits <= 32, uint32_t,
 		typename std::conditional<Bits <= 64, uint64_t,
 		void>::type>::type>::type>::type value_type;
+#else
+	static_assert(Bits <= sizeof(T)*8, "The storage type does not have enough bits.");
+	typedef T value_type;
+#endif
 
 	value_type _value;
 
@@ -56,7 +60,7 @@ public:
 	}
 
 	/// Resets the bits corresponding to the set bits in the given mask.
-	void reset(const bitmask<Bits> &m)
+	void reset(const bitmask<T,Bits> &m)
 	{
 		_value &= ~ m.value();
 	}
@@ -100,10 +104,10 @@ public:
 #endif
 
 	/// Returns a bitmask with the least significant @c count bits set.
-	static bitmask<Bits> fill(size_t count)
+	static bitmask<T,Bits> fill(size_t count)
 	{
 		assert(count >= 0 && count <= Bits);
-		return bitmask<Bits>(((value_type)1 << count) - 1);
+		return bitmask<T,Bits>(((value_type)1 << count) - 1);
 	}
 };
 
