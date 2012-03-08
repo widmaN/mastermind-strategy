@@ -214,7 +214,7 @@ static int fill_strategy_tree(
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
 	int best = -1;
-	size_t best_pos = tree.nodes().size();
+	StrategyTree best_tree(e.rules(), StrategyTree::Node(depth+1, Codeword(), Feedback()));
 
 	// Try each candidate guess.
 	size_t candidate_count = candidates.size();
@@ -324,7 +324,7 @@ static int fill_strategy_tree(
 
 		// Find the best guess for each partition.
 		bool pruned = false;
-		int node_pos = (int)tree.nodes().size(); // -1;
+		StrategyTree this_tree(e.rules(), StrategyTree::Node(depth+1, Codeword(), Feedback()));
 		for (size_t j = 0; j < nresponses && !pruned; ++j)
 		{
 			Feedback feedback = Feedback(responses[j]);
@@ -332,7 +332,7 @@ static int fill_strategy_tree(
 
 			// Add this node to the strategy tree.
 			StrategyTree::Node node(depth + 1, guess, feedback);
-			tree.append(node);
+			this_tree.append(node);
 
 			// Do not recurse for a perfect match.
 			if (feedback == perfect)
@@ -377,7 +377,7 @@ static int fill_strategy_tree(
 				new_filter->add_constraint(guess, feedback, cell);
 
 				cell_cost = fill_strategy_tree(e, cell, new_filter.get(), estimator,
-					depth + 1, cut_off - (lb - lb_part[j]), options, tree);
+					depth + 1, cut_off - (lb - lb_part[j]), options, this_tree);
 			}
 
 			if (cell_cost < 0) // The branch was pruned.
@@ -418,15 +418,17 @@ static int fill_strategy_tree(
 			cut_off = best;
 			VERBOSE_COUT("Improved cut-off to " << best);
 
-			// Remove the previous best tree.
-			tree.erase(best_pos, node_pos);
-		}
-		else
-		{
-			// Remove all nodes added just now.
-			tree.erase(node_pos, tree.size());
+			// Use this_tree as best_tree.
+			std::swap(this_tree, best_tree);
 		}
 	}
+
+	// If a best strategy was found, append the strategy to the tree.
+	if (best >= 0)
+	{
+		tree.append2(best_tree);
+	}
+
 	return best;
 }
 

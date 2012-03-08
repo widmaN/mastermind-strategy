@@ -128,6 +128,23 @@ public:
 	///      the branch must be greater than the root depth of the tree
 	///      and smaller than or equal to one plus the depth of the last node
 	///      in the tree.
+	void append2(const StrategyTree &subtree)
+	{
+		if (!subtree._nodes.empty())
+		{
+			//assert(subtree._nodes[0].depth() > _nodes[0].depth());
+			//assert(subtree._nodes[0].depth() <= _nodes.back().depth() + 1);
+
+			_nodes.insert(_nodes.end(), subtree._nodes.begin()+1, subtree._nodes.end());
+		}
+	}
+
+	/// Appends a branch to the end of the tree.
+	///
+	/// @param subtree The branch to append. The depth of the root node of
+	///      the branch must be greater than the root depth of the tree
+	///      and smaller than or equal to one plus the depth of the last node
+	///      in the tree.
 	void append(const StrategyTree &subtree)
 	{
 		if (!subtree._nodes.empty())
@@ -139,11 +156,13 @@ public:
 		}
 	}
 
+#if 0
 	/// Erase all nodes in the range [begin,end).
 	void erase(size_t first, size_t last)
 	{
 		_nodes.erase(_nodes.begin() + first, _nodes.begin() + last);
 	}
+#endif
 
 };
 
@@ -269,16 +288,6 @@ enum FileFormat
 	XmlFormat = 1,
 	BinaryFormat = 2,
 };
-#endif
-
-#if 0
-/// Outputs the strategy tree to a file.
-template <FileFormat Format>
-void WriteToFile(std::ostream &os, const StrategyTree &tree);
-
-template <> void WriteToFile<TextFormat>(std::ostream &, const StrategyTree &);
-template <> void WriteToFile<XmlFormat>(std::ostream &, const StrategyTree &);
-template <> void WriteToFile<BinaryFormat>(std::ostream &, const StrategyTree &);
 #endif
 
 /// Outputs a strategy tree in text format (Irving convention).
