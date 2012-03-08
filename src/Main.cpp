@@ -311,7 +311,7 @@ extern StrategyTree build_optimal_strategy_tree(
 // verbose: 0 = quiet, 1 = verbose, 2 = very verbose
 static int build_strategy(
 	Engine &e, const EquivalenceFilter *filter, int verbose,
-	const std::string &name, const std::string &file,
+	const std::string &name, const std::string & /* file */,
 	int max_depth, bool pos_only)
 {
 	using namespace Mastermind::Heuristics;
@@ -557,7 +557,7 @@ int main(int argc, char* argv[])
 	case DebugMode:
 		return interactive_analyst(e, verbose);
 	case TestMode:
-		return test(rules, verbose);
+		return test(rules, verbose ? true : false);
 	default:
 		USAGE_ERROR("missing mode");
 	}

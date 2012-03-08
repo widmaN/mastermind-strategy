@@ -171,6 +171,7 @@ static void test_strategy_tree(
 }
 #endif
 
+#if 0
 static void display_canonical_guesses(
 	Engine &e,
 	const EquivalenceFilter *filter,
@@ -273,6 +274,8 @@ static void test_partition_size(Engine &e, const char *name)
 		}
 	}
 }
+
+#endif
 
 static void test_serialization()
 {

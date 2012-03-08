@@ -258,7 +258,7 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 	Feedback perfect = Feedback::perfectValue(tree.rules());
 	int indent = 2;
 	int level = 0;
-	util::traverse(tree.root(), [&](StrategyTree::const_iterator node)
+	util::traverse(tree, tree.root(), [&](StrategyTree::const_iterator node)
 	{
 		// Close deeper branches.
 		for (; level > node.depth(); --level)
