@@ -52,7 +52,11 @@ typedef util::partition_cells<CodewordIterator,Feedback::MaxOutcomes>
 ///////////////////////////////////////////////////////////////////////////
 // Definition of ColorMask.
 
-typedef util::bitmask<MM_MAX_COLORS> ColorMask;
+#if 1 // no performance difference
+typedef util::bitmask<unsigned short, MM_MAX_COLORS> ColorMask;
+#else
+typedef util::bitmask<unsigned int, MM_MAX_COLORS> ColorMask;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 // Definition of Engine.
