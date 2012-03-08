@@ -153,7 +153,7 @@ public:
 	{
 		Feedback perfect = Feedback::perfectValue(tree.rules());
 		int root_depth = root.depth();
-		util::traverse(root, [=](StrategyTree::const_iterator it)
+		util::traverse(tree, root, [=](StrategyTree::const_iterator it)
 		{
 			if (it.depth() == root_depth + 1)
 			{
