@@ -58,7 +58,35 @@ public:
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
-// StrategyTreeInfo output (console)
+// StrategyTreeInfo implementation
+
+StrategyTreeInfo::StrategyTreeInfo(
+	const std::string &name,
+	const StrategyTree &tree,
+	double time,
+	StrategyTree::const_iterator root)
+	: _tree(tree), _root(root), _total_secrets(0), _total_depth(0),
+	_children(Feedback::size(tree.rules())), _name(name), _time(time)
+{
+	Feedback perfect = Feedback::perfectValue(tree.rules());
+	tree.traverse(root, [=](size_t depth, StrategyTree::const_iterator it)
+	{
+		if (depth == 1)
+		{
+			_children[it->response().value()] = it;
+		}
+		if (it->response() == perfect)
+		{
+			if (depth >= _depth_freq.size())
+			{
+				_depth_freq.resize(depth+1);
+			}
+			++_depth_freq[depth];
+			++_total_secrets;
+			_total_depth += depth;
+		}
+	});
+}
 
 std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 {
@@ -91,7 +119,7 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 		}
 		else
 		{
-			count = info.total_depth() - running_total;
+			count = (unsigned int)info.total_depth() - running_total;
 		}
 		os << std::setw(d == 1? 2 : 6);
 		if (count > 0)
@@ -257,28 +285,28 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 
 	Feedback perfect = Feedback::perfectValue(tree.rules());
 	int indent = 2;
-	int level = 0;
-	util::traverse(tree, tree.root(), [&](StrategyTree::const_iterator node)
+	size_t level = 0;
+	tree.traverse(tree.root(), [&](size_t depth, StrategyTree::const_iterator it)
 	{
 		// Close deeper branches.
-		for (; level > node.depth(); --level)
+		for (; level > depth; --level)
 		{
 			os << std::setw(indent*level) << "" << "</case>" << std::endl;
 		}
-		level = node.depth();
+		level = depth;
 
-		if (node->response() == perfect)
+		if (it->response() == perfect)
 		{
 			os << std::setw(indent*level) << "" << "<case"
-				<< " guess=" << '"' << node->guess() << '"'
-				<< " response=" << '"' << node->response() << '"'
+				<< " guess=" << '"' << it->guess() << '"'
+				<< " response=" << '"' << it->response() << '"'
 				<< "/>" << std::endl;
 		}
 		else
 		{
 			os << std::setw(indent*level) << "" << "<case"
-				<< " guess=" << '"' << node->guess() << '"'
-				<< " response=" << '"' << node->response() << '"'
+				<< " guess=" << '"' << it->guess() << '"'
+				<< " response=" << '"' << it->response() << '"'
 				//<< "npos=\"" << node.npossibilities << "\" "
 				//<< "next=\"" << node.suggestion 
 				<< ">" << std::endl;

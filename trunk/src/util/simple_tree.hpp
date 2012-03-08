@@ -8,6 +8,18 @@
 
 namespace util {
 
+#if 0
+/// Defines the order for traversing a tree.
+enum TraversalOrder
+{
+	NativeOrder = 0,
+	PreOrder = 1,
+	InOrder = 2,
+	PostOrder = 3,
+	BreadthFirst = 4,
+};
+#endif
+
 /**
  * Represents a simple tree which only allows adding children to the last
  * node of each depth.
@@ -161,11 +173,9 @@ public:
 
 	/// Type of a node iterator.
 	typedef node_iterator<false> iterator;
-	//friend class simple_tree_iterator<T,TDepth,false>;
 
 	/// Type of a const node iterator.
 	typedef node_iterator<true> const_iterator;
-	//friend class simple_tree_iterator<T,TDepth,true>;
 
 public:
 
@@ -223,29 +233,30 @@ public:
 	}
 #endif
 
-};
-
-template <class Tree, class Iter, class Func>
-void traverse(Tree &tree, Iter root, Func f)
-{
-	typename Tree::depth_type root_depth = root.depth();
-	size_t root_index = root.index();
-	size_t count = tree.size();
-	if (root_index >= count)
-		return;
-
-	// Visit the root node.
-	f(root);
-
-	// Traverse children in pre-order.
-	for (size_t i = root_index + 1; i < count; ++i)
+	/// Visits all nodes under a given root in natural order.
+	template <bool IsConst, class Func>
+	void traverse(node_iterator<IsConst> root, Func f) const
 	{
-		Iter it(root.tree(), i);
-		if (it.depth() <= root_depth)
-			break;
-		f(it);
+		TDepth root_depth = root.depth();
+		size_t root_index = root.index();
+		size_t count = size();
+		if (root_index >= count)
+			return;
+
+		// Visit the root node.
+		f(0, root);
+
+		// Traverse children in pre-order.
+		for (size_t i = root_index + 1; i < count; ++i)
+		{
+			node_iterator<IsConst> it(this, i);
+			if (it.depth() <= root_depth)
+				break;
+			f(it.depth() - root_depth, it);
+		}
 	}
-}
+
+};
 
 } // namespace util
 

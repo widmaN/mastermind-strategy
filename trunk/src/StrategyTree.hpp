@@ -127,7 +127,7 @@ class StrategyTreeInfo
 	// Total number of steps used to reveal all secrets in this branch.
 	// This count starts from the root state of the branch, not from the
 	// root of the strategy tree.
-	unsigned int _total_depth;
+	size_t _total_depth;
 
 	// depth_freq[i] = number of secrets revealed using (i) guesses.
 	// depth_freq[0] will always be zero and is ignored.
@@ -147,31 +147,7 @@ public:
 		const std::string &name,
 		const StrategyTree &tree,
 		double time,
-		StrategyTree::const_iterator root)
-		: _tree(tree), _root(root), _total_secrets(0), _total_depth(0),
-		_children(Feedback::size(tree.rules())), _name(name), _time(time)
-	{
-		Feedback perfect = Feedback::perfectValue(tree.rules());
-		int root_depth = root.depth();
-		util::traverse(tree, root, [=](StrategyTree::const_iterator it)
-		{
-			if (it.depth() == root_depth + 1)
-			{
-				_children[it->response().value()] = it;
-			}
-			if (it->response() == perfect)
-			{
-				unsigned int d = it.depth() - root_depth;
-				if (d >= _depth_freq.size())
-				{
-					_depth_freq.resize(d+1);
-				}
-				++_depth_freq[d];
-				++_total_secrets;
-				_total_depth += d;
-			}
-		});
-	}
+		StrategyTree::const_iterator root);
 
 #if 1
 	std::string name() const { return _name; }
@@ -205,7 +181,7 @@ public:
 			_depth_freq[depth] : 0;
 	}
 
-	unsigned int total_depth() const { return _total_depth; }
+	size_t total_depth() const { return _total_depth; }
 
 	unsigned int total_secrets() const { return _total_secrets; }
 
