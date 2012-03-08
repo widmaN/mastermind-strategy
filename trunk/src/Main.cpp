@@ -342,7 +342,7 @@ static int build_strategy(
 
 	// WriteStrategy_TextFormat(std::cout, tree);
 
-	StrategyTreeInfo info(name, tree, t);
+	StrategyTreeInfo info(name, tree, t, tree.root());
 	if (verbose)
 	{
 		std::cout << util::header;

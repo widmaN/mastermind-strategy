@@ -120,7 +120,7 @@ A = (2345: 0, 6 (3412), 10 (3612: 1, 0, 0, 0, 0; 1, 1, 2 (4211), 0; 1, 0, 2 (341
     2 (2314), 4 (2316); 2 (2315); 0)
 */
 void WriteState_TextFormat(
-	std::ostream &os, const StrategyTree &tree, size_t root, 
+	std::ostream &os, const StrategyTree &tree, StrategyTree::const_iterator root, 
 	std::map<char,std::string> &symbols, int symbol_level)
 {
 	// Get info about this strategy branch.
@@ -142,7 +142,7 @@ void WriteState_TextFormat(
 	if (state.max_depth() <= 2)
 	{
 		os << " (" << state.suggestion();
-		if (state.child(Feedback::perfectValue(tree.rules())) == 0)
+		if (!state.child(Feedback::perfectValue(tree.rules())))
 			os << '*';
 		os << ")";
 		return;
@@ -166,8 +166,8 @@ void WriteState_TextFormat(
 			ss << ' ';
 
 			Feedback response(a, b);
-			size_t child = state.child(response);
-			if (child == 0)
+			StrategyTree::const_iterator child = state.child(response);
+			if (!child)
 			{
 				ss << 0;
 			}
@@ -206,7 +206,7 @@ void WriteStrategy_TextFormat(std::ostream &os, const StrategyTree &tree)
 	std::map<char,std::string> symbols;
 
 	// Outputs the root state with symbol enabled.
-	WriteState_TextFormat(os, tree, 0, symbols, 2);
+	WriteState_TextFormat(os, tree, tree.root(), symbols, 2);
 	os << std::endl;
 	os << std::endl;
 
@@ -255,13 +255,11 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 	// Output the strategy.
 	os << "<details>" << std::endl;
 
-	Feedback target = Feedback::perfectValue(tree.rules());
+	Feedback perfect = Feedback::perfectValue(tree.rules());
 	int indent = 2;
 	int level = 0;
-	for (size_t i = 0; i < tree.nodes().size(); ++i)
+	util::traverse(tree.root(), [&](StrategyTree::const_iterator node)
 	{
-		const StrategyTree::Node &node = tree.nodes()[i];
-
 		// Close deeper branches.
 		for (; level > node.depth(); --level)
 		{
@@ -269,23 +267,23 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 		}
 		level = node.depth();
 
-		if (node.response() == target)
+		if (node->response() == perfect)
 		{
-			os << std::setw(indent*level) << "" << "<case guess=\""
-				<< node.guess() << "\" response=\"" << node.response()
-				<< "\"/>" << std::endl;
+			os << std::setw(indent*level) << "" << "<case"
+				<< " guess=" << '"' << node->guess() << '"'
+				<< " response=" << '"' << node->response() << '"'
+				<< "/>" << std::endl;
 		}
 		else
 		{
-			os << std::setw(indent*level) << "" << "<case "
-				<< "guess=\"" << node.guess() << "\" "
-				<< "feedback=\"" << node.response() << "\" "
+			os << std::setw(indent*level) << "" << "<case"
+				<< " guess=" << '"' << node->guess() << '"'
+				<< " response=" << '"' << node->response() << '"'
 				//<< "npos=\"" << node.npossibilities << "\" "
-				//<< "ncand=\"" << node.ncandidates << "\" "
-				//<< "next=\"" << node.suggestion << "\">"
-				<< std::endl;
+				//<< "next=\"" << node.suggestion 
+				<< ">" << std::endl;
 		}
-	}
+	});
 
 	// Write closing tags.
 	os << "</details>" << std::endl;

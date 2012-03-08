@@ -29,7 +29,8 @@ REGISTER_CALL_COUNTER(OptimalRecursion)
 static int fill_obviously_optimal_strategy(
 	Engine &e,
 	CodewordRange secrets,
-	int depth,
+	int depth,         // depth of the current state; this is equal to
+	                   // the number of guesses already made
 	bool min_depth,    // whether to minimize the worst-case depth
 	int max_depth,     // maximum number of extra guesses, not counting
 	                   // the initial guess
@@ -61,7 +62,7 @@ static int fill_obviously_optimal_strategy(
 	FeedbackList fbs;
 	e.compare(guess, secrets, fbs);
 	size_t n = secrets.size();
-	// int depth = current_depth + 1; // tree.currentDepth();
+	// int depth = current_depth + 0; // tree.currentDepth();
 	int cost = 0;
 
 	for (size_t j = 0; j < Feedback::size(e.rules()); ++j)
@@ -75,22 +76,20 @@ static int fill_obviously_optimal_strategy(
 				{
 					++cost;
 					first = secrets[i];
-					StrategyTree::Node node(depth + 1, guess, fbs[i]);
-					tree.append(node);
+					//StrategyTree::Node node(depth + 1, guess, fbs[i]);
+					tree.append(StrategyNode(guess, fbs[i]), depth + 1);
 					if (fbs[i] != perfect)
 					{
 						++cost;
-						StrategyTree::Node leaf(depth + 2, first, perfect);
-						tree.append(leaf);
+						//StrategyTree::Node leaf(depth + 2, first, perfect);
+						tree.append(StrategyNode(first, perfect), depth + 2);
 					}
 				}
 				else
 				{
 					cost += 3;
-					tree.append(StrategyTree::Node(depth + 2,
-						first, e.compare(secrets[i], first)));
-					tree.append(StrategyTree::Node(depth + 3,
-						secrets[i], perfect));
+					tree.append(StrategyNode(first, e.compare(secrets[i], first)), depth + 2);
+					tree.append(StrategyNode(secrets[i], perfect), depth + 3);
 				}
 			}
 		}
@@ -117,7 +116,8 @@ static int fill_strategy_tree(
 	CodewordRange secrets,
 	EquivalenceFilter *filter,
 	LowerBoundEstimator &estimator,
-	int depth,         // Number of guesses already made
+	const int depth,   // Depth of the current state; this is equal to the
+	                   // number of guesses already made.
 	int cut_off,       // Upper bound of additional cost; used for pruning
 	OptimalStrategyOptions options,
 	StrategyTree &tree // Strategy tree that stores the best strategy
@@ -144,7 +144,7 @@ static int fill_strategy_tree(
 	const Feedback perfect = Feedback::perfectValue(e.rules());
 	if (secrets.size() == 1)
 	{
-		tree.append(StrategyTree::Node(depth + 1, secrets[0], perfect));
+		tree.append(StrategyNode(secrets[0], perfect), depth + 1);
 		return 1;
 	}
 	if (options.max_depth == 1)
@@ -214,7 +214,7 @@ static int fill_strategy_tree(
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
 	int best = -1;
-	StrategyTree best_tree(e.rules(), StrategyTree::Node(depth, Codeword(), Feedback()));
+	StrategyTree best_tree(e.rules(), StrategyNode(), depth);
 
 	// Try each candidate guess.
 	size_t candidate_count = candidates.size();
@@ -324,15 +324,15 @@ static int fill_strategy_tree(
 
 		// Find the best guess for each partition.
 		bool pruned = false;
-		StrategyTree this_tree(e.rules(), StrategyTree::Node(depth, Codeword(), Feedback()));
+		StrategyTree this_tree(e.rules(), StrategyNode(), depth);
 		for (size_t j = 0; j < nresponses && !pruned; ++j)
 		{
 			Feedback feedback = Feedback(responses[j]);
 			const CodewordRange &cell = cells[feedback.value()];
 
 			// Add this node to the strategy tree.
-			StrategyTree::Node node(depth + 1, guess, feedback);
-			this_tree.append(node);
+			StrategyNode node(guess, feedback);
+			this_tree.append(node, depth + 1);
 
 			// Do not recurse for a perfect match.
 			if (feedback == perfect)
@@ -500,7 +500,7 @@ void test_optimal_strategy(Engine &e)
 	StrategyTree tree = 	build_optimal_strategy_tree(e);
 	double t = t1.stop();
 
-	StrategyTreeInfo info("optimal", tree, t);
+	StrategyTreeInfo info("optimal", tree, t, tree.root());
 	std::cout << std::endl << util::header << info;
 }
 

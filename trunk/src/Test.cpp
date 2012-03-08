@@ -165,7 +165,7 @@ static void test_strategy_tree(
 		delete copy;
 		double t = timer.stop();
 
-		StrategyTreeInfo info(strat->name(), tree, t);
+		StrategyTreeInfo info(strat->name(), tree, t, tree.root());
 		std::cout << info;
 	}
 }
