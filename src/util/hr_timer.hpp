@@ -17,9 +17,7 @@ namespace util
 /// @ingroup HRTimer
 class hr_timer
 {
-#if _OPENMP
 	double _start;
-#endif
 
 public:
 
