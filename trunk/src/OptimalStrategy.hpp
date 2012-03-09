@@ -215,6 +215,7 @@ public:
 
 } // namespace Mastermind::Heuristics
 
+#if 0
 /// Options for finding an optimal strategy.
 /// @ingroup Optimal
 struct OptimalStrategyOptions
@@ -229,6 +230,7 @@ struct OptimalStrategyOptions
 	OptimalStrategyOptions()
 		: max_depth(100), find_last(false), min_depth(false), min_worst(false) { }
 };
+#endif
 
 /// Real-time optimal strategy. To be practical, the search space
 /// must be small. For example, it works with Mastermind rules (p4c10r),

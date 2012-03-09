@@ -27,32 +27,24 @@ REGISTER_CALL_COUNTER(OptimalRecursion)
 // Otherwise, returns -1.
 // @todo Change return type to StrategyCost.
 static int fill_obviously_optimal_strategy(
-	Engine &e,
-	CodewordRange secrets,
-	int depth,          // depth of the current state; this is equal to
-	                    // the number of guesses already made
-	bool min_depth,     // whether to minimize the worst-case depth
-	int max_depth,      // maximum number of extra guesses, not counting
-	                    // the initial guess
-	StrategyTree &tree, // Strategy tree that stores the best strategy
+	Engine &e,             // algorithm engine
+	CodewordRange secrets, // list of remaining secrets
+	StrategyObjective obj,
+	StrategyConstraints c,
+	//bool min_depth,        // whether to minimize the worst-case depth
+	//int max_depth,         // maximum number of extra guesses, not counting
+	//                       // the initial guess
+	StrategyTree &tree,    // Strategy tree that stores the best strategy
 	StrategyTree::iterator where // iterator to the current state
 	)
 {
-#if 0
-	int extra;
-	Codeword guess = make_less_obvious_guess(e, secrets, &extra);
-	--extra;
 	// @todo Take into account the lower-bound estimate of non-possible
 	// guesses.
-	if (!guess || (extra > max_depth) || (min_depth && extra > 1))
-		return -1;
-#else
 	StrategyCost _cost;
-	StrategyObjective obj = min_depth? MinDepth : MinSteps;
-	Codeword guess = make_obvious_guess(e, secrets, max_depth+1, obj, _cost, obj);
+	// StrategyObjective obj = min_depth? MinDepth : MinSteps;
+	Codeword guess = make_obvious_guess(e, secrets, c.max_depth+1, obj, _cost, obj);
 	if (!guess)
 		return -1;
-#endif
 
 	//	VERBOSE_COUT << "Found obvious guess: " << obvious << std::endl;
 
@@ -63,7 +55,6 @@ static int fill_obviously_optimal_strategy(
 	FeedbackList fbs;
 	e.compare(guess, secrets, fbs);
 	size_t n = secrets.size();
-	// int depth = current_depth + 0; // tree.currentDepth();
 	int cost = 0;
 
 	for (size_t j = 0; j < Feedback::size(e.rules()); ++j)
@@ -78,14 +69,10 @@ static int fill_obviously_optimal_strategy(
 				{
 					++cost;
 					first = secrets[i];
-					//StrategyTree::Node node(depth + 1, guess, fbs[i]);
-					// tree.append(StrategyNode(guess, fbs[i]), depth + 1);
 					it = tree.insert_child(where, StrategyNode(guess, fbs[i]));
 					if (fbs[i] != perfect)
 					{
 						++cost;
-						//StrategyTree::Node leaf(depth + 2, first, perfect);
-						//tree.append(StrategyNode(first, perfect), depth + 2);
 						tree.insert_child(it, StrategyNode(first, perfect));
 					}
 				}
@@ -100,7 +87,6 @@ static int fill_obviously_optimal_strategy(
 		}
 	}
 	return cost;
-	// @todo: try guesses from non-secrets.
 }
 
 #define VERBOSE_COUT(text) do { if (verbose) { std::cout << std::setw(depth*2) << "" \
@@ -124,7 +110,9 @@ static int fill_strategy_tree(
 	const int depth,   // Depth of the current state; this is equal to the
 	                   // number of guesses already made.
 	int cut_off,       // Upper bound of additional cost; used for pruning
-	OptimalStrategyOptions options,
+	StrategyObjective obj,
+	StrategyConstraints c,
+	// OptimalStrategyOptions options,
 	StrategyTree &tree, // Strategy tree that stores the best strategy
 	StrategyTree::iterator where // iterator to the current state
 	)
@@ -143,7 +131,7 @@ static int fill_strategy_tree(
 	// Short-cut if the secret set is empty or the max-depth is 0.
 	if (secrets.empty())
 		return 0;
-	if (options.max_depth == 0)
+	if (c.max_depth == 0)
 		return -1;
 
 	// Short-cut if there is only one secret or the max-depth is 1.
@@ -153,21 +141,23 @@ static int fill_strategy_tree(
 		tree.insert_child(where, StrategyNode(secrets[0], perfect));
 		return 1;
 	}
-	if (options.max_depth == 1)
+	if (c.max_depth == 1)
 		return -1;
 
 	// Let n be the number of secrets.
 	int nsecrets = (int)secrets.size();
 
-	// From now on, we are allowed to make at least 2 extra guesses
-	// to reveal all the secrets. We reduce the max-depth limit by
-	// one so that it can be passed on to recursive routines.
-	--options.max_depth;
+	// From now on, we are allowed to make at least 2 guesses to reveal any
+	// secret. We create a new constraint with the max-depth decreased by 1;
+	// this new constraint is useful to pass to recursive routines after
+	// we make an initial guess here.
+	StrategyConstraints cc(c);
+	--cc.max_depth;
 
 	// If find_last is true, then we only cut-off a guess when it's
 	// strictly worse than the current best; otherwise, we cut-off
 	// a guess as long as it's no better than the current best.
-	int cut_off_delta = (options.find_last? 1 : 0);
+	int cut_off_delta = (c.find_last? 1 : 0);
 
 	// For a Mastermind game, all secrets can be revealed within five
 	// guesses (though an optimal strategy requires 6 guesses in one
@@ -194,6 +184,7 @@ static int fill_strategy_tree(
 	// Then sort the candidates by this lower bound so that more
 	// "promising" candidates are processed first. This helps to
 	// improve the upper bound as early as possible.
+	// @todo It might be better to rename scores to extra_cost.
 	typedef Heuristics::MinimizeLowerBound::score_t lowerbound_t;
 	std::vector<lowerbound_t> scores(candidates.size());
 	estimator.make_guess(secrets, candidates, &scores[0]);
@@ -220,7 +211,7 @@ static int fill_strategy_tree(
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
 	int best = -1;
-	StrategyTree best_tree(e.rules(), StrategyNode()); // , depth);
+	StrategyTree best_tree(e.rules());
 
 	// Try each candidate guess.
 	size_t candidate_count = candidates.size();
@@ -262,7 +253,7 @@ static int fill_strategy_tree(
 
 		// If there's a limit on the maximum number of depth,
 		// check if we can prune it.
-		if (scores[i].depth > options.max_depth)
+		if (scores[i].depth > cc.max_depth)
 		{
 			if (verbose)
 				std::cout << "Skipped: guess will have too many steps"
@@ -330,7 +321,7 @@ static int fill_strategy_tree(
 
 		// Find the best guess for each partition.
 		bool pruned = false;
-		StrategyTree this_tree(e.rules(), StrategyNode()); //, depth);
+		StrategyTree this_tree(e.rules());
 		for (size_t j = 0; j < nresponses && !pruned; ++j)
 		{
 			Feedback feedback = Feedback(responses[j]);
@@ -354,18 +345,17 @@ static int fill_strategy_tree(
 			// Short-cut if only one additional guess is allowed
 			// but we are left with more than one secret in this
 			// partition.
-			if (options.max_depth == 1 && cell.size() > 1)
+			if (cc.max_depth == 1 && cell.size() > 1)
 			{
 				pruned = true;
 				break;
 			}
 
-			// If there's an obviously optimal guess for this cell,
-			// use it.
+			// If there's an obviously optimal guess for this cell, use it.
 			// @todo "mastermind -v -s optimal -r mm -md 5" doesn't
 			// respect the "-md 5" option.
 			int cell_cost = fill_obviously_optimal_strategy(
-				e, cell, depth + 1, options.min_depth, options.max_depth, this_tree, it);
+				e, cell, obj, cc, this_tree, it);
 			if (cell_cost >= 0)
 			{
 				//VERBOSE_COUT("- Checking cell " << cell.feedback
@@ -379,11 +369,15 @@ static int fill_strategy_tree(
 				//VERBOSE_COUT("- Checking cell " << cell.feedback
 				//	<< " -> lower bound = " << lb_part[j]);
 
+				// @todo: estimate a lower bound of the cost of any guess.
+				// If the lower bound is greater than the cut-off, we don't
+				// need to proceed any more.
+
 				std::unique_ptr<EquivalenceFilter> new_filter(filter->clone());
 				new_filter->add_constraint(guess, feedback, cell);
 
 				cell_cost = fill_strategy_tree(e, cell, new_filter.get(), estimator,
-					depth + 1, cut_off - (lb - lb_part[j]), options, this_tree, it);
+					depth + 1, cut_off - (lb - lb_part[j]), obj, cc, this_tree, it);
 			}
 
 			if (cell_cost < 0) // The branch was pruned.
@@ -425,6 +419,7 @@ static int fill_strategy_tree(
 			VERBOSE_COUT("Improved cut-off to " << best);
 
 			// Use this_tree as best_tree.
+			// @todo: optimize swap()
 			std::swap(this_tree, best_tree);
 		}
 	}
@@ -462,20 +457,16 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 	//tree.append(root);
 
 	// Set options.
-	OptimalStrategyOptions options;
-#if 1
-	options.max_depth = (char)std::min(100, max_depth);
-#else
-	options.max_depth = 5;
-#endif
-	options.min_depth = min_depth;
-	options.min_worst = false;
-	options.find_last = false;
+	StrategyObjective obj = min_depth ? MinDepth : MinSteps;
+	StrategyConstraints c;
+	c.max_depth = (unsigned char)std::min(100, max_depth);
+	c.find_last = false;
 
 	// Recursively find an optimal strategy.
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
+
 	/* int best = */ fill_strategy_tree(e, all, filter.get(), estimator,
-		0, 1000000, options, tree, tree.root());
+		0, 1000000, obj, c, tree, tree.root());
 	// std::cout << "OPTIMAL: " << best << std::endl;
 	return tree;
 }
