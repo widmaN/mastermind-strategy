@@ -78,38 +78,19 @@ public:
 	/// a branch is constructed.
 	StrategyTree(
 		const Rules &rules,
-		const StrategyNode &root_data = StrategyNode(),
-		int root_depth = 0)
-		: simple_tree(root_data, root_depth), _rules(rules)
+		const StrategyNode &root_data = StrategyNode()
+#if 0
+		, int root_depth = 0) : simple_tree(root_data, root_depth), _rules(rules)
+#else
+		)
+#endif
+		: simple_tree(root_data), _rules(rules)
 	{ }
 
 	//const std::string& name() const { return _name; }
 
 	/// Returns the rules that the strategy applies to.
 	const Rules& rules() const { return _rules; }
-
-	/// Returns the collection of nodes in the tree.
-	//const std::vector<Node>& nodes() const { return _nodes; }
-
-	/// Returns the number of nodes in the tree.
-	//size_t size() const { return _nodes.size(); }
-
-	/// Appends a branch to the end of the tree.
-	///
-	/// @param subtree The branch to append. The depth of the root node of
-	///      the branch must be greater than the root depth of the tree
-	///      and smaller than or equal to one plus the depth of the last node
-	///      in the tree.
-	void append2(const StrategyTree &subtree)
-	{
-		if (!subtree._nodes.empty())
-		{
-			//assert(subtree._nodes[0].depth() > _nodes[0].depth());
-			//assert(subtree._nodes[0].depth() <= _nodes.back().depth() + 1);
-
-			_nodes.insert(_nodes.end(), subtree._nodes.begin()+1, subtree._nodes.end());
-		}
-	}
 };
 
 /// Encapsulates information of a strategy tree or branch.

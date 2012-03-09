@@ -151,6 +151,8 @@ void WriteState_TextFormat(
 	std::ostream &os, const StrategyTree &tree, StrategyTree::const_iterator root, 
 	std::map<char,std::string> &symbols, int symbol_level)
 {
+	const Rules rules = tree.rules();
+
 	// Get info about this strategy branch.
 	StrategyTreeInfo state("", tree, 0.0, root);
 
@@ -170,7 +172,7 @@ void WriteState_TextFormat(
 	if (state.max_depth() <= 2)
 	{
 		os << " (" << state.suggestion();
-		if (!state.child(Feedback::perfectValue(tree.rules())))
+		if (!state.child(Feedback::perfectValue(rules)))
 			os << '*';
 		os << ")";
 		return;
@@ -178,7 +180,7 @@ void WriteState_TextFormat(
 
 	// Now we need to elaborate the sub-strategy for each possible response.
 	// If labelling is allowed, we will create a symbol for this.
-	int p = tree.rules().pegs();
+	int p = rules.pegs();
 	bool use_symbol = (symbol_level > 0) && (root > 0) && 
 		(state.total_secrets() >= (unsigned int)(p*(p+3)/2));
 	std::ostringstream strs;

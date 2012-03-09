@@ -29,12 +29,12 @@ REGISTER_CALL_COUNTER(OptimalRecursion)
 static int fill_obviously_optimal_strategy(
 	Engine &e,
 	CodewordRange secrets,
-	int depth,         // depth of the current state; this is equal to
-	                   // the number of guesses already made
-	bool min_depth,    // whether to minimize the worst-case depth
-	int max_depth,     // maximum number of extra guesses, not counting
-	                   // the initial guess
-	StrategyTree &tree,// Strategy tree that stores the best strategy
+	int depth,          // depth of the current state; this is equal to
+	                    // the number of guesses already made
+	bool min_depth,     // whether to minimize the worst-case depth
+	int max_depth,      // maximum number of extra guesses, not counting
+	                    // the initial guess
+	StrategyTree &tree, // Strategy tree that stores the best strategy
 	StrategyTree::iterator where // iterator to the current state
 	)
 {
@@ -220,7 +220,7 @@ static int fill_strategy_tree(
 	// Initialize some state variables to store the best guess
 	// so far and related cut-off thresholds.
 	int best = -1;
-	StrategyTree best_tree(e.rules(), StrategyNode(), depth);
+	StrategyTree best_tree(e.rules(), StrategyNode()); // , depth);
 
 	// Try each candidate guess.
 	size_t candidate_count = candidates.size();
@@ -330,7 +330,7 @@ static int fill_strategy_tree(
 
 		// Find the best guess for each partition.
 		bool pruned = false;
-		StrategyTree this_tree(e.rules(), StrategyNode(), depth);
+		StrategyTree this_tree(e.rules(), StrategyNode()); //, depth);
 		for (size_t j = 0; j < nresponses && !pruned; ++j)
 		{
 			Feedback feedback = Feedback(responses[j]);

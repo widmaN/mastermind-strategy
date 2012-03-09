@@ -84,7 +84,7 @@ static void FillStrategy(
 
 		// Create a subtree rooted from this guess/response pair.
 		Feedback response(k);
-		StrategyTree subtree(e.rules(), StrategyNode(guess, response), depth + 1);
+		StrategyTree subtree(e.rules(), StrategyNode(guess, response)); // , depth + 1);
 
 		if (response == perfect)
 		{
