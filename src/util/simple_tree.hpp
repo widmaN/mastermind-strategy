@@ -42,7 +42,6 @@ protected:
 
 	std::vector<node_t> _nodes;
 
-
 public:
 
 	typedef simple_tree<T,TDepth> self_type;

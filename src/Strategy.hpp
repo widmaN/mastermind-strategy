@@ -42,9 +42,17 @@ struct StrategyConstraints
 	/// Flag indicating if an obvious guess can be used if available.
 	bool use_obvious;
 
+	/// Flag indicating whether to find the last one among all optimal strategies.
+	bool find_last;
+
 	/// Creates a default set of (non-)constraints.
 	StrategyConstraints()
-		: max_depth(100), pos_only(false), use_obvious(true) { }
+		: max_depth(100), pos_only(false), use_obvious(true), find_last(false)
+	{ }
+
+	/// Creates a set of constraints using the provided parameters.
+	//StrategyConstraints(unsigned char _max_depth, bool _pos_only, bool _use_obvious)
+	//	: max_depth(_max_depth), pos_only(_pos_only), use_obvious(_use_obvious) { }
 };
 
 /**
