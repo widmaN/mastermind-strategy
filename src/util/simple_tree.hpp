@@ -29,10 +29,14 @@ class simple_tree
 {
 protected:
 
+	//typedef TDepth TSize;
+
 	struct node_t
 	{
-		T data;
+		T data;     // user data associated with this node
+		//TSize size; // 1 + number of children of this node
 		TDepth depth;
+		//node_t(const T& _data) : data(_data), size(1) { }
 		node_t(const T& _data, TDepth _depth) : data(_data), depth(_depth) { }
 	};
 
@@ -52,6 +56,11 @@ public:
 
 		Tree * _tree;
 		size_t _index;
+
+		/// Returns the depth of this node (root = 0).
+		TDepth depth() const { return _tree->_nodes[_index].depth; }
+
+		friend class simple_tree<T,TDepth>;
 
 	public:
 
@@ -89,12 +98,9 @@ public:
 		/// Returns the internal index of this node (root = 0).
 		size_t index() const { return _index; }
 
-		/// Returns the depth of this node (root = 0).
-		//TDepth depth() const { return _tree->_nodes[_index].depth; }
-
-		/// Advances to the next sibling. If there is no next sibling, the
-		/// iterator stops at a position where the next sibling would have
-		/// inserted.
+		/// Advances the iterator to the next sibling of this node. If there
+		/// is no next sibling, the advanced iterator points to a position 
+		/// where the next sibling would have been nserted.
 		node_iterator& operator ++ ()
 		{
 			TDepth d = _tree->_nodes[_index].depth;
@@ -177,6 +183,95 @@ public:
 	/// Returns a const iterator to the root of the tree.
 	const_iterator root() const { return const_iterator(this, 0); }
 
+	/// Visits all nodes under a given root in natural order.
+	template <bool IsConst, class Func>
+	void traverse(node_iterator<IsConst> root, Func f) const
+	{
+		TDepth root_depth = _nodes[root.index()].depth;
+		size_t root_index = root.index();
+		size_t count = size();
+		if (root_index >= count)
+			return;
+
+		// Visit the root node.
+		f(0, root);
+
+		// Traverse children in pre-order.
+		for (size_t i = root_index + 1; i < count; ++i)
+		{
+			node_iterator<IsConst> it(this, i);
+			if (_nodes[i].depth <= root_depth)
+				break;
+			f(_nodes[i].depth - root_depth, it);
+		}
+	}
+
+	/**
+	 * Inserts a new node as the last child of an existing node.
+	 *
+	 * @param where Iterator to the parent node.
+	 * @param data The node data.
+	 * @returns An iterator to the added node.
+	 *
+	 * @remarks If the child is added to the last sibling of any level, all
+	 *      iterators are still valid. Otherwise, only the iterators on the
+	 *      parent path of the child is guaranteed to be valid.
+	 */
+	iterator insert_child(const_iterator where, const T& data)
+	{
+		assert(where._tree == this);
+
+		// For now, we only support adding to the end of the tree.
+		assert((++const_iterator(where)).index() == _nodes.size());
+
+		// Append the child to the end of the tree.
+		_nodes.push_back(node_t(data, where.depth() + 1));
+		return iterator(this, _nodes.size() - 1);
+	}
+
+	/**
+	 * Inserts another tree as child of an existing node.
+	 *
+	 * @param where Iterator to the parent node.
+	 * @param subtree A subtree to insert.
+	 * @param has_root Flag indicating whether the subtree is rooted. If this
+	 *      argument is @c true, the root node of the subtree is inserted as
+	 *      a child of the existing node. If this argument is @c false, the
+	 *      level-1 nodes of the subtree are inserted as the children.
+	 * @returns An iterator to the added node.
+	 *
+	 * @remarks If the child is added to the last sibling of any level, all
+	 *      iterators are still valid. Otherwise, only the iterators on the
+	 *      parent path of the child is guaranteed to be valid.
+	 */
+	iterator insert_child(
+		const_iterator where,
+		const simple_tree &subtree, 
+		bool has_root = true)
+	{
+		assert(where._tree == this);
+
+		// For now, we only support adding to the end of the tree.
+		assert((++const_iterator(where)).index() == _nodes.size());
+
+		iterator ret(this, _nodes.size());
+
+		// Append the subtree to the end of the tree. We need to update the
+		// depth field of the tree.
+		size_t offset = has_root ? 0 : 1;
+		_nodes.reserve(_nodes.size() + subtree._nodes.size() - offset);
+		size_t base_depth = 0; // where.depth() + 1 - offset;
+		size_t n = subtree._nodes.size();
+		for (size_t i = offset; i < n; ++i)
+		{
+			const node_t &child = subtree._nodes[i];
+			_nodes.push_back(node_t(child.data, child.depth + (TDepth)base_depth));
+		}
+		return ret;
+	}
+
+protected:
+
 	/// Appends a node to the end of the tree.
 	///
 	/// @param data The node data.
@@ -205,38 +300,6 @@ public:
 		assert(subtree._nodes[0].depth > _nodes[0].depth);
 		assert(subtree._nodes[0].depth <= _nodes.back().depth + 1);
 		_nodes.insert(_nodes.end(), subtree._nodes.begin(), subtree._nodes.end());
-	}
-
-#if 0
-	/// Adds a child to the given node. This invalidates all iterators
-	/// that are not on the parent path of this child.
-	node_iterator add_child(const T& data, node_iterator where)
-	{
-
-	}
-#endif
-
-	/// Visits all nodes under a given root in natural order.
-	template <bool IsConst, class Func>
-	void traverse(node_iterator<IsConst> root, Func f) const
-	{
-		TDepth root_depth = _nodes[root.index()].depth;
-		size_t root_index = root.index();
-		size_t count = size();
-		if (root_index >= count)
-			return;
-
-		// Visit the root node.
-		f(0, root);
-
-		// Traverse children in pre-order.
-		for (size_t i = root_index + 1; i < count; ++i)
-		{
-			node_iterator<IsConst> it(this, i);
-			if (_nodes[i].depth <= root_depth)
-				break;
-			f(_nodes[i].depth - root_depth, it);
-		}
 	}
 
 };

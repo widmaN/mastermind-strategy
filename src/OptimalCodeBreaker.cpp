@@ -34,7 +34,8 @@ static int fill_obviously_optimal_strategy(
 	bool min_depth,    // whether to minimize the worst-case depth
 	int max_depth,     // maximum number of extra guesses, not counting
 	                   // the initial guess
-	StrategyTree &tree // Strategy tree that stores the best strategy
+	StrategyTree &tree,// Strategy tree that stores the best strategy
+	StrategyTree::iterator where // iterator to the current state
 	)
 {
 #if 0
@@ -68,6 +69,7 @@ static int fill_obviously_optimal_strategy(
 	for (size_t j = 0; j < Feedback::size(e.rules()); ++j)
 	{
 		Codeword first;
+		StrategyTree::iterator it;
 		for (size_t i = 0; i < n; ++i)
 		{
 			if (fbs[i] == Feedback(j))
@@ -77,19 +79,22 @@ static int fill_obviously_optimal_strategy(
 					++cost;
 					first = secrets[i];
 					//StrategyTree::Node node(depth + 1, guess, fbs[i]);
-					tree.append(StrategyNode(guess, fbs[i]), depth + 1);
+					// tree.append(StrategyNode(guess, fbs[i]), depth + 1);
+					it = tree.insert_child(where, StrategyNode(guess, fbs[i]));
 					if (fbs[i] != perfect)
 					{
 						++cost;
 						//StrategyTree::Node leaf(depth + 2, first, perfect);
-						tree.append(StrategyNode(first, perfect), depth + 2);
+						//tree.append(StrategyNode(first, perfect), depth + 2);
+						tree.insert_child(it, StrategyNode(first, perfect));
 					}
 				}
 				else
 				{
 					cost += 3;
-					tree.append(StrategyNode(first, e.compare(secrets[i], first)), depth + 2);
-					tree.append(StrategyNode(secrets[i], perfect), depth + 3);
+					tree.insert_child(
+						tree.insert_child(it, StrategyNode(first, e.compare(secrets[i], first))),
+						StrategyNode(secrets[i], perfect));
 				}
 			}
 		}
@@ -120,7 +125,8 @@ static int fill_strategy_tree(
 	                   // number of guesses already made.
 	int cut_off,       // Upper bound of additional cost; used for pruning
 	OptimalStrategyOptions options,
-	StrategyTree &tree // Strategy tree that stores the best strategy
+	StrategyTree &tree, // Strategy tree that stores the best strategy
+	StrategyTree::iterator where // iterator to the current state
 	)
 {
 	UPDATE_CALL_COUNTER(OptimalRecursion, (int)secrets.size());
@@ -144,7 +150,7 @@ static int fill_strategy_tree(
 	const Feedback perfect = Feedback::perfectValue(e.rules());
 	if (secrets.size() == 1)
 	{
-		tree.append(StrategyNode(secrets[0], perfect), depth + 1);
+		tree.insert_child(where, StrategyNode(secrets[0], perfect));
 		return 1;
 	}
 	if (options.max_depth == 1)
@@ -332,7 +338,7 @@ static int fill_strategy_tree(
 
 			// Add this node to the strategy tree.
 			StrategyNode node(guess, feedback);
-			this_tree.append(node, depth + 1);
+			StrategyTree::iterator it = this_tree.insert_child(this_tree.root(), node);
 
 			// Do not recurse for a perfect match.
 			if (feedback == perfect)
@@ -359,7 +365,7 @@ static int fill_strategy_tree(
 			// @todo "mastermind -v -s optimal -r mm -md 5" doesn't
 			// respect the "-md 5" option.
 			int cell_cost = fill_obviously_optimal_strategy(
-				e, cell, depth + 1, options.min_depth, options.max_depth, this_tree);
+				e, cell, depth + 1, options.min_depth, options.max_depth, this_tree, it);
 			if (cell_cost >= 0)
 			{
 				//VERBOSE_COUT("- Checking cell " << cell.feedback
@@ -377,7 +383,7 @@ static int fill_strategy_tree(
 				new_filter->add_constraint(guess, feedback, cell);
 
 				cell_cost = fill_strategy_tree(e, cell, new_filter.get(), estimator,
-					depth + 1, cut_off - (lb - lb_part[j]), options, this_tree);
+					depth + 1, cut_off - (lb - lb_part[j]), options, this_tree, it);
 			}
 
 			if (cell_cost < 0) // The branch was pruned.
@@ -426,7 +432,8 @@ static int fill_strategy_tree(
 	// If a best strategy was found, append the strategy to the tree.
 	if (best >= 0)
 	{
-		tree.append2(best_tree);
+		tree.insert_child(where, best_tree, false);
+		//tree.append2(best_tree);
 	}
 
 	return best;
@@ -468,7 +475,7 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 	// Recursively find an optimal strategy.
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
 	/* int best = */ fill_strategy_tree(e, all, filter.get(), estimator,
-		0, 1000000, options, tree);
+		0, 1000000, options, tree, tree.root());
 	// std::cout << "OPTIMAL: " << best << std::endl;
 	return tree;
 }
