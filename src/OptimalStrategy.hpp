@@ -149,7 +149,7 @@ public:
 		score_t lb;
 		lb.steps = steps;
 		lb.depth = (unsigned short)(depth_bitset == 0 ? 
-			0 : 1 + util::intrinsic::bit_scan_reverse(depth_bitset));
+			0 : util::intrinsic::bit_scan_reverse(depth_bitset));
 
 		REGISTER_CALL_COUNTER(ComputeLowerBound_Steps);
 		UPDATE_CALL_COUNTER(ComputeLowerBound_Steps, lb.steps);
@@ -214,23 +214,6 @@ public:
 };
 
 } // namespace Mastermind::Heuristics
-
-#if 0
-/// Options for finding an optimal strategy.
-/// @ingroup Optimal
-struct OptimalStrategyOptions
-{
-	char max_depth; // maximum number of steps to reveal a secret
-	bool find_last; // find the last optimal strategy
-	bool min_depth; // minimize the worst-case number of guesses when 
-	                // several guess have the same total number of steps
-	bool min_worst; // minimize the number of secrets revealed using
-	                // the worst-case number of steps
-
-	OptimalStrategyOptions()
-		: max_depth(100), find_last(false), min_depth(false), min_worst(false) { }
-};
-#endif
 
 /// Real-time optimal strategy. To be practical, the search space
 /// must be small. For example, it works with Mastermind rules (p4c10r),
