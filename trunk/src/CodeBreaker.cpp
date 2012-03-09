@@ -51,9 +51,10 @@ Codeword MakeGuess(
 // Note: This actually can be turned into a tail recursion.
 //       We can do that later if necessary.
 static void FillStrategy(
-	StrategyTree &tree,     // the tree to fill
-	Engine &e,              // algorithm engine
-	unsigned char depth,    // number of guesses made so far
+	StrategyTree &tree,            // the tree to fill
+	StrategyTree::iterator where,  // iterator to the current state
+	Engine &e,                     // algorithm engine
+	unsigned char depth,           // number of guesses made so far
 	const CodewordRange &secrets,  // list of remaining possibilities
 	Strategy *strat,
 	const EquivalenceFilter *filter,
@@ -99,7 +100,7 @@ static void FillStrategy(
 			new_filter->add_constraint(guess, response, cell);
 
 			// Recursively build the strategy tree.
-			FillStrategy(subtree, e, depth + 1, cell, strat, 
+			FillStrategy(subtree, subtree.root(), e, depth + 1, cell, strat, 
 				new_filter.get(), options, progress);
 		}
 
@@ -108,7 +109,8 @@ static void FillStrategy(
 		#pragma omp critical (CodeBreaker_FillStrategy)
 #endif
 		{
-			tree.append(subtree);
+			tree.insert_child(where, subtree, true);
+			//tree.append(subtree);
 		}
 	}
 }
@@ -126,7 +128,7 @@ StrategyTree BuildStrategyTree(
 	//tree.append(root);
 
 	int progress = 0;
-	FillStrategy(tree, e, 0, all, strat, filter, options, &progress);
+	FillStrategy(tree, tree.root(), e, 0, all, strat, filter, options, &progress);
 	return tree;
 }
 
