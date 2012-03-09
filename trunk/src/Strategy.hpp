@@ -88,6 +88,27 @@ struct StrategyCost
 	StrategyCost() : value(0) { }
 	StrategyCost(unsigned int _steps, unsigned short _depth, unsigned short _worst)
 		: worst(_worst),  depth(_depth), steps(_steps) { }
+
+	StrategyCost& operator += (const StrategyCost &c)
+	{
+		steps += c.steps;
+		depth = std::max(depth, c.depth);
+		return *this;
+	}
+
+	StrategyCost& operator -= (const StrategyCost &c)
+	{
+		assert(steps >= c.steps);
+		assert(depth >= c.depth);
+		steps -= c.steps;
+		return *this;
+	}
+
+	/// Tests whether the cost is zero.
+	bool operator ! () const { return value == 0; }
+
+	/// Tests whether the cost is not zero.
+	//operator void* () const { return value == 0 ? 0 : (void*)this; }
 };
 
 /// Compares the costs of two strategies.
@@ -97,12 +118,84 @@ inline bool operator < (const StrategyCost &c1, const StrategyCost &c2)
 	return c1.value < c2.value;
 }
 
+/// Tests whether two strategy costs are equal.
+/// @ingroup strat
+inline bool operator == (const StrategyCost &c1, const StrategyCost &c2)
+{
+	return c1.value == c2.value;
+}
+
 /// Outputs strategy cost to a stream.
 /// @ingroup strat
 inline std::ostream& operator << (std::ostream &os, const StrategyCost &c)
 {
 	return os << c.steps << ':' << c.depth;
 }
+
+/// Substracts a component from an accumulated cost.
+/// @ingroup strat
+inline StrategyCost operator - (const StrategyCost &c1, const StrategyCost &c2)
+{
+	return StrategyCost(c1) -= c2;
+}
+
+/// Function object that compares the costs of two strategies according to an
+/// objective.
+class StrategyCostComparer
+{
+	StrategyObjective obj;
+
+public:
+
+	/// Constructs a strategy cost comparer with the given objective.
+	StrategyCostComparer(StrategyObjective objective) : obj(objective) { }
+
+	/// Returns the objective of the strategy cost comparer.
+	StrategyObjective objective() const { return obj; }
+
+	/// Compares the costs of two strategies.
+	bool operator () (const StrategyCost &a, const StrategyCost &b) const
+	{
+		if (a.steps < b.steps)
+			return true;
+		if (b.steps < a.steps)
+			return false;
+		if (obj <= MinSteps)
+			return false;
+
+		if (a.depth < b.depth)
+			return true;
+		if (b.depth < a.depth)
+			return false;
+		if (obj <= MinDepth)
+			return false;
+
+		return a.worst < b.worst;
+	}
+};
+
+#if 0
+/// Checks if strategy cost @c a is strictly superior to (i.e. lower than)
+/// strategy cost @c b with regard to the objective @c obj.
+inline bool superior(const StrategyCost &a, const StrategyCost &b, StrategyObjective obj)
+{
+	if (a.steps < b.steps)
+		return true;
+	if (b.steps < a.steps)
+		return false;
+	if (obj <= MinSteps)
+		return false;
+
+	if (a.depth < b.depth)
+		return true;
+	if (b.depth < a.depth)
+		return false;
+	if (obj <= MinDepth)
+		return false;
+
+	return a.worst < b.worst;
+}
+#endif
 
 /// Checks if strategy cost @c a is strictly superior to (i.e. lower than)
 /// strategy cost @c b with regard to the objective @c obj.
