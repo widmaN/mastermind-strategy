@@ -38,10 +38,10 @@ protected:
 
 	std::vector<node_t> _nodes;
 
-	typedef simple_tree<T,TDepth> self_type;
 
 public:
-	typedef TDepth depth_type;
+
+	typedef simple_tree<T,TDepth> self_type;
 
 	/// Represents an iterator for the nodes in a simple tree.
 	template <bool IsConst>
@@ -49,8 +49,6 @@ public:
 	{
 		typedef typename std::conditional<IsConst,
 			const self_type, self_type>::type Tree;
-
-		// typedef simple_tree_iterator<T,TDepth,IsConst> self_type;
 
 		Tree * _tree;
 		size_t _index;
@@ -70,45 +68,36 @@ public:
 		typedef typename std::conditional<IsConst,
 			const value_type &, value_type &>::type reference;
 
-		/// Type of const reference to data.
-		typedef const value_type & const_reference;
-
 		/// Type of pointer to data.
 		typedef typename std::conditional<IsConst,
 			const value_type *, value_type *>::type pointer;
-
-		/// Type of const pointer to data.
-		typedef const value_type * const_pointer;
 
 		/// Constructs an unspecified iterator.
 		node_iterator() : _tree(0), _index(0) { }
 
 		/// Copy-constructs an iterator.
 		node_iterator(const node_iterator<false> &other)
-			: _tree((Tree*)other.tree()), _index(other.index()) { }
+			: _tree(other.tree()), _index(other.index()) { }
 
 		/// Constructs an iterator that points to a specific node in a tree.
 		node_iterator(Tree *tree, size_t index)
 			: _tree(tree), _index(index) { }
 
 		/// Returns a pointer to the underlying strategy tree.
-		Tree * tree() { return _tree; }
-
-		/// Returns a const pointer to the underlying strategy tree.
-		const Tree * tree() const { return _tree; }
+		Tree * tree() const { return _tree; }
 
 		/// Returns the internal index of this node (root = 0).
 		size_t index() const { return _index; }
 
 		/// Returns the depth of this node (root = 0).
-		TDepth depth() const { return _tree->_nodes[_index].depth; }
+		//TDepth depth() const { return _tree->_nodes[_index].depth; }
 
 		/// Advances to the next sibling. If there is no next sibling, the
 		/// iterator stops at a position where the next sibling would have
 		/// inserted.
 		node_iterator& operator ++ ()
 		{
-			TDepth d = depth();
+			TDepth d = _tree->_nodes[_index].depth;
 			size_t i = _index + 1;
 			while (i < _tree->_nodes.size() && _tree->_nodes[i].depth > d)
 				++i;
@@ -117,16 +106,10 @@ public:
 		}
 
 		/// Returns a reference to the node data.
-		reference operator * () { return _tree->_nodes[_index].data; }
-
-		/// Returns a const reference to the node data.
-		const_reference operator * () const { return _tree->_nodes[_index].data; }
+		reference operator * () const { return _tree->_nodes[_index].data; }
 
 		/// Returns a pointer to the node data.
-		pointer operator -> () { return &_tree->_nodes[_index].data; }
-
-		/// Returns a const pointer to the node data.
-		const_pointer operator -> () const { return &_tree->_nodes[_index].data; }
+		pointer operator -> () const { return &_tree->_nodes[_index].data; }
 
 		/// Tests whether the iterator is empty.
 		bool operator ! () const { return _tree == 0; }
@@ -136,27 +119,27 @@ public:
 
 		/// Tests whether two iterators are equal.
 		template <bool IsConst2>
-		bool operator == (const node_iterator<IsConst2> &it)
+		bool operator == (const node_iterator<IsConst2> &it) const
 		{
 			return (index() == it.index()) && (tree() == it.tree());
 		}
 
 		/// Tests whether two iterators are not equal.
 		template <bool IsConst2>
-		bool operator != (const node_iterator<IsConst2> &it)
+		bool operator != (const node_iterator<IsConst2> &it) const
 		{
 			return ! operator == (it);
 		}
 
 		/// Returns an iterator to the first child of this node.
 		/// If this node contains no child, returns <code>child_end()</code>.
-		node_iterator child_begin()
+		node_iterator child_begin() const
 		{
 			return node_iterator(_tree, _index + 1);
 		}
 
 		/// Returns an iterator to one past the last child of this node.
-		node_iterator child_end()
+		node_iterator child_end() const
 		{
 			node_iterator it(*this);
 			return ++it;
@@ -237,7 +220,7 @@ public:
 	template <bool IsConst, class Func>
 	void traverse(node_iterator<IsConst> root, Func f) const
 	{
-		TDepth root_depth = root.depth();
+		TDepth root_depth = _nodes[root.index()].depth;
 		size_t root_index = root.index();
 		size_t count = size();
 		if (root_index >= count)
@@ -250,9 +233,9 @@ public:
 		for (size_t i = root_index + 1; i < count; ++i)
 		{
 			node_iterator<IsConst> it(this, i);
-			if (it.depth() <= root_depth)
+			if (_nodes[i].depth <= root_depth)
 				break;
-			f(it.depth() - root_depth, it);
+			f(_nodes[i].depth - root_depth, it);
 		}
 	}
 
