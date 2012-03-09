@@ -168,10 +168,18 @@ public:
 
 public:
 
+#if 0
 	/// Creates a tree or branch with the given root data.
 	simple_tree(const T& root_data, TDepth root_depth = 0)
 	{
 		_nodes.push_back(node_t(root_data, root_depth));
+	}
+#endif
+
+	/// Creates a tree with the given root data.
+	simple_tree(const T& root_data)
+	{
+		_nodes.push_back(node_t(root_data, 0));
 	}
 
 	/// Returns the number of nodes in the tree.
@@ -260,7 +268,7 @@ public:
 		// depth field of the tree.
 		size_t offset = has_root ? 0 : 1;
 		_nodes.reserve(_nodes.size() + subtree._nodes.size() - offset);
-		size_t base_depth = 0; // where.depth() + 1 - offset;
+		size_t base_depth = where.depth() + 1 - offset;
 		size_t n = subtree._nodes.size();
 		for (size_t i = offset; i < n; ++i)
 		{
@@ -269,39 +277,6 @@ public:
 		}
 		return ret;
 	}
-
-protected:
-
-	/// Appends a node to the end of the tree.
-	///
-	/// @param data The node data.
-	/// @param depth Specifies the logical position of the node in the tree.
-	///      This depth must be greater than the root depth of the tree
-	///      and smaller than or equal to one plus the depth of the last
-	///      node in the tree.
-	/// @returns Index of the added node.
-	size_t append(const T& data, TDepth depth)
-	{
-		assert(depth > _nodes[0].depth);
-		assert(depth <= _nodes.back().depth + 1);
-
-		_nodes.push_back(node_t(data, depth));
-		return _nodes.size() - 1;
-	}
-
-	/// Appends a branch to the end of the tree.
-	///
-	/// @param subtree The branch to append. The depth of the root node of
-	///      the branch must be greater than the root depth of the tree
-	///      and smaller than or equal to one plus the depth of the last node
-	///      in the tree.
-	void append(const simple_tree &subtree)
-	{
-		assert(subtree._nodes[0].depth > _nodes[0].depth);
-		assert(subtree._nodes[0].depth <= _nodes.back().depth + 1);
-		_nodes.insert(_nodes.end(), subtree._nodes.begin(), subtree._nodes.end());
-	}
-
 };
 
 } // namespace util
