@@ -64,7 +64,7 @@ typedef util::bitmask<unsigned int, MM_MAX_COLORS> ColorMask;
 class Engine
 {
 	Rules _rules;
-	ComparisonRoutine* _compare;
+	ComparisonRoutine _compare;
 	GenerationRoutine _generate;
 	MaskRoutine _mask;
 	CodewordList _all;
@@ -72,8 +72,13 @@ class Engine
 public:
 
 	Engine(const Rules &rules) : _rules(rules),
+#if 0
 		_compare(rules.repeatable()? 
 			compare_codewords_generic : compare_codewords_norepeat),
+#else
+		_compare(RoutineRegistry<ComparisonRoutine>::get(
+			rules.repeatable()? "generic" : "norepeat")),
+#endif
 		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
 		_mask(RoutineRegistry<MaskRoutine>::get("generic")),
 		_all(generateCodewords())

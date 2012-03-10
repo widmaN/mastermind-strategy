@@ -42,7 +42,7 @@ struct Registry
 	Utilities::Registry<std::string,type>::registerItem(id,item); \
 	return 0; } \
 	static int _var_reg_item_##item = _reg_item_##item(); 
-
+#else
 #define REGISTER_ITEM2(type,id,item) \
 	static int _reg_item ## id () { \
 		Utilities::Registry<std::string,type>::registerItem(#id,item); \

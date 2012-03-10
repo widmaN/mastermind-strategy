@@ -291,9 +291,33 @@ static void compare_codewords(
 	}
 }
 
-ComparisonRoutine * const compare_codewords_generic = compare_codewords<GenericComparer>;
+//ComparisonRoutine const compare_codewords_generic = compare_codewords<GenericComparer>;
 
-ComparisonRoutine * const compare_codewords_norepeat = compare_codewords<NoRepeatComparer>;
+//ComparisonRoutine const compare_codewords_norepeat = compare_codewords<NoRepeatComparer>;
+
+static inline void compare_codewords_generic(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq)
+{
+	return compare_codewords<GenericComparer>(secret, guesses, count, result, freq);
+}
+
+static inline void compare_codewords_norepeat(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq)
+{
+	return compare_codewords<NoRepeatComparer>(secret, guesses, count, result, freq);
+}
+
+REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_codewords_generic)
+REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_codewords_norepeat)
+
 
 #if 0
 void compare_codewords(
@@ -310,5 +334,119 @@ void compare_codewords(
 		compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
 }
 #endif
+
+/// [Test] Codeword comparer for generic codewords (with or without repetition).
+class TestComparer
+{
+	// Lookup table that converts (nA<<4|nAB) -> feedback.
+	// Both nA and nAB must be >= 0 and <= 15.
+	struct lookup_table_t
+	{
+		Feedback table[0x100];
+
+		lookup_table_t()
+		{
+			for (int i = 0; i < 0x100; i++)
+			{
+				int nA = i >> 4;
+				int nAB = i & 0xF;
+				table[i] = Feedback(nA, nAB - nA);
+			}
+		}
+	};
+
+	static const lookup_table_t lookup;
+
+	typedef util::simd::simd_t<uint8_t,16> simd_t;
+
+	simd_t secret;
+
+public:
+
+	TestComparer(const Codeword &_secret) : secret(_secret.value())
+	{
+		// Change 0xff in secret to 0x0f.
+		secret &= (uint8_t)0x0f;
+	}
+
+	/**
+	 * In VC++, it's extremely subtle how the C++ code will compile into 
+	 * assembly. Effectively equivalent code may lead to significantly 
+	 * different performance. Usually the performance difference comes
+	 * from redundant memory reads/writes. Hence it's always a good idea
+	 * to examine the ASM after compiling the code.
+	 *
+	 * The following C++ code is hand-crafted so that the generated ASM
+	 * by VC++ is almost optimal. The generated instructions for a loop
+	 * that compares codewords and increment the frequencies are:
+	 *
+	 *   movdqa      xmm0,xmmword ptr [r10]  ; xmm0 := *guesses
+	 *   movdqa      xmm1,xmm2               ; xmm1 := xmm2
+	 *   lea         r10,[r10+10h]           ; ++guesses
+	 *   pcmpeqb     xmm1,xmm0 
+	 *   pminub      xmm0,xmm2  
+	 *   pand        xmm0,xmm4  
+	 *   pand        xmm1,xmm3  
+	 *   psadbw      xmm0,xmm5  
+	 *   psadbw      xmm1,xmm5  
+	 *   pextrw      eax,xmm0,0  
+	 *   pextrw      ecx,xmm0,4  
+	 *   add         ecx,eax  
+	 *   pextrw      eax,xmm1,4  
+	 *   shl         eax,4  
+	 *   movsxd      rdx,ecx  
+	 *   cdqe  
+	 *   or          rdx,rax  
+	 *   movsx       rax,byte ptr [rdx+r11]  ; rax := lookup_table[mask]
+	 *   inc         dword ptr [r9+rax*4]    ; ++freq[Feedback]
+	 *   dec         r8                      ; --count
+	 *   jne         ...                     ; continue loop
+	 */
+	Feedback operator () (const Codeword &_guess) const
+	{
+		// Create mask for use later.
+		const simd_t mask_pegs = util::simd::fill_left<MM_MAX_PEGS>((uint8_t)0x01);
+		const simd_t mask_colors = util::simd::fill_right<MM_MAX_COLORS>((uint8_t)0xff);
+
+		const simd_t guess(_guess.value());
+
+		// Compute nA.
+		// It turns out that there's a significant (20%) performance
+		// hit if <code>nA = sum_high(...)</code> is changed to
+		// <code>nA = sum(...)</code>. In the latter case, VC++
+		// VC++ generates an extra (redundant) memory read.
+		// The reason is unclear. (Obviously there are still free
+		// XMM registers.)
+#if MM_MAX_PEGS <= 8
+		int nA = sum_high((guess == secret) & mask_pegs);
+#else
+		int nA = sum((guess == secret) & mask_pegs);
+#endif
+
+		// Compute nAB.
+#if MM_MAX_COLORS <= 8
+		int nAB = sum_low(min(guess, secret) & mask_colors);
+#else
+		int nAB = sum(min(guess, secret) & mask_colors);
+#endif
+
+		Feedback nAnB = lookup.table[(nA<<4)|nAB];
+		return nAnB;
+	}
+};
+
+const TestComparer::lookup_table_t TestComparer::lookup;
+
+static inline void compare_codewords_test(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq)
+{
+	return compare_codewords<TestComparer>(secret, guesses, count, result, freq);
+}
+
+REGISTER_ROUTINE(ComparisonRoutine, "test", compare_codewords_test)
 
 } // namespace Mastermind

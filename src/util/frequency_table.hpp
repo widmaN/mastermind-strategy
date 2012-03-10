@@ -40,14 +40,21 @@ public:
 	/// Returns the size of the frequency table.
 	size_t size() const { return _count; }
 
-#if 0
-	/// Sets the size of the frequency table.
-	void resize(size_t n)
+	/// Sets the size of the frequency table and optionally resets all 
+	/// frequency counts to zero.
+	void resize(size_t n, bool zero_memory = true)
 	{
 		assert(n <= Capacity);
 		_count = n;
-	}
+		if (zero_memory)
+		{
+#if 1
+			std::fill(_freq + 0, _freq + n, TVal(0));
+#else
+			memset(_freq, 0, sizeof(TVal)*n);
 #endif
+		}
+	}
 
 	/// Returns a pointer to the first frequency value.
 	TVal* data() { return _freq; }

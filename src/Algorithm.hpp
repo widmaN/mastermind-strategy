@@ -22,7 +22,7 @@ namespace Mastermind {
  *      The caller must ensure the frequencies are set to zero before
  *      calling the function.
  */
-typedef void ComparisonRoutine(
+typedef void (*ComparisonRoutine)(
 	const Codeword &secret,
 	const Codeword *guesses,
 	size_t count,
@@ -30,10 +30,10 @@ typedef void ComparisonRoutine(
 	unsigned int *freq);
 
 /// Pointer to the routine used for comparing generic codewords.
-extern ComparisonRoutine* const compare_codewords_generic;
+//extern ComparisonRoutine const compare_codewords_generic;
 
 /// Pointer to the routine used for comparing codewords without repetition.
-extern ComparisonRoutine* const compare_codewords_norepeat;
+//extern ComparisonRoutine const compare_codewords_norepeat;
 
 #if 0
 void compare_codewords(
