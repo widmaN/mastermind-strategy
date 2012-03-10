@@ -16,6 +16,7 @@
 #include "OptimalStrategy.hpp"
 #include "Equivalence.hpp"
 #include "Heuristics.hpp"
+#include "Benchmark.hpp"
 
 #include "util/call_counter.hpp"
 #include "util/hr_timer.hpp"
@@ -331,11 +332,12 @@ int test(const Rules &rules, bool /* verbose */)
 	// Set up the standard engine.
 	Engine e(rules);
 
-#if 0
-	//compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
+#if 1
 	//compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
-	compareRoutines<MaskRoutine>(e, "generic", "unrolled", 100000*LOOP_FLAG);
+	compareRoutines<ComparisonRoutine>(e, "generic", "test", 100000*LOOP_FLAG);
 
+	//compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
+	//compareRoutines<MaskRoutine>(e, "generic", "unrolled", 100000*LOOP_FLAG);
 	//testSumSquares(rules, "generic", "generic", 10000000*LOOP_FLAG);
 	//return TestFrequencyCounting(rules, 250000*LOOP_FLAG);
 	//return TestEquivalenceFilter(rules, 10000*LOOP_FLAG);
@@ -443,19 +445,6 @@ int test(const Rules &rules, bool /* verbose */)
 		TestGuessingByTree(rules, breakers, sizeof(breakers)/sizeof(breakers[0]), first_guess);
 		printf("\n");
 	}
-
-	void PrintFrequencyStatistics();
-	//PrintFrequencyStatistics();
-
-	void PrintCompareStatistics();
-	//PrintCompareStatistics();
-
-	void PrintMakeGuessStatistics();
-	//PrintMakeGuessStatistics();
-
-	void OCB_PrintStatistics();
-	OCB_PrintStatistics();
-
 #endif
 
 	pause_output();

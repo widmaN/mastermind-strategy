@@ -2,6 +2,11 @@
 #define MASTERMIND_BENCHMARK_HPP
 
 #include <iostream>
+#include <iomanip>
+#include "Engine.hpp"
+#include "util/hr_timer.hpp"
+
+namespace Mastermind {
 
 // Dummy test driver that does nothing in the test and always returns success.
 template <class Routine>
@@ -59,12 +64,16 @@ bool compareRoutines(
 		t2 += timer.stop();
 	}
 
-	printf("Algorithm 1: %6.3f\n", t1);
-	printf("Algorithm 2: %6.3f\n", t2);
-	printf("Throughput Ratio: %5.2fX\n", (t1/t2));
+	std::cout << "Algorithm 1: " << std::setw(6) << std::setprecision(3) 
+		<< t1 << std::endl;
+	std::cout << "Algorithm 2: " << std::setw(6) << std::setprecision(3) 
+		<< t2 << std::endl;
+	std::cout << "Throughput Ratio: " << std::setw(5) << std::setprecision(2) 
+		<< (t1/t2) << std::endl;
 	return true;
 }
 
+#if 0
 // Codeword generation benchmark.
 // Test: Generate all codewords of 4 pegs, 10 colors, and no repeats.
 //       Total 5040 items in each run.
@@ -100,13 +109,15 @@ public:
 		return os;
 	}
 };
+#endif
 
-#if 0
+#if 1
 // Codeword comparison benchmark.
-// Test:     Compare a given codeword to 5040 non-repeatable codewords.
-// Results:  (100,000 runs, Win32, VC++ 2011)
-// generic:  1.68 s
-// norepeat: 0.62 s
+// Test:     Compare a given codeword to 5040 non-repeatable codewords, and
+//           update a frequency table of the responses.
+// Results:  (100,000 runs, x64, VC++ 2010)
+// generic:  1.68 s (feedback) / 2.46 s (freq)
+// norepeat: 0.62 s (feedback) / 1.18 s (freq)
 template <> class TestDriver<ComparisonRoutine>
 {
 	Engine &e;
@@ -114,36 +125,34 @@ template <> class TestDriver<ComparisonRoutine>
 	CodewordList codewords;
 	size_t count;
 	Codeword secret;
-	FeedbackList feedbacks;
+	FeedbackFrequencyTable freq;
 
 public:
 	TestDriver(Engine &env, ComparisonRoutine func)
 		: e(env), f(func), codewords(e.generateCodewords()),
-		count(codewords.size()), secret(codewords[count/2]),
-		feedbacks(count) { }
+		count(codewords.size()), secret(codewords[count/2])
+		{ }
 
 	void operator()()
 	{
-#if 0
-		f(e.rules(), secret, &codewords.front(), &codewords.back()+1,
-			feedbacks.data());
-#endif
+		freq.resize(Feedback::size(e.rules()));
+		f(secret, codewords.data(), codewords.size(), 0, freq.data());
 	}
 
 	bool operator == (const TestDriver &r) const
 	{
-		if (count != r.count)
+		if (freq.size() != r.freq.size())
 		{
 			std::cout << "**** ERROR: Different sizes." << std::endl;
 			return false;
 		}
-		for (size_t i = 0; i < count; i++)
+		for (size_t i = 0; i < freq.size(); i++)
 		{
-			if (feedbacks[i] != r.feedbacks[i])
+			if (freq[i] != r.freq[i])
 			{
-				std::cout << "**** ERROR: Inconsistent [" << i << "]: "
-					<< "Compare(" << secret << ", " << codewords[i] << ") = "
-					<< feedbacks[i] << " v " << r.feedbacks[i] << std::endl;
+				std::cout << "**** ERROR: Inconsistent frequency for ["
+					<< Feedback(i) << "]: " << freq[i] << " v " << r.freq[i]
+					<< std::endl;
 				return false;
 			}
 		}
@@ -152,13 +161,12 @@ public:
 
 	friend std::ostream& operator << (std::ostream &os, const TestDriver &r)
 	{
-		FeedbackFrequencyTable freq;
-		// r.e.countFrequencies(r.feedbacks.begin(), r.feedbacks.end(), freq);
-		return os << freq;
+		return os << r.freq;
 	}
 };
 #endif
 
+#if 0
 // Color-mask scanning benchmark.
 // Test: Scan 5040 codewords for 100,000 times.
 //
@@ -221,6 +229,7 @@ public:
 		return os << std::endl;
 	}
 };
+#endif
 
 #if 0
 /// Compares frequency counting algorithms.
@@ -295,5 +304,7 @@ int TestFrequencyCounting(const Rules &rules, long times)
 	return 0;
 }
 #endif
+
+} // namespace Mastermind
 
 #endif // MASTERMIND_BENCHMARK_HPP
