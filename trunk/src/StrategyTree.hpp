@@ -84,7 +84,7 @@ public:
 #else
 		)
 #endif
-		: simple_tree(root_data), _rules(rules)
+		: util::simple_tree<StrategyNode,int>(root_data), _rules(rules)
 	{ }
 
 	//const std::string& name() const { return _name; }
