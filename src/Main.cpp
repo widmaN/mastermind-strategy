@@ -383,7 +383,7 @@ int main(int argc, char* argv[])
 		StrategyMode = 1,
 		PlayerMode = 2,
 		DebugMode = 3,
-		TestMode = 4,
+		TestMode = 4
 	} mode = DefaultMode;
 	std::string strat_name, strat_file, filter_name;
 	Codeword secret;

@@ -287,6 +287,8 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 
 	Feedback perfect = Feedback::perfectValue(tree.rules());
 	int indent = 2;
+#define CLANG_BUG 1
+#if !CLANG_BUG
 	size_t level = 0;
 	tree.traverse(tree.root(), [&](size_t depth, StrategyTree::const_iterator it)
 	{
@@ -314,6 +316,7 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 				<< ">" << std::endl;
 		}
 	});
+#endif
 
 	// Write closing tags.
 	os << "</details>" << std::endl;

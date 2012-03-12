@@ -14,6 +14,8 @@ class EquivalenceFilter
 {
 public:
 
+	virtual ~EquivalenceFilter() { }
+
 	virtual EquivalenceFilter* clone() const = 0;
 
 	virtual CodewordList get_canonical_guesses(
