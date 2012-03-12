@@ -12,7 +12,7 @@
 				<Option object_output="build/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test" />
+				<Option parameters="-h" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -22,7 +22,7 @@
 				<Option object_output="build/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test" />
+				<Option parameters="-v -s optimal -r p4c8n" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-g" />

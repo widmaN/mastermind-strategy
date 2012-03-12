@@ -39,19 +39,22 @@ struct simd_t
 /// Element-wise bit-AND.
 /// @ingroup SIMD
 template <class T, int N>
-simd_t<T,N> operator & (const simd_t<T,N> &a, const simd_t<T,N> &b)
+inline simd_t<T,N> 
+operator & (const simd_t<T,N> &a, const simd_t<T,N> &b)
 {
 	return _mm_and_si128(a, b);
 }
 
 template <class T, int N>
-simd_t<T,N>& operator &= (simd_t<T,N> &a, const simd_t<T,N> &b)
+inline simd_t<T,N>& 
+operator &= (simd_t<T,N> &a, const simd_t<T,N> &b)
 {
 	return (a = _mm_and_si128(a, b));
 }
 
 template <class T, int N>
-simd_t<T,N>& operator &= (simd_t<T,N> &a, T b)
+inline simd_t<T,N>& 
+operator &= (simd_t<T,N> &a, T b)
 {
 	return (a &= simd_t<T,N>(b));
 }
@@ -59,7 +62,8 @@ simd_t<T,N>& operator &= (simd_t<T,N> &a, T b)
 /// Element-wise bit-OR.
 /// @ingroup SIMD
 template <class T, int N>
-simd_t<T,N>& operator |= (simd_t<T,N> &a, const simd_t<T,N> &b)
+inline simd_t<T,N>& 
+operator |= (simd_t<T,N> &a, const simd_t<T,N> &b)
 {
 	return (a = _mm_or_si128(a, b));
 }
@@ -104,7 +108,8 @@ inline int byte_mask(const simd_t<uint8_t,16> &a)
 /// Shift elements (not bits) left.
 /// @ingroup SIMD
 template <int Count>
-simd_t<uint8_t,16> shift_elements_left(const simd_t<uint8_t,16> &a)
+inline simd_t<uint8_t,16> 
+shift_elements_left(const simd_t<uint8_t,16> &a)
 {
 	return _mm_slli_si128(a, Count);
 }
@@ -112,7 +117,8 @@ simd_t<uint8_t,16> shift_elements_left(const simd_t<uint8_t,16> &a)
 /// Shift elements (not bits) right.
 /// @ingroup SIMD
 template <int Count>
-simd_t<uint8_t,16> shift_elements_right(const simd_t<uint8_t,16> &a)
+inline simd_t<uint8_t,16> 
+shift_elements_right(const simd_t<uint8_t,16> &a)
 {
 	return _mm_srli_si128(a, Count);
 }
@@ -120,7 +126,7 @@ simd_t<uint8_t,16> shift_elements_right(const simd_t<uint8_t,16> &a)
 /// Fills the left @c Count bytes with <code>b</code>.
 /// @ingroup SIMD
 template <int Count>
-simd_t<uint8_t,16> fill_left(uint8_t b)
+inline simd_t<uint8_t,16> fill_left(uint8_t b)
 {
 	return _mm_slli_si128(_mm_set1_epi8(b), 16-Count);
 }
@@ -128,7 +134,7 @@ simd_t<uint8_t,16> fill_left(uint8_t b)
 /// Fills the right @c Count bytes with <code>b</code>.
 /// @ingroup SIMD
 template <int Count>
-simd_t<uint8_t,16> fill_right(uint8_t b)
+inline simd_t<uint8_t,16> fill_right(uint8_t b)
 {
 	return _mm_srli_si128(_mm_set1_epi8(b), 16-Count);
 }
@@ -137,7 +143,7 @@ simd_t<uint8_t,16> fill_right(uint8_t b)
 /// the left to zero.
 /// @ingroup SIMD
 template <int Count>
-simd_t<char,16> keep_right(const simd_t<char,16> &a)
+inline simd_t<char,16> keep_right(const simd_t<char,16> &a)
 {
 	return _mm_srli_si128(_mm_slli_si128(a,16-Count),16-Count);
 }
@@ -145,7 +151,7 @@ simd_t<char,16> keep_right(const simd_t<char,16> &a)
 /// Extracts the selected 16-bit word, and zero extends the result.
 /// @ingroup SIMD
 template <int Index>
-int extract(const simd_t<uint16_t,8> &a)
+inline int extract(const simd_t<uint16_t,8> &a)
 {
 	return _mm_extract_epi16(a, Index);
 }

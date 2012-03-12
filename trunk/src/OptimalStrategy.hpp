@@ -117,7 +117,8 @@ public:
 		// Therefore, we will not use that approach for now.
 		unsigned int depth_bitset = 0;
 		int steps = 0;
-		for (size_t j = 0; j < freq.size() - 2; ++j)
+		size_t m = freq.size() - 2;
+		for (size_t j = 0; j < m; ++j)
 		{
 #if 0
 			if (freq[j] == 0) 
