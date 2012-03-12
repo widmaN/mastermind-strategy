@@ -32,7 +32,8 @@ struct aligned_allocator
 	struct rebind { 	typedef aligned_allocator<U,Alignment> other; };
 
 	aligned_allocator() throw() { }
-	aligned_allocator(const aligned_allocator&) throw() { }
+	aligned_allocator(const aligned_allocator& other) throw()
+		: std::allocator<T>(other) { }
 	template <class U>
 	aligned_allocator(const aligned_allocator<U,Alignment>&) throw() { }
 	~aligned_allocator() throw() { }

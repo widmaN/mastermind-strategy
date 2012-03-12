@@ -24,16 +24,19 @@ class Codeword /* __declspec(align(16)) */
 		__m128i _value;
 		struct
 		{
-			char _counter[MM_MAX_COLORS];
-			char _digit[MM_MAX_PEGS];
+			int8_t _counter[MM_MAX_COLORS];
+			int8_t _digit[MM_MAX_PEGS];
 		};
 	};
 
 public:
 
+	/// Constant representing an 'empty' color.
+	static const int EmptyColor = -1;
+	
 	/// Type of the internal representation of a codeword.
 	typedef __m128i value_type;
-
+	
 	/// Creates an empty codeword.
 	Codeword()
 	{
@@ -59,7 +62,7 @@ public:
 	bool operator ! () const { return empty(); }
 
 	/// Returns the color on a given peg.
-	char operator [] (int peg) const
+	int operator [] (int peg) const
 	{
 		assert(peg >= 0 && peg < MM_MAX_PEGS);
 		return _digit[peg];

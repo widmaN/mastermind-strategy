@@ -62,9 +62,9 @@ public:
 	Codeword permute(const Codeword &w) const
 	{
 		Codeword ret;
-		for (int i = 0; i < MM_MAX_PEGS && w[i] != 0xFF; ++i)
+		for (int i = 0; i < MM_MAX_PEGS && w[i] != Codeword::EmptyColor; ++i)
 		{
-			ret.set(peg[i], color[(int)w[i]]);
+			ret.set(peg[i], color[w[i]]);
 		}
 		return ret;
 	}
