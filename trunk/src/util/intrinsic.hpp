@@ -14,12 +14,14 @@
 
 namespace util { namespace intrinsic {
 
+#if 0
 /// Rotates the bits in @c value left by @c shift bits.
 /// @ingroup Intrinsic
 inline unsigned int rotate_left(unsigned int value, int shift)
 {
 	return _rotl(value, shift);
 }
+#endif
 
 /// Returns the position of the least significant one bit in @c value.
 /// @param value An integer.

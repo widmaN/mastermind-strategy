@@ -24,7 +24,7 @@ enum StrategyObjective
 
 	// In addition to @c MinDepth, also minimize the number of secrets
 	// revealed by the most number of guesses.
-	MinWorst = 3,
+	MinWorst = 3
 };
 
 /**

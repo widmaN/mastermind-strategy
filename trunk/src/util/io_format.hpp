@@ -16,7 +16,7 @@ enum FileFormat
 	TextFormat = 1,
 	XmlFormat = 2,
 	BinaryFormat = 3,
-	CompressedFormat = 4,
+	CompressedFormat = 4
 };
 
 #if 0
