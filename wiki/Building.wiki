@@ -1,0 +1,42 @@
+#summary Building from source
+
+This page contains instructions for building the program and documentation from source.
+
+= Prerequisites =
+
+== Hardware ==
+
+This program makes use of SSE2 instructions (through compiler intrinsics)  to optimize critical parts of the computation. Therefore, the CPU must be Intel or AMD with SSE2 support. Both 32-bit and 64-bit are supported, but 64-bit offers better runtime performance.
+
+== Operating System ==
+
+This program is a command line utility. It supports both Windows and Linux variants. The testing environments include:
+  * Windows 7
+  * Windows 8 Consumer Preview
+  * Fedora 16
+  * Ubuntu 11.10
+
+== Compiler ==
+
+The source code is written in C++ and uses a subset of C++0x features (such as lambda expression, `array` header, etc). Therefore the compiler (and the bundled STL) must implement the related parts of C++0x standard. The following compilers are supported:
+  * Microsoft Visual C++ 2010 (including Express)
+  * Microsoft Visual C++ 11 Beta
+  * GNU C++ Compiler 4.5.3
+  * Intel C++ Compiler 12.1.3
+In practice, GCC generates the fastest executable. MSVC generates slightly slower executable (about 10% slower than GCC). And ICC generates the slowest executable (another 15% slower than MSVC). For any compiler, 64-bit code is faster than 32-bit code.
+
+= Getting the Source =
+
+The source code is hosted in an SVN repository on Google Code. You can check out the source code using the following command (or via a GUI such as TortoiseSVN for Windows):
+<code language="sh">svn checkout https://mastermind-strategy.googlecode.com/svn/trunk/ mastermind-strategy</code>
+This includes all source code as well as documentation.
+
+= Compiling and Linking =
+
+== Under Windows ==
+
+A VC++ 2010 solution file is included in the root directory of the source. Load this solution in VC2010 and build it. You can choose Debug or Release, and Win32 or x64.
+
+== Under Linux ==
+
+A Code::Blocks project file is provided. Alternatively, you can use cmake to build from the included CMakeLists.txt file.
