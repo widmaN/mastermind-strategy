@@ -112,6 +112,20 @@ public:
 		//compare_codewords(_rules, guess, &secrets[0], secrets.size(), freq.data());
 		return freq;
 	}
+	
+	/// Compares a codeword to a list of codewords and returns the 
+	/// feedback frequencies.
+	void compare(
+		const Codeword &guess, 
+		CodewordConstRange secrets,
+		FeedbackFrequencyTable &freq) const
+	{
+		freq.resize(Feedback::size(rules()));
+		if (!secrets.empty())
+		{
+			_compare(guess, &secrets[0], secrets.size(), 0, freq.data());
+		}
+	}
 
 	/// Compares a codeword to a list of codewords and returns the 
 	/// feedbacks as well as their frequencies.

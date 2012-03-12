@@ -111,11 +111,9 @@ public:
 		 return h.name();
 	}
 
-#if 0
+#if 1
 	/// Evaluates an array of candidates, and stores the heuristic score
 	/// of each candidate.
-	/// Makes the guess that produces the lowest heuristic score.
-	/// Optionally stores the score of all candidates in an array.
 	void evaluate(
 		CodewordConstRange possibilities,
 		CodewordConstRange candidates,
@@ -126,21 +124,19 @@ public:
 		UPDATE_CALL_COUNTER(EvaluateHeuristic_Possibilities, (unsigned int)possibilities.size());
 		UPDATE_CALL_COUNTER(EvaluateHeuristic_Candidates, (unsigned int)candidates.size());
 
-		if (candidates.empty() || !scores)
-			return;
+		assert(scores != NULL);
 
 		int n = (int)candidates.size();
 
-		// OpenMP index variable (i) must have signed integer type.
 #if _OPENMP
+		// OpenMP index variable (i) must have signed integer type.
 		#pragma omp parallel for schedule(static)
 #endif
 		for (int i = 0; i < n; ++i)
 		{
-			// Partition the possibilities.
-			// @todo Make the size of freq smaller (redundant elements unnecessary).
+			// Partition the remaining possibilities.
 			Codeword guess = candidates[i];
-			FeedbackFrequencyTable freq = e.frequencies(guess, possibilities);
+			FeedbackFrequencyTable freq = e.compare(guess, possibilities);
 
 			// Compute a score of the partition.
 			score_type score = h.compute(freq);
@@ -239,7 +235,9 @@ public:
 			for (int i = 0; i < n; ++i)
 			{
 				Codeword guess = candidates[i];
-				FeedbackFrequencyTable freq = e.compare(guess, possibilities);
+				//FeedbackFrequencyTable freq = e.compare(guess, possibilities);
+				FeedbackFrequencyTable freq;
+				e.compare(guess, possibilities, freq);
 
 				// Compute a score of the partition.
 				score_type score = h.compute(freq);

@@ -30,7 +30,10 @@ public:
 	frequency_table(size_t n) : _count(n) 
 	{
 		assert(n <= Capacity);
-#if 1
+		// Note: gcc does not optimize std::fill() with memset.
+		// So we need to use memset explicitly. Note that this
+		// requires TVal to be suitably typed.
+#if 0
 		std::fill(_freq + 0, _freq + n, TVal(0));
 #else
 		memset(_freq, 0, sizeof(TVal)*n);
@@ -48,7 +51,7 @@ public:
 		_count = n;
 		if (zero_memory)
 		{
-#if 1
+#if 0
 			std::fill(_freq + 0, _freq + n, TVal(0));
 #else
 			memset(_freq, 0, sizeof(TVal)*n);

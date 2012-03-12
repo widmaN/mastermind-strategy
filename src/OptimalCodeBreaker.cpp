@@ -190,7 +190,8 @@ static StrategyCost fill_strategy_tree(
 	// @todo It might be better to rename scores to extra_cost.
 	typedef Heuristics::MinimizeLowerBound::score_t lowerbound_t;
 	std::vector<lowerbound_t> scores(candidates.size());
-	estimator.make_guess(secrets, candidates, scores.data());
+	//estimator.make_guess(secrets, candidates, scores.data());
+	estimator.evaluate(secrets, candidates, scores.data());
 
 	// @todo We might opt to remove the need to create an index array.
 	// Instead, we could scan for the element in each iteration.
