@@ -34,13 +34,11 @@ namespace util {
  */
 class call_counter
 {
-	//std::string _name; // name of the function being profiled
+	std::string _name; // name of the routine being profiled
 
 	// Classifies the call statistics into groups, grouped by the 
-	// number of operations in a call. Calls with zero operations
-	// are not recorded. Calls with one or more operations are
-	// grouped like this:
-	// [1,2), [2,4), [4,8), ..., [2^31,2^32)
+	// number of operations in a call as follows:
+	// [0,1), [1,3), [3,7), ..., [2^31-1,2^32-1)
 	struct group_t
 	{
 		unsigned long long calls; // number of calls
@@ -52,9 +50,10 @@ class call_counter
 
 public:
 
-	//call_counter(const char *name) : _name(name) { }
+	call_counter(const std::string &name) : _name(name) { }
 
-	//std::string name() const { return _name; }
+	/// Returns the name of the routine being profiled.
+	std::string name() const { return _name; }
 
 	/// Returns the total number of calls recorded by this counter.
 	unsigned long long total_calls() const 
@@ -78,13 +77,12 @@ public:
 	/// @param ops Number of operations in this call.
 	void add_call(unsigned int ops)
 	{
-		if (ops)
-		{
-			// The group is the location of the most significant 1.
-			int pos = util::intrinsic::bit_scan_reverse(ops);
-			_stat[pos].calls++;
-			_stat[pos].ops += ops;
-		}
+		assert(ops + 1 > 0);
+
+		// The group is the location of the most significant 1.
+		unsigned int pos = util::intrinsic::bit_scan_reverse(ops + 1);
+		_stat[pos].calls++;
+		_stat[pos].ops += ops;
 	}
 
 	/// Outputs the call counter statistics to a stream.
@@ -96,7 +94,7 @@ public:
 		unsigned long long ncalls = cc.total_calls();
 		unsigned long long nops = cc.total_ops();
 
-		//os << "==== Call Statistics for " << cc.name() << "() ====" << std::endl;
+		os << "==== Call Statistics for " << cc.name() << "() ====" << std::endl;
 		os << "Total # of calls : " << ncalls << std::endl;
 		os << "Total # of ops   : " << nops << std::endl;
 
@@ -109,8 +107,8 @@ public:
 			{
 				if (cc._stat[k].calls > 0)
 				{
-					os << "[" << std::setw(6) << (1<<k) << " -"
-						<< std::setw(6) << ((1<<(k+1))-1) << "] "
+					os << "[" << std::setw(6) << (1<<k)-1 << " -"
+						<< std::setw(6) << (1<<(k+1))-2 << "] "
 						<< std::setw(6) << std::setprecision(2) << std::fixed
 						<< (double)cc._stat[k].calls / ncalls * 100.0 << "  "
 						<< std::setw(6) << std::setprecision(2) << std::fixed
@@ -128,7 +126,12 @@ public:
 	static call_counter& get(const std::string &name)
 	{
 		static std::map<std::string, call_counter> ccs;
-		return ccs[name];
+		auto it = ccs.find(name);
+		if (it == ccs.end())
+		{
+			it = ccs.insert(std::make_pair(name, call_counter(name))).first;
+		}
+		return it->second;
 	}
 };
 #endif // ENABLE_CALL_COUNTER

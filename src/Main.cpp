@@ -352,13 +352,10 @@ static int build_strategy(
 	// Display debug info if required.
 	if (verbose >= 2)
 	{
-		std::cout << "Call statistics for EvaluateHeuristic_Possibilities:" << std::endl;
+		std::cout << std::endl;
 		std::cout << util::call_counter::get("EvaluateHeuristic_Possibilities") << std::endl;
-		std::cout << "Call statistics for EvaluateHeuristic_Candidates:" << std::endl;
 		std::cout << util::call_counter::get("EvaluateHeuristic_Candidates") << std::endl;
-		std::cout << "Call statistics for ComputeLowerBound_Steps:" << std::endl;
 		std::cout << util::call_counter::get("ComputeLowerBound_Steps") << std::endl;
-		std::cout << "Call statistics for ComputeLowerBound_Depth:" << std::endl;
 		std::cout << util::call_counter::get("ComputeLowerBound_Depth") << std::endl;
 	}
 	return 0;
