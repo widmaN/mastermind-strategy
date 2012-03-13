@@ -42,16 +42,13 @@ inline int bit_scan_forward(unsigned long value)
 	return pos;
 }
 
-/// Returns the position of the most significant one bit in @c value.
-/// @param value An integer.
-/// @returns The (zero-based) position of the most significant one bit
-///      in @c value, or <code>-1</code> if @c value is zero.
+/// Returns the position of the most significant bit set in @c value.
+/// @param value A positive integer.
+/// @returns The (zero-based) position of the most significant bit set
+///      in @c value. If @c value is zero, the return value is undefined.
 /// @ingroup Intrinsic
-inline int bit_scan_reverse(unsigned long value)
+inline unsigned int bit_scan_reverse(unsigned long value)
 {
-	if (value == 0)
-		return -1;
-
 	unsigned long pos = 0;
 #ifdef _WIN32
 	_BitScanReverse(&pos, value);
