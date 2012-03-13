@@ -3,7 +3,6 @@
 #include <cassert>
 #include <sstream>
 
-//#include <stdlib.h>
 #include <algorithm>
 #include <utility>
 #include <map>
@@ -14,48 +13,6 @@
 #include "Engine.hpp"
 
 namespace Mastermind {
-
-#if 0
-/// Encapsulates a node (state) in the strategy tree for easy access.
-class StrategyTreeState
-{
-	StrategyTree &_tree;
-	size_t _index;
-	std::vector<StrategyTreeState> _children;
-
-public:
-	StrategyTreeState(StrategyTree &tree, size_t index)
-		: _tree(tree), _index(index) { }
-
-	const StrategyTree::Node & node() const { return _tree.nodes()[_index]; }
-
-	/// Returns the depth of the node; 0=root, 1=first guess, etc.
-	int depth() const { return node().depth(); }
-
-	/// Returns the guess that defines the state.
-	Codeword guess() const { return node().guess(); }
-
-	/// Returns the response that defines the state.
-	Feedback response() const { return node().response(); }
-
-	/// Returns the number of remaining possibilities.
-	size_t remaining() const 
-	{
-
-	}
-
-	/// Returns the suggested guess for the current state.
-	Codeword suggestion() const 
-	{
-
-	}
-
-	/// Returns a collection of child nodes
-	const std::vector<StrategyTreeState>& children()
-	{
-	}
-};
-#endif
 
 ///////////////////////////////////////////////////////////////////////////
 // StrategyTreeInfo implementation
@@ -69,23 +26,26 @@ StrategyTreeInfo::StrategyTreeInfo(
 	_children(Feedback::size(tree.rules())), _name(name), _time(time)
 {
 	Feedback perfect = Feedback::perfectValue(tree.rules());
-	tree.traverse(root, [=](size_t depth, StrategyTree::const_iterator it)
+	auto root_depth = root.depth();
+	auto nodes = tree.traverse(root);
+	for (auto it = nodes.begin(); it != nodes.end(); ++it)
 	{
-		if (depth == 1)
+		if (it.depth() == root_depth + 1)
 		{
 			_children[it->response().value()] = it;
 		}
 		if (it->response() == perfect)
 		{
-			if (depth >= _depth_freq.size())
+			unsigned int d = it.depth() - root_depth;
+			if (d >= _depth_freq.size())
 			{
-				_depth_freq.resize(depth+1);
+				_depth_freq.resize(d+1);
 			}
-			++_depth_freq[depth];
+			++_depth_freq[d];
 			++_total_secrets;
-			_total_depth += depth;
+			_total_depth += d;
 		}
-	});
+	}
 }
 
 std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
@@ -287,11 +247,12 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 
 	Feedback perfect = Feedback::perfectValue(tree.rules());
 	int indent = 2;
-#define CLANG_BUG 1
-#if !CLANG_BUG
 	size_t level = 0;
-	tree.traverse(tree.root(), [&](size_t depth, StrategyTree::const_iterator it)
+	auto nodes = tree.traverse(tree.root());
+	for (auto it = nodes.begin(); it != nodes.end(); ++it)
 	{
+		size_t depth = it.depth();
+
 		// Close deeper branches.
 		for (; level > depth; --level)
 		{
@@ -315,8 +276,7 @@ void WriteStrategy_XmlFormat(std::ostream &os, const StrategyTree &tree)
 				//<< "next=\"" << node.suggestion 
 				<< ">" << std::endl;
 		}
-	});
-#endif
+	}
 
 	// Write closing tags.
 	os << "</details>" << std::endl;

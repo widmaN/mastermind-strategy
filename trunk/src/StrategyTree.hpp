@@ -136,10 +136,11 @@ public:
 
 	Codeword suggestion() // const
 	{
-		if (_root.child_begin() == _root.child_end())
+		auto children = _tree.children(_root);
+		if (children.empty())
 			return Codeword();
 		else
-			return _root.child_begin()->guess();
+			return children.begin()->guess();
 	}
 
 #if 1

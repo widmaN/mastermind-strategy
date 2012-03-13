@@ -5,6 +5,7 @@
 #include <cassert>
 #include <iterator>
 #include <type_traits>
+#include "range.hpp"
 
 namespace util {
 
@@ -42,24 +43,27 @@ protected:
 
 	std::vector<node_t> _nodes;
 
-public:
-
 	typedef simple_tree<T,TDepth> self_type;
 
-	/// Represents an iterator for the nodes in a simple tree.
+	/// Represents an abstract iterator that points to a specific node 
+	/// in a tree, but without the ability to increment itself.
 	template <bool IsConst>
 	class node_iterator
 	{
+	protected:
+
+		/// Declares the tree class as friend.
+		friend class simple_tree<T,TDepth>;
+
+		/// Type of the tree.
 		typedef typename std::conditional<IsConst,
 			const self_type, self_type>::type Tree;
 
+		/// Pointer to the underlying tree.
 		Tree * _tree;
+
+		/// Index of the node.
 		size_t _index;
-
-		/// Returns the depth of this node (root = 0).
-		TDepth depth() const { return _tree->_nodes[_index].depth; }
-
-		friend class simple_tree<T,TDepth>;
 
 	public:
 
@@ -85,30 +89,14 @@ public:
 
 		/// Copy-constructs an iterator.
 		node_iterator(const node_iterator<false> &other)
-			: _tree(other.tree()), _index(other.index()) { }
+			: _tree(other._tree), _index(other._index) { }
 
 		/// Constructs an iterator that points to a specific node in a tree.
 		node_iterator(Tree *tree, size_t index)
 			: _tree(tree), _index(index) { }
 
-		/// Returns a pointer to the underlying strategy tree.
-		Tree * tree() const { return _tree; }
-
-		/// Returns the internal index of this node (root = 0).
-		size_t index() const { return _index; }
-
-		/// Advances the iterator to the next sibling of this node. If there
-		/// is no next sibling, the advanced iterator points to a position 
-		/// where the next sibling would have been nserted.
-		node_iterator& operator ++ ()
-		{
-			TDepth d = _tree->_nodes[_index].depth;
-			size_t i = _index + 1;
-			while (i < _tree->_nodes.size() && _tree->_nodes[i].depth > d)
-				++i;
-			_index = i;
-			return *this;
-		}
+		/// Returns the depth of this node (root = 0).
+		TDepth depth() const { return _tree->_nodes[_index].depth; }
 
 		/// Returns a reference to the node data.
 		reference operator * () const { return _tree->_nodes[_index].data; }
@@ -126,7 +114,7 @@ public:
 		template <bool IsConst2>
 		bool operator == (const node_iterator<IsConst2> &it) const
 		{
-			return (index() == it.index()) && (tree() == it.tree());
+			return (_index == it._index) && (_tree == it._tree);
 		}
 
 		/// Tests whether two iterators are not equal.
@@ -135,19 +123,64 @@ public:
 		{
 			return ! operator == (it);
 		}
+	};
 
-		/// Returns an iterator to the first child of this node.
-		/// If this node contains no child, returns <code>child_end()</code>.
-		node_iterator child_begin() const
+	/// Iterator that traverses the siblings of a given node.
+	template <bool IsConst>
+	class sibling_iterator : public node_iterator<IsConst>
+	{
+	protected:
+
+		friend class simple_tree<T,TDepth>;
+
+		/// Constructs an iterator that points to a given node.
+		sibling_iterator(Tree *tree, size_t index) 
+			: node_iterator<IsConst>(tree, index) { }
+
+	public:
+
+		/// Copy- or convert-constructs an iterator.
+		template <bool IsConst2>
+		sibling_iterator(const node_iterator<IsConst2> &other)
+			: node_iterator<IsConst>(other) { }
+
+		/// Advances the iterator to the next sibling of this node. If there
+		/// is no next sibling, the advanced iterator points to a position 
+		/// where the next sibling would have been inserted.
+		sibling_iterator& operator ++ ()
 		{
-			return node_iterator(_tree, _index + 1);
+			TDepth d = _tree->_nodes[_index].depth;
+			size_t i = _index + 1;
+			while (i < _tree->_nodes.size() && _tree->_nodes[i].depth > d)
+				++i;
+			_index = i;
+			return *this;
 		}
+	};
 
-		/// Returns an iterator to one past the last child of this node.
-		node_iterator child_end() const
+	/// Iterator that traverses a branch of the tree in preorder.
+	template <bool IsConst>
+	class preorder_iterator : public node_iterator<IsConst>
+	{
+	protected:
+
+		friend class simple_tree<T,TDepth>;
+
+		/// Constructs an iterator that points to a given node.
+		preorder_iterator(Tree *tree, size_t index)
+			: node_iterator<IsConst>(tree, index) { }
+
+	public:
+
+		/// Copy- or convert-constructs an iterator.
+		preorder_iterator(const node_iterator<false> &other)
+			: node_iterator<IsConst>(other) { }
+
+		/// Advances the iterator to the next node in preorder traversal.
+		preorder_iterator& operator ++ ()
 		{
-			node_iterator it(*this);
-			return ++it;
+			++_index;
+			return *this;
 		}
 	};
 
@@ -159,21 +192,13 @@ public:
 	/// Type of the depth of a node.
 	typedef TDepth depth_type;
 
-	/// Type of a node iterator.
+	/// Type of a sibling iterator.
 	typedef node_iterator<false> iterator;
 
-	/// Type of a const node iterator.
+	/// Type of a const sibling iterator.
 	typedef node_iterator<true> const_iterator;
 
 public:
-
-#if 0
-	/// Creates a tree or branch with the given root data.
-	simple_tree(const T& root_data, TDepth root_depth = 0)
-	{
-		_nodes.push_back(node_t(root_data, root_depth));
-	}
-#endif
 
 	/// Creates a tree with the given root data.
 	simple_tree(const T& root_data)
@@ -181,36 +206,49 @@ public:
 		_nodes.push_back(node_t(root_data, 0));
 	}
 
-	/// Returns the number of nodes in the tree.
+	/// Returns the number of nodes in the tree, including the root node.
+	/// The return value is always greater than zero because the root node
+	/// always exists.
 	size_t size() const { return _nodes.size(); }
 
-	/// Returns an iterator to the root of the tree.
+	/// Returns a sibling iterator to the root of the tree.
 	iterator root() { return iterator(this, 0); }
 
-	/// Returns a const iterator to the root of the tree.
+	/// Returns an iterator to the root of the tree.
 	const_iterator root() const { return const_iterator(this, 0); }
 
-	/// Visits all nodes under a given root in natural order.
-	template <bool IsConst, class Func>
-	void traverse(node_iterator<IsConst> root, Func f) const
+	/// Returns a pair of iterators suitable for traversing the children
+	/// of a given node.
+	range<sibling_iterator<false>> children(const_iterator it)
 	{
-		TDepth root_depth = _nodes[root.index()].depth;
-		size_t root_index = root.index();
-		size_t count = size();
-		if (root_index >= count)
-			return;
+		return range<sibling_iterator<false>>(
+			sibling_iterator<false>(this, it._index + 1),
+			++sibling_iterator<false>(this, it._index));
+	}
 
-		// Visit the root node.
-		f(0, root);
+	/// Returns a pair of const iterators suitable for traversing the children
+	/// of a given node.
+	range<sibling_iterator<true>> children(const_iterator it) const
+	{
+		return const_cast<self_type*>(this)->children(it);
+	}
 
-		// Traverse children in pre-order.
-		for (size_t i = root_index + 1; i < count; ++i)
-		{
-			node_iterator<IsConst> it(this, i);
-			if (_nodes[i].depth <= root_depth)
-				break;
-			f(_nodes[i].depth - root_depth, it);
-		}
+	/// Returns a pair of iterators suitable for traversing all nodes in 
+	/// a given branch in native (preorder) order.
+	range<preorder_iterator<false>> traverse(const_iterator root)
+	{
+		assert(root._tree == this);
+		assert(root._index >= 0 && root._index < _nodes.size());
+		return range<preorder_iterator<false>>(
+			preorder_iterator<false>(this, root._index),
+			++sibling_iterator<false>(this, root._index));
+	}
+
+	/// Returns a pair of const iterators suitable for traversing all nodes
+	/// in a given branch in native (preorder) order.
+	range<preorder_iterator<true>> traverse(const_iterator root) const
+	{
+		return const_cast<self_type*>(this)->traverse(root);
 	}
 
 	/**
@@ -229,7 +267,8 @@ public:
 		assert(where._tree == this);
 
 		// For now, we only support adding to the end of the tree.
-		assert((++const_iterator(where)).index() == _nodes.size());
+		sibling_iterator<true> it(where);
+		assert((++it)._index == _nodes.size());
 
 		// Append the child to the end of the tree.
 		_nodes.push_back(node_t(data, where.depth() + 1));
@@ -259,7 +298,8 @@ public:
 		assert(where._tree == this);
 
 		// For now, we only support adding to the end of the tree.
-		assert((++const_iterator(where)).index() == _nodes.size());
+		sibling_iterator<true> it(where);
+		assert((++it)._index == _nodes.size());
 
 		iterator ret(this, _nodes.size());
 
