@@ -5,8 +5,6 @@
 #define UTILITIES_BITMASK_HPP
 
 #include <cassert>
-#include <type_traits>
-#include <cstdint>
 #include "intrinsic.hpp"
 
 namespace util {
@@ -20,17 +18,13 @@ namespace util {
 template <class T, size_t Bits>
 class bitmask
 {
-#if 0
-	static_assert(Bits <= 64, "Bitmask supports up to 64 bits.");
-	typedef typename std::conditional<Bits <= 8, uint8_t,
-		typename std::conditional<Bits <= 16, uint16_t,
-		typename std::conditional<Bits <= 32, uint32_t,
-		typename std::conditional<Bits <= 64, uint64_t,
-		void>::type>::type>::type>::type value_type;
-#else
+public:
+
 	static_assert(Bits <= sizeof(T)*8, "The storage type does not have enough bits.");
+	
 	typedef T value_type;
-#endif
+
+private:
 
 	value_type _value;
 
@@ -68,14 +62,23 @@ public:
 	/// Resets all bits to zero.
 	void reset() { _value = 0; }
 
+	/// Returns @c true if all bits are reset.
+	bool empty() const { return _value == 0; }
+
+	/// Tests whether the bitmask is empty.
+	bool operator ! () const { return _value == 0; }
+
 	/// Returns @c true if there is exactly one bit set.
 	bool unique() const
 	{
 		return _value && (_value & (_value - 1)) == 0;
 	}
 
-	/// Returns @c true if all bits are reset.
-	bool empty() const { return _value == 0; }
+	/// Returns @c true if there are no more than one bit set.
+	bool empty_or_unique() const
+	{
+		return (_value & (_value - 1)) == T(0);
+	}
 
 	/// Returns the index of the least significant bit set.
 	/// If no bit is set, returns @c -1.
@@ -110,6 +113,14 @@ public:
 		return bitmask<T,Bits>(((value_type)1 << count) - 1);
 	}
 };
+
+template <class T, size_t Bits>
+inline bitmask<T,Bits> operator & (
+	const bitmask<T,Bits> &x, 
+	const bitmask<T,Bits> &y)
+{
+	return bitmask<T,Bits>(x.value() & y.value());
+}
 
 } // namespace util
 
