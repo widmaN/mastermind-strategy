@@ -133,8 +133,10 @@ protected:
 
 		friend class simple_tree<T,TDepth>;
 
+		typedef node_iterator<IsConst> Base;
+
 		/// Constructs an iterator that points to a given node.
-		sibling_iterator(Tree *tree, size_t index) 
+		sibling_iterator(typename Base::Tree *tree, size_t index) 
 			: node_iterator<IsConst>(tree, index) { }
 
 	public:
@@ -149,11 +151,13 @@ protected:
 		/// where the next sibling would have been inserted.
 		sibling_iterator& operator ++ ()
 		{
-			TDepth d = _tree->_nodes[_index].depth;
-			size_t i = _index + 1;
-			while (i < _tree->_nodes.size() && _tree->_nodes[i].depth > d)
+			typename Base::Tree *tree = Base::_tree;
+			size_t index = Base::_index;
+			TDepth d = tree->_nodes[index].depth;
+			size_t i = index + 1;
+			while (i < tree->_nodes.size() && tree->_nodes[i].depth > d)
 				++i;
-			_index = i;
+			Base::_index = i;
 			return *this;
 		}
 	};
@@ -166,8 +170,10 @@ protected:
 
 		friend class simple_tree<T,TDepth>;
 
+		typedef node_iterator<IsConst> Base;
+
 		/// Constructs an iterator that points to a given node.
-		preorder_iterator(Tree *tree, size_t index)
+		preorder_iterator(typename Base::Tree *tree, size_t index)
 			: node_iterator<IsConst>(tree, index) { }
 
 	public:
@@ -179,7 +185,7 @@ protected:
 		/// Advances the iterator to the next node in preorder traversal.
 		preorder_iterator& operator ++ ()
 		{
-			++_index;
+			++Base::_index;
 			return *this;
 		}
 	};

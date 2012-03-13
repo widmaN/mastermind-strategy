@@ -1,5 +1,5 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required(VERSION 2.6)
 
-PROJECT(Mastermind)
+project(Mastermind)
 
-ADD_SUBDIRECTORY(src bin)
+add_subdirectory(src bin)
