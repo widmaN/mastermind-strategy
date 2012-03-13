@@ -14,7 +14,6 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 	ColorMask _excluded;
 
 	CodewordList filter_norep(CodewordConstRange candidates) const;
-	CodewordList filter_excluded_norep(CodewordConstRange candidates) const;
 	CodewordList filter_rep(CodewordConstRange candidates) const;
 
 public:
@@ -35,8 +34,7 @@ public:
 		if (e.rules().repeatable())
 			return filter_rep(candidates);
 		else
-			//return filter_norep(candidates);
-			return filter_excluded_norep(candidates);
+			return filter_norep(candidates);
 	}
 
 	virtual void add_constraint(
@@ -89,13 +87,13 @@ CodewordList ColorEquivalenceFilter::filter_rep(
 // @todo
 // 1) clean up the code
 // 2) we might use SSE2 to speed up part of the code
-CodewordList ColorEquivalenceFilter::filter_excluded_norep(
+CodewordList ColorEquivalenceFilter::filter_norep(
 	CodewordConstRange candidates) const
 {
 	// For each codeword without repetition, we check the color on each peg
 	// in turn. If the color is excluded, it must be the smallest excluded
 	// color, otherwise it is not canonical.
-	if (_excluded.empty())
+	if (_excluded.empty_or_unique())
 		return CodewordList(candidates.begin(), candidates.end());
 
 	// Find out the minimum equivalent codeword of each codeword. If it is
@@ -105,6 +103,15 @@ CodewordList ColorEquivalenceFilter::filter_excluded_norep(
 	for (CodewordConstIterator it = candidates.begin(); it != candidates.end(); ++it)
 	{
 		Codeword guess = *it;
+
+#if 0 // insignificant optimization
+		// Add the candidate directly if it doesn't contain any excluded colors.
+		if (!(e.colorMask(guess) & _excluded))
+		{
+			canonical.push_back(guess);
+			continue;
+		}
+#endif
 
 #if 0
 		ColorMask unguessed = _unguessed;
@@ -123,6 +130,11 @@ CodewordList ColorEquivalenceFilter::filter_excluded_norep(
 					break;
 				}
 				excluded.reset(c);
+
+#if 0 // insignificant optimization
+				if (!excluded)
+					break;
+#endif
 			}
 #if 0
 			if (unguessed[c])

@@ -18,6 +18,7 @@
 #include "util/range.hpp"
 #include "util/partition.hpp"
 #include "util/bitmask.hpp"
+#include "util/simd.hpp"
 
 namespace Mastermind {
 
@@ -161,7 +162,10 @@ public:
 	/// Returns a bit-mask of the colors that are present in the codeword.
 	ColorMask colorMask(const Codeword &c) const
 	{
-		return ColorMask(_mask(&c, &c + 1));
+		int mask_absent = util::simd::byte_mask(
+			util::simd::simd_t<uint8_t,16>(c.value()) == (uint8_t)0);
+		int mask_present = ~mask_absent & ((1 << MM_MAX_COLORS) - 1);
+		return ColorMask((ColorMask::value_type)mask_present);
 	}
 
 	/// Returns a bit-mask of the colors that are present in a list of
