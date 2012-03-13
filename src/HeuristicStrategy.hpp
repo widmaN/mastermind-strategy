@@ -148,11 +148,9 @@ public:
 #endif
 
 	/// Makes the guess that produces the lowest heuristic score.
-	/// Optionally stores the score of all candidates in an array.
-	Codeword make_guess(
+	virtual Codeword make_guess(
 		CodewordConstRange possibilities,
-		CodewordConstRange candidates,
-		score_type *scores) const
+		CodewordConstRange candidates) const
 	{
 		REGISTER_CALL_COUNTER(EvaluateHeuristic_Possibilities);
 		REGISTER_CALL_COUNTER(EvaluateHeuristic_Candidates);
@@ -235,16 +233,10 @@ public:
 			for (int i = 0; i < n; ++i)
 			{
 				Codeword guess = candidates[i];
-				//FeedbackFrequencyTable freq = e.compare(guess, possibilities);
-				FeedbackFrequencyTable freq;
-				e.compare(guess, possibilities, freq);
+				FeedbackFrequencyTable freq = e.compare(guess, possibilities);
 
 				// Compute a score of the partition.
 				score_type score = h.compute(freq);
-
-				// Store the score if requested.
-				if (scores)
-					scores[i] = score;
 
 				// Keep track of the guess that produces the lowest score.
 #if FAVOR_POSSIBILITY
@@ -264,13 +256,6 @@ public:
 #else
 		return candidates[choice.i];
 #endif
-	}
-
-	virtual Codeword make_guess(
-		CodewordConstRange possibilities,
-		CodewordConstRange candidates) const
-	{
-		return make_guess(possibilities, candidates, NULL);
 	}
 };
 

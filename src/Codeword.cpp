@@ -47,8 +47,8 @@ std::ostream& operator << (std::ostream &os, const Codeword &c)
 	char s[MM_MAX_PEGS + 1] = {0};
 	for (int k = 0; k < MM_MAX_PEGS; k++)
 	{
-		char d = c[k];
-		if (d < 0)
+		int d = c[k];
+		if (d == Codeword::EmptyColor)
 			break;
 		assert(d < 16);
 		s[k] = codeword_alphabet[(int)d];

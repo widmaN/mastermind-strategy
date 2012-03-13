@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <cstdint>
 #include <numeric>
 #include "Codeword.hpp"
 
@@ -14,8 +15,8 @@ namespace Mastermind {
  */
 struct CodewordPermutation
 {
-	char color[MM_MAX_COLORS];
-	char peg[MM_MAX_PEGS];
+	int8_t color[MM_MAX_COLORS];
+	int8_t peg[MM_MAX_PEGS];
 
 public:
 
