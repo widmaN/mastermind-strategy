@@ -188,12 +188,12 @@ void ConstraintEquivalenceFilter::add_constraint(
 				}
 				else
 				{
-					p.color[(int)permuted[j]] = guess[j];
+					p.color[permuted[j]] = (int8_t)guess[j];
 					free_from.reset(permuted[j]);
 					free_to.reset(guess[j]);
 				}
 			}
-			else if (p.color[(int)permuted[j]] != guess[j])
+			else if (p.color[permuted[j]] != guess[j])
 				ok = false;
 		}
 

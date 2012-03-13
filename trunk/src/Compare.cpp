@@ -37,6 +37,7 @@ class GenericComparer
 	typedef util::simd::simd_t<uint8_t,16> simd_t;
 
 	simd_t secret;
+	simd_t secret_colors;
 
 public:
 
@@ -44,6 +45,9 @@ public:
 	{
 		// Change 0xff in secret to 0x0f.
 		secret &= (uint8_t)0x0f;
+
+		// Cache the color part of the secret.
+		secret_colors = util::simd::keep_right<MM_MAX_COLORS>(secret);
 	}
 
 	/**
@@ -58,56 +62,49 @@ public:
 	 * that compares codewords and increment the frequencies are:
 	 *
 	 *   movdqa      xmm0,xmmword ptr [r10]  ; xmm0 := *guesses
-	 *   movdqa      xmm1,xmm2               ; xmm1 := xmm2
-	 *   lea         r10,[r10+10h]           ; ++guesses
-	 *   pcmpeqb     xmm1,xmm0 
-	 *   pminub      xmm0,xmm2  
-	 *   pand        xmm0,xmm4  
-	 *   pand        xmm1,xmm3  
-	 *   psadbw      xmm0,xmm5  
-	 *   psadbw      xmm1,xmm5  
+	 *   add         r10,10h                 ; ++guesses
+	 *   movdqa      xmm1,xmm0               
+	 *   pminub      xmm0,xmm3              
+	 *   pcmpeqb     xmm1,xmm4               
+	 *   psadbw      xmm0,xmm5     
+	 *   pand        xmm1,xmm2  
+	 *   pextrw      edx,xmm0,4  
 	 *   pextrw      eax,xmm0,0  
-	 *   pextrw      ecx,xmm0,4  
-	 *   add         ecx,eax  
-	 *   pextrw      eax,xmm1,4  
-	 *   shl         eax,4  
-	 *   movsxd      rdx,ecx  
-	 *   cdqe  
-	 *   or          rdx,rax  
+	 *   add         edx,eax  
+	 *   psadbw      xmm1,xmm5  
+	 *   pextrw      ecx,xmm1,4  
+	 *   mov         ecx,ecx                 ; *
+	 *   or          rdx,rcx  
 	 *   movsx       rax,byte ptr [rdx+r11]  ; rax := lookup_table[mask]
 	 *   inc         dword ptr [r9+rax*4]    ; ++freq[Feedback]
 	 *   dec         r8                      ; --count
 	 *   jne         ...                     ; continue loop
+	 *
+	 * The instruction marked with a (*) is redundant and would have been
+	 * eliminated if the intrinsic function returns @c size_t instead of 
+	 * @c int.
 	 */
 	Feedback operator () (const Codeword &_guess) const
 	{
 		// Create mask for use later.
-		const simd_t mask_pegs = util::simd::fill_left<MM_MAX_PEGS>((uint8_t)0x01);
-		const simd_t mask_colors = util::simd::fill_right<MM_MAX_COLORS>((uint8_t)0xff);
+		const simd_t mask_pegs = util::simd::fill_left<MM_MAX_PEGS>((uint8_t)0x10);
+		// const simd_t mask_colors = util::simd::fill_right<MM_MAX_COLORS>((uint8_t)0xff);
 
 		const simd_t guess(_guess.value());
 
 		// Compute nA.
-		// It turns out that there's a significant (20%) performance
-		// hit if <code>nA = sum_high(...)</code> is changed to
-		// <code>nA = sum(...)</code>. In the latter case, VC++
-		// VC++ generates an extra (redundant) memory read.
-		// The reason is unclear. (Obviously there are still free
-		// XMM registers.)
-#if MM_MAX_PEGS <= 8
-		int nA = sum_high((guess == secret) & mask_pegs);
-#else
-		int nA = sum((guess == secret) & mask_pegs);
-#endif
+		// It turns out that there's a significant (20%) performance hit if
+		// <code>sum<8,16>(...)</code> is changed to <code>sum<0,16>(...)</code>
+		// In the latter case, VC++ generates an extra (redundant) memory read.
+		// Therefore we try to be save every instruction possible.
+		unsigned int nA_shifted = util::simd::sum<MM_MAX_PEGS <= 8 ? 8 : 0, 16>
+			((guess == secret) & mask_pegs);
 
 		// Compute nAB.
-#if MM_MAX_COLORS <= 8
-		int nAB = sum_low(min(guess, secret) & mask_colors);
-#else
-		int nAB = sum(min(guess, secret) & mask_colors);
-#endif
+		unsigned int nAB = util::simd::sum<0, MM_MAX_COLORS <= 8 ? 8 : 16>
+			(min(guess, secret_colors));
 
-		Feedback nAnB = lookup.table[(nA<<4)|nAB];
+		Feedback nAnB = lookup.table[nA_shifted|nAB];
 		return nAnB;
 	}
 };
@@ -360,6 +357,8 @@ class TestComparer
 	typedef util::simd::simd_t<uint8_t,16> simd_t;
 
 	simd_t secret;
+	simd_t secret_pegs;
+	simd_t secret_colors;
 
 public:
 
@@ -367,6 +366,14 @@ public:
 	{
 		// Change 0xff in secret to 0x0f.
 		secret &= (uint8_t)0x0f;
+
+		// Cache the pegs part of the secret, with all the rest set to 0x0F.
+		secret_pegs = util::simd::keep_left<MM_MAX_PEGS>(secret);
+		secret_pegs |= util::simd::fill_right<MM_MAX_COLORS>(0xFF);
+		secret_pegs &= (uint8_t)0x0f;
+
+		// Cache the color part of the secret.
+		secret_colors = util::simd::keep_right<MM_MAX_COLORS>(secret);
 	}
 
 	/**
@@ -381,22 +388,19 @@ public:
 	 * that compares codewords and increment the frequencies are:
 	 *
 	 *   movdqa      xmm0,xmmword ptr [r10]  ; xmm0 := *guesses
-	 *   movdqa      xmm1,xmm2               ; xmm1 := xmm2
-	 *   lea         r10,[r10+10h]           ; ++guesses
-	 *   pcmpeqb     xmm1,xmm0 
-	 *   pminub      xmm0,xmm2  
-	 *   pand        xmm0,xmm4  
-	 *   pand        xmm1,xmm3  
-	 *   psadbw      xmm0,xmm5  
-	 *   psadbw      xmm1,xmm5  
+	 *   add         r10,10h                 ; ++guesses
+	 *   movdqa      xmm1,xmm0               
+	 *   pminub      xmm0,xmm3              
+	 *   pcmpeqb     xmm1,xmm4               
+	 *   psadbw      xmm0,xmm5     
+	 *   pand        xmm1,xmm2  
+	 *   pextrw      edx,xmm0,4  
 	 *   pextrw      eax,xmm0,0  
-	 *   pextrw      ecx,xmm0,4  
-	 *   add         ecx,eax  
-	 *   pextrw      eax,xmm1,4  
-	 *   shl         eax,4  
-	 *   movsxd      rdx,ecx  
-	 *   cdqe  
-	 *   or          rdx,rax  
+	 *   add         edx,eax  
+	 *   psadbw      xmm1,xmm5  
+	 *   pextrw      ecx,xmm1,4  
+	 *   mov         ecx,ecx                 ; *
+	 *   or          rdx,rcx  
 	 *   movsx       rax,byte ptr [rdx+r11]  ; rax := lookup_table[mask]
 	 *   inc         dword ptr [r9+rax*4]    ; ++freq[Feedback]
 	 *   dec         r8                      ; --count
@@ -405,32 +409,24 @@ public:
 	Feedback operator () (const Codeword &_guess) const
 	{
 		// Create mask for use later.
-		const simd_t mask_pegs = util::simd::fill_left<MM_MAX_PEGS>((uint8_t)0x01);
-		const simd_t mask_colors = util::simd::fill_right<MM_MAX_COLORS>((uint8_t)0xff);
+		const simd_t mask_pegs = util::simd::fill_left<MM_MAX_PEGS>((uint8_t)0x10);
+		// const simd_t mask_colors = util::simd::fill_right<MM_MAX_COLORS>((uint8_t)0xff);
 
 		const simd_t guess(_guess.value());
 
 		// Compute nA.
-		// It turns out that there's a significant (20%) performance
-		// hit if <code>nA = sum_high(...)</code> is changed to
-		// <code>nA = sum(...)</code>. In the latter case, VC++
-		// VC++ generates an extra (redundant) memory read.
-		// The reason is unclear. (Obviously there are still free
-		// XMM registers.)
-#if MM_MAX_PEGS <= 8
-		int nA = sum_high((guess == secret) & mask_pegs);
-#else
-		int nA = sum((guess == secret) & mask_pegs);
-#endif
+		// It turns out that there's a significant (20%) performance hit if
+		// <code>sum<8,16>(...)</code> is changed to <code>sum<0,16>(...)</code>
+		// In the latter case, VC++ generates an extra (redundant) memory read.
+		// Therefore we try to be save every instruction possible.
+		unsigned int nA_shifted = util::simd::sum<MM_MAX_PEGS <= 8 ? 8 : 0, 16>
+			((guess == secret) & mask_pegs);
 
 		// Compute nAB.
-#if MM_MAX_COLORS <= 8
-		int nAB = sum_low(min(guess, secret) & mask_colors);
-#else
-		int nAB = sum(min(guess, secret) & mask_colors);
-#endif
+		unsigned int nAB = util::simd::sum<0, MM_MAX_COLORS <= 8 ? 8 : 16>
+			(min(guess, secret_colors));
 
-		Feedback nAnB = lookup.table[(nA<<4)|nAB];
+		Feedback nAnB = lookup.table[nA_shifted|nAB];
 		return nAnB;
 	}
 };

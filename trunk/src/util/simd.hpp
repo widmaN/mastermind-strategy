@@ -6,6 +6,7 @@
 #ifndef UTILITIES_SIMD_HPP
 #define UTILITIES_SIMD_HPP
 
+#include <cassert>
 #include <cstdint>
 #include <emmintrin.h>
 
@@ -148,6 +149,24 @@ inline simd_t<char,16> keep_right(const simd_t<char,16> &a)
 	return _mm_srli_si128(_mm_slli_si128(a,16-Count),16-Count);
 }
 
+/// Keeps @c Count bytes on the right, and sets the remaining bytes on 
+/// the left to zero.
+/// @ingroup SIMD
+template <int Count>
+simd_t<uint8_t,16> keep_right(const simd_t<uint8_t,16> &a)
+{
+	return _mm_srli_si128(_mm_slli_si128(a,16-Count),16-Count);
+}
+
+/// Keeps @c Count bytes on the left, and sets the remaining bytes on 
+/// the right to zero.
+/// @ingroup SIMD
+template <int Count>
+simd_t<uint8_t,16> keep_left(const simd_t<uint8_t,16> &a)
+{
+	return _mm_slli_si128(_mm_srli_si128(a,16-Count),16-Count);
+}
+
 /// Extracts the selected 16-bit word, and zero extends the result.
 /// @ingroup SIMD
 template <int Index>
@@ -175,29 +194,40 @@ min(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
 	return _mm_min_epu8(a, b);
 }
 
-/// Returns the sum of bytes.
+/// Returns the sum of elements whose indices are in the range [Begin,End).
 /// @ingroup SIMD
+template <int Begin, int End> 
 inline int sum(const simd_t<uint8_t,16> &a)
 {
-	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
-	return extract<0>(t) + extract<4>(t);
+	static_assert(Begin >= 0 && Begin <= End && End <= 16, "Invalid [Begin,End) range");
+	if (Begin == End)
+		return 0;
+
+	if (Begin % 8 == 0 && End % 8 == 0)
+	{
+		const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
+		if (Begin == 0 && End == 8)
+			return extract<0>(t);
+		else if (Begin == 8 && End == 16)
+			return extract<4>(t);
+		else // if (Begin == 0 && End == 16)
+			return extract<0>(t) + extract<4>(t);
+	}
+	else
+	{
+		assert(0); // Not implemented
+		return 0;
+	}
 }
 
-/// Returns the sum of the upper half bytes.
+#if 0
+/// Returns the sum of elements.
 /// @ingroup SIMD
-inline int sum_high(const simd_t<uint8_t,16> &a)
+inline unsigned int sum(const simd_t<uint8_t,16> &a)
 {
-	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
-	return extract<4>(t);
+	return sum<0,16>(a);
 }
-
-/// Returns the sum of the lower half bytes.
-/// @ingroup SIMD
-inline int sum_low(const simd_t<uint8_t,16> &a)
-{
-	const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
-	return extract<0>(t);
-}
+#endif
 
 } } // namespace util::simd
 

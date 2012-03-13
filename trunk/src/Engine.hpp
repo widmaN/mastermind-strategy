@@ -103,28 +103,13 @@ public:
 		const Codeword &guess, 
 		CodewordConstRange secrets) const
 	{
-		// Note: it is critical to structure the code in such a way that
-		// enables Return Value Optimization for the compier. This can
+		// Note: it is critical to structure the code in a way to enable
+		// "Named Return Value Optimization" for the compier. This can 
 		// lead to 7-10% performance difference.
 		assert(!secrets.empty());
 		FeedbackFrequencyTable freq(Feedback::size(rules()));
 		_compare(guess, &secrets[0], secrets.size(), 0, freq.data());
-		//compare_codewords(_rules, guess, &secrets[0], secrets.size(), freq.data());
 		return freq;
-	}
-	
-	/// Compares a codeword to a list of codewords and returns the 
-	/// feedback frequencies.
-	void compare(
-		const Codeword &guess, 
-		CodewordConstRange secrets,
-		FeedbackFrequencyTable &freq) const
-	{
-		freq.resize(Feedback::size(rules()));
-		if (!secrets.empty())
-		{
-			_compare(guess, &secrets[0], secrets.size(), 0, freq.data());
-		}
 	}
 
 	/// Compares a codeword to a list of codewords and returns the 

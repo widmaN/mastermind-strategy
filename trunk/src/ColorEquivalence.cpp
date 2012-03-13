@@ -71,7 +71,7 @@ CodewordList ColorEquivalenceFilter::filter_rep(
 		bool ok = true;
 		for (int j = 0; j < e.rules().pegs(); j++)
 		{
-			unsigned char c = guess[j];
+			int c = guess[j];
 			if (_excluded[c] && c > first)
 			{
 				ok = false;
@@ -114,7 +114,7 @@ CodewordList ColorEquivalenceFilter::filter_excluded_norep(
 
 		for (int j = 0; j < e.rules().pegs(); j++)
 		{
-			unsigned char c = guess[j];
+			int c = guess[j];
 			if (excluded[c])
 			{
 				if ((excluded.value() & ((1 << c) - 1)) != 0)
