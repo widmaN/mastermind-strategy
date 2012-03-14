@@ -97,12 +97,12 @@ public:
 		// <code>sum<8,16>(...)</code> is changed to <code>sum<0,16>(...)</code>
 		// In the latter case, VC++ generates an extra (redundant) memory read.
 		// Therefore we try to be save every instruction possible.
-		unsigned int nA_shifted = util::simd::sum<MM_MAX_PEGS <= 8 ? 8 : 0, 16>
-			((guess == secret) & mask_pegs);
+		unsigned int nA_shifted = util::simd::sum(util::simd::make_slice
+			<MM_MAX_PEGS <= 8 ? 8 : 0, 16>((guess == secret) & mask_pegs));
 
 		// Compute nAB.
-		unsigned int nAB = util::simd::sum<0, MM_MAX_COLORS <= 8 ? 8 : 16>
-			(min(guess, secret_colors));
+		unsigned int nAB = util::simd::sum(util::simd::make_slice
+			<0, MM_MAX_COLORS <= 8 ? 8 : 16>	(min(guess, secret_colors)));
 
 		Feedback nAnB = lookup.table[nA_shifted|nAB];
 		return nAnB;
@@ -143,7 +143,7 @@ class NoRepeatComparer
 
 	static const lookup_table_t lookup;
 
-	typedef util::simd::simd_t<char,16> simd_t;
+	typedef util::simd::simd_t<int8_t,16> simd_t;
 	
 	simd_t secret;
 
@@ -153,7 +153,7 @@ public:
 		: secret(_secret.value()) 
 	{
 		// Change 0xFF in secret to 0x0F
-		secret &= (char)0x0f;
+		secret &= (int8_t)0x0f;
 
 		// Set zero counters in secret to 0xFF, so that if a counter in the
 		// guess and secret are both zero, they won't compare equal.
@@ -419,12 +419,12 @@ public:
 		// <code>sum<8,16>(...)</code> is changed to <code>sum<0,16>(...)</code>
 		// In the latter case, VC++ generates an extra (redundant) memory read.
 		// Therefore we try to be save every instruction possible.
-		unsigned int nA_shifted = util::simd::sum<MM_MAX_PEGS <= 8 ? 8 : 0, 16>
-			((guess == secret) & mask_pegs);
+		unsigned int nA_shifted = util::simd::sum(util::simd::make_slice
+			<MM_MAX_PEGS <= 8 ? 8 : 0, 16>((guess == secret) & mask_pegs));
 
 		// Compute nAB.
-		unsigned int nAB = util::simd::sum<0, MM_MAX_COLORS <= 8 ? 8 : 16>
-			(min(guess, secret_colors));
+		unsigned int nAB = util::simd::sum(util::simd::make_slice
+			<0, MM_MAX_COLORS <= 8 ? 8 : 16>(min(guess, secret_colors)));
 
 		Feedback nAnB = lookup.table[nA_shifted|nAB];
 		return nAnB;

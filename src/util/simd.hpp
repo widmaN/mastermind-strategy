@@ -8,170 +8,221 @@
 
 #include <cassert>
 #include <cstdint>
+#include <type_traits>
 #include <emmintrin.h>
 
 namespace util { namespace simd {
 
+/// @ingroup SIMD
+/// @defgroup SIMD_Types Data Types
+// @{
+
+/// Defines the default vector type for combinations of underlying data type 
+/// and vector size.
+template <class T, int N> struct default_vector_type { };
+template <> struct default_vector_type<int8_t,16>  { typedef __m128i type; };
+template <> struct default_vector_type<uint8_t,16> { typedef __m128i type; };
+template <> struct default_vector_type<int16_t,8>  { typedef __m128i type; };
+template <> struct default_vector_type<uint16_t,8> { typedef __m128i type; };
+template <> struct default_vector_type<int32_t,4>  { typedef __m128i type; };
+template <> struct default_vector_type<uint32_t,4> { typedef __m128i type; };
+
 /**
  * Represents a fixed-size vector of elements wrapped in an SIMD data type.
  *
- * The type of the element must be one of <code>char, short, int, long, 
- * single, double</code> or their unsigned counterparts.
- * The total size of the vector must be 64 (for MMX), 128 (for XMM), or
- * 256 (for AVX).
- *
- * @ingroup SIMD
+ * The supported type and size of an SIMD vector depends on the hardware
+ * architecture. Each supported combination of data type and size is 
+ * specialized as a separate class. Currently only a subset of the features
+ * are implemented for Intel SSE2 instruction set.
  */
-template <class T, int N>
+template <class T, int N, class V = typename default_vector_type<T,N>::type>
 struct simd_t 
 {
-	static_assert(sizeof(T)*N == sizeof(__m128i), 
-		"Total size of SIMD vector must be 128.");
+	// static_assert(false, "Not implemented");
+};
+
+/**
+ * Represents a fixed slice of an SIMD vector. The slice is defined by the
+ * template arguments @c Begin, @c End and @c Step as <code>Begin, Begin+Step,
+ * Begin+2*Step, ..., End-1</code>.
+ */
+template <class V, int Begin, int End, int Step = 1>
+struct simd_slice_t
+{
+	V array;
+	simd_slice_t(const V &x) : array(x) { }
+};
+
+/// Creates a slice of a given vector.
+template <int Begin, int End, int Step, class V>
+inline simd_slice_t<V,Begin,End,Step> make_slice(const V &x)
+{
+	return simd_slice_t<V,Begin,End,Step>(x);
+}
+
+/// Creates a slice of a given vector with Step set to one.
+template <int Begin, int End, class V>
+inline simd_slice_t<V,Begin,End,1> make_slice(const V &x)
+{
+	return simd_slice_t<V,Begin,End,1>(x);
+}
+
+/// Specialized SIMD vector for XMM integral vector.
+template <class T, int N>
+class simd_t<T, N, __m128i>
+{
+	/// @cond FALSE
+	static_assert(sizeof(T)*N == 16, "Size of vector must be 128 bits.");
+	/// @endcond
+
+	static __m128i fill(int8_t b) { return _mm_set1_epi8(b); }
+	static __m128i fill(uint8_t b) { return _mm_set1_epi8(b); }
 
 	__m128i value;
 
+public:
+
+	/// Constructs a vector of zeros.
 	simd_t() : value(_mm_setzero_si128()) { }
-	simd_t(__m128i v) : value(v) { }
-	simd_t(char b) : value(_mm_set1_epi8(b)) { }
-	operator __m128i() const { return value; }
-	static simd_t zero() { return _mm_setzero_si128(); }
+
+	/// Constructs a vector from the native SIMD type.
+	simd_t(__m128i v) : value(v) { } 
+
+	/// Constructs a vector with elements initialized to a given value.
+	simd_t(T elem) : value(fill(elem)) { }
+
+	/// Converts the vector to the native SIMD type.
+	operator __m128i() const { return value; } 
+
+	/// Returns a vector of zeros.
+	static simd_t zero() { return _mm_setzero_si128(); } 
 };
 
-/// Element-wise bit-AND.
+/// Shortcuts for 128-bit XMM integral vectors.
+typedef simd_t<int8_t,  16, __m128i> xmm_i8;
+typedef simd_t<uint8_t, 16, __m128i> xmm_u8;
+typedef simd_t<int16_t,  8, __m128i> xmm_i16;
+typedef simd_t<uint16_t, 8, __m128i> xmm_u16;
+typedef simd_t<int32_t,  4, __m128i> xmm_i32;
+typedef simd_t<uint32_t, 4, __m128i> xmm_u32;
+
+// @}
+
 /// @ingroup SIMD
+/// @defgroup SIMD_Bitwise Bitwise Operations
+// @{
+
+/// Bitwise AND for XMM integral vectors.
 template <class T, int N>
-inline simd_t<T,N> 
-operator & (const simd_t<T,N> &a, const simd_t<T,N> &b)
-{
+inline simd_t<T,N,__m128i>
+operator & (const simd_t<T,N,__m128i> &a, const simd_t<T,N,__m128i> &b) 
+{ 
 	return _mm_and_si128(a, b);
-}
+} 
 
+/// Bitwise AND-assign for XMM integral vectors.
 template <class T, int N>
-inline simd_t<T,N>& 
-operator &= (simd_t<T,N> &a, const simd_t<T,N> &b)
+inline simd_t<T,N,__m128i> &
+operator &= (simd_t<T,N,__m128i> &a, const simd_t<T,N,__m128i> &b)
 {
-	return (a = _mm_and_si128(a, b));
+	return a = (a & b);
 }
 
+/// Bitwise AND-assign.
 template <class T, int N>
-inline simd_t<T,N>& 
-operator &= (simd_t<T,N> &a, T b)
+inline simd_t<T,N,__m128i> &
+operator &= (simd_t<T,N,__m128i> &a, T b)
 {
-	return (a &= simd_t<T,N>(b));
+	return a &= simd_t<T,N,__m128i>(b);
 }
 
-/// Element-wise bit-OR.
-/// @ingroup SIMD
+/// Bitwise-OR.
 template <class T, int N>
-inline simd_t<T,N>& 
-operator |= (simd_t<T,N> &a, const simd_t<T,N> &b)
+inline simd_t<T,N,__m128i>
+operator | (const simd_t<T,N,__m128i> &a, const simd_t<T,N,__m128i> &b) 
+{ 
+	return _mm_or_si128(a, b);
+} 
+
+/// Bitwise OR-assign.
+template <class T, int N>
+inline simd_t<T,N,__m128i> &
+operator |= (simd_t<T,N,__m128i> &a, const simd_t<T,N,__m128i> &b)
 {
-	return (a = _mm_or_si128(a, b));
+	return a = (a | b);
 }
 
-/// Element-wise equality testing of two @c char vectors.
-/// @returns A result vector where equal elements are set to @c -1
-///      and unequal elements are set to @c 0.
-/// @ingroup SIMD
-inline simd_t<char,16> 
-operator == (const simd_t<char,16> &a, const simd_t<char,16> &b)
+/// Bitwise OR-assign.
+template <class T, int N>
+inline simd_t<T,N,__m128i> &
+operator |= (simd_t<T,N,__m128i> &a, T b)
 {
-	return _mm_cmpeq_epi8(a, b);
+	return a |= simd_t<T,N,__m128i>(b);
 }
 
-/// Element-wise equality testing of two <code>unsigned char</code>
-/// vectors.
-/// @returns A result vector where equal elements are set to @c 0xFF
-///      and unequal elements are set to @c 0.
-/// @ingroup SIMD
-inline simd_t<uint8_t,16> 
-operator == (const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
-{
-	return _mm_cmpeq_epi8(a, b);
-}
+// @}
+
+/// Element-wise comparison for equality.
+inline xmm_i8 operator == (const xmm_i8 &a, const xmm_i8 &b) { return _mm_cmpeq_epi8(a, b); }
+inline xmm_u8 operator == (const xmm_u8 &a, const xmm_u8 &b) { return _mm_cmpeq_epi8(a, b); }
 
 /// Creates a 16-bit mask from the most significant bits of the 16 bytes,
 /// and zero extends the upper bits in the result.
 /// @ingroup SIMD
-inline int byte_mask(const simd_t<char,16> &a)
-{
-	return _mm_movemask_epi8(a);
-}
-
-/// Creates a 16-bit mask from the most significant bits of the 16 bytes,
-/// and zero extends the upper bits in the result.
-/// @ingroup SIMD
-inline int byte_mask(const simd_t<uint8_t,16> &a)
-{
-	return _mm_movemask_epi8(a);
-}
+inline int byte_mask(const xmm_i8 &a) { return _mm_movemask_epi8(a); }
+inline int byte_mask(const xmm_u8 &a) { return _mm_movemask_epi8(a); }
 
 /// Shift elements (not bits) left.
-/// @ingroup SIMD
-template <int Count>
-inline simd_t<uint8_t,16> 
-shift_elements_left(const simd_t<uint8_t,16> &a)
-{
-	return _mm_slli_si128(a, Count);
-}
+template <int Count> inline 
+xmm_u8 shift_elements_left(const xmm_u8 &a) { return _mm_slli_si128(a, Count); }
 
 /// Shift elements (not bits) right.
-/// @ingroup SIMD
-template <int Count>
-inline simd_t<uint8_t,16> 
-shift_elements_right(const simd_t<uint8_t,16> &a)
-{
-	return _mm_srli_si128(a, Count);
-}
+template <int Count> inline
+xmm_u8 shift_elements_right(const xmm_u8 &a) { return _mm_srli_si128(a, Count); }
+
+/// Composite.
 
 /// Fills the left @c Count bytes with <code>b</code>.
 /// @ingroup SIMD
-template <int Count>
-inline simd_t<uint8_t,16> fill_left(uint8_t b)
-{
-	return _mm_slli_si128(_mm_set1_epi8(b), 16-Count);
-}
+template <int Count> inline
+xmm_u8 fill_left(uint8_t b) { return _mm_slli_si128(_mm_set1_epi8(b), 16-Count); }
 
 /// Fills the right @c Count bytes with <code>b</code>.
 /// @ingroup SIMD
-template <int Count>
-inline simd_t<uint8_t,16> fill_right(uint8_t b)
+template <int Count> inline
+xmm_u8 fill_right(uint8_t b) { return _mm_srli_si128(_mm_set1_epi8(b), 16-Count); }
+
+/// Keeps @c Count bytes on the right, and sets the remaining bytes on 
+/// the left to zero.
+/// @ingroup SIMD
+template <int Count> 
+inline xmm_i8 keep_right(const xmm_i8 &a) 
 {
-	return _mm_srli_si128(_mm_set1_epi8(b), 16-Count);
+	return _mm_srli_si128(_mm_slli_si128(a,16-Count),16-Count); 
 }
 
 /// Keeps @c Count bytes on the right, and sets the remaining bytes on 
 /// the left to zero.
 /// @ingroup SIMD
-template <int Count>
-inline simd_t<char,16> keep_right(const simd_t<char,16> &a)
+template <int Count> 
+inline xmm_u8 keep_right(const xmm_u8 &a) 
 {
-	return _mm_srli_si128(_mm_slli_si128(a,16-Count),16-Count);
-}
-
-/// Keeps @c Count bytes on the right, and sets the remaining bytes on 
-/// the left to zero.
-/// @ingroup SIMD
-template <int Count>
-simd_t<uint8_t,16> keep_right(const simd_t<uint8_t,16> &a)
-{
-	return _mm_srli_si128(_mm_slli_si128(a,16-Count),16-Count);
+	return _mm_srli_si128(_mm_slli_si128(a,16-Count),16-Count); 
 }
 
 /// Keeps @c Count bytes on the left, and sets the remaining bytes on 
 /// the right to zero.
-/// @ingroup SIMD
 template <int Count>
-simd_t<uint8_t,16> keep_left(const simd_t<uint8_t,16> &a)
+xmm_u8 keep_left(const xmm_u8 &a)
 {
 	return _mm_slli_si128(_mm_srli_si128(a,16-Count),16-Count);
 }
 
 /// Extracts the selected 16-bit word, and zero extends the result.
-/// @ingroup SIMD
-template <int Index>
-inline int extract(const simd_t<uint16_t,8> &a)
+template <int Index> 
+inline int extract(const xmm_u16 &a)
 {
+	static_assert(Index >= 0 && Index <= 7, "Index must be between 0 and 7");
 	return _mm_extract_epi16(a, Index);
 }
 
@@ -180,44 +231,35 @@ inline int extract(const simd_t<uint16_t,8> &a)
 /// for the lower 8 unsigned bytes and stores the result in the 
 /// lower quadword.
 /// @ingroup SIMD
-inline simd_t<uint16_t,8> 
-sad(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
-{
-	return _mm_sad_epu8(a, b);
-}
+inline xmm_u16 sad(const xmm_u8 &a, const xmm_u8 &b) { return _mm_sad_epu8(a, b); }
 
 /// Element-wise minimum.
 /// @ingroup SIMD
-inline simd_t<uint8_t,16>
-min(const simd_t<uint8_t,16> &a, const simd_t<uint8_t,16> &b)
+inline xmm_u8 min(const xmm_u8 &a, const xmm_u8 &b) { return _mm_min_epu8(a, b); }
+
+
+template <int Begin, int End, int Step, class V>
+inline int sum(const simd_slice_t<V,Begin,End,Step> &x)
 {
-	return _mm_min_epu8(a, b);
+	static_assert(false, "Not implemented");
 }
 
-/// Returns the sum of elements whose indices are in the range [Begin,End).
-/// @ingroup SIMD
-template <int Begin, int End> 
-inline int sum(const simd_t<uint8_t,16> &a)
+template <> inline int sum(const simd_slice_t<xmm_u8,0,16,1> &x)
 {
-	static_assert(Begin >= 0 && Begin <= End && End <= 16, "Invalid [Begin,End) range");
-	if (Begin == End)
-		return 0;
+	const xmm_u16 &t = sad(x.array, xmm_u8::zero());
+	return extract<0>(t) + extract<4>(t);
+}
 
-	if (Begin % 8 == 0 && End % 8 == 0)
-	{
-		const simd_t<uint16_t,8> &t = sad(a, simd_t<uint8_t,16>::zero());
-		if (Begin == 0 && End == 8)
-			return extract<0>(t);
-		else if (Begin == 8 && End == 16)
-			return extract<4>(t);
-		else // if (Begin == 0 && End == 16)
-			return extract<0>(t) + extract<4>(t);
-	}
-	else
-	{
-		assert(0); // Not implemented
-		return 0;
-	}
+template <> inline int sum(const simd_slice_t<xmm_u8,0,8,1> &x)
+{
+	const xmm_u16 &t = sad(x.array, xmm_u8::zero());
+	return extract<0>(t);
+}
+
+template <> inline int sum(const simd_slice_t<xmm_u8,8,16,1> &x)
+{
+	const xmm_u16 &t = sad(x.array, xmm_u8::zero());
+	return extract<4>(t);
 }
 
 #if 0
