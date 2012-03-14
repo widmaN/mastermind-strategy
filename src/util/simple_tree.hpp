@@ -28,7 +28,7 @@ enum TraversalOrder
 template <class T, class TDepth = size_t>
 class simple_tree
 {
-protected:
+private:
 
 	//typedef TDepth TSize;
 

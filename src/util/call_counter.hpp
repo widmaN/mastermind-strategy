@@ -50,6 +50,7 @@ class call_counter
 
 public:
 
+	/// Constructs a call counter of the given display name.
 	call_counter(const std::string &name) : _name(name) { }
 
 	/// Returns the name of the routine being profiled.
@@ -123,6 +124,9 @@ public:
 
 public:
 
+	/// Returns a reference to the global call counter of the given name.
+	/// If not call counter of this name exists, a new one with the name
+	/// is created and returned.
 	static call_counter& get(const std::string &name)
 	{
 		static std::map<std::string, call_counter> ccs;

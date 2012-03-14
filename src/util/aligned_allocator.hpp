@@ -7,19 +7,21 @@
 #define UTILITIES_ALIGNED_ALLOCATOR_HPP
 
 #include <malloc.h>
-//#include <limits>
 #include <memory>
 
 namespace util {
 
 /**
  * STL-compliant allocator that allocates aligned memory.
+ * @tparam T Type of the element to allocate.
+ * @tparam Alignment Alignment of the allocation, e.g. 16.
  * @ingroup AlignedAllocator
  */
 template <class T, size_t Alignment>
 struct aligned_allocator 
 	: public std::allocator<T> // Inherit construct(), destruct() etc.
 {
+#if 0
 	typedef size_t    size_type;
 	typedef ptrdiff_t difference_type;
 	typedef T*        pointer;
@@ -27,22 +29,36 @@ struct aligned_allocator
 	typedef T&        reference;
 	typedef const T&  const_reference;
 	typedef T         value_type;
+#endif
 
+	/// Defines an aligned allocator suitable for allocating elements of type
+	/// @c U.
 	template <class U>
 	struct rebind { 	typedef aligned_allocator<U,Alignment> other; };
 
+	/// Default-constructs an allocator.
 	aligned_allocator() throw() { }
+
+	/// Copy-constructs an allocator.
 	aligned_allocator(const aligned_allocator& other) throw()
 		: std::allocator<T>(other) { }
+
+	/// Convert-constructs an allocator.
 	template <class U>
 	aligned_allocator(const aligned_allocator<U,Alignment>&) throw() { }
+
+	/// Destroys an allocator.
 	~aligned_allocator() throw() { }
 
+	/// Allocates @c n elements of type @c T, aligned to a multiple of
+	/// @c Alignment.
 	pointer allocate(size_type n)
 	{
 		return allocate(n, const_pointer(0));
 	}
 
+	/// Allocates @c n elements of type @c T, aligned to a multiple of
+	/// @c Alignment.
 	pointer allocate(size_type n, const_pointer /* hint */)
 	{
 		void *p;
@@ -57,6 +73,7 @@ struct aligned_allocator
 		return static_cast<pointer>(p);
 	}
 
+	/// Frees the memory previously allocated by an aligned allocator.
 	void deallocate(pointer p, size_type /* n */)
 	{
 #ifndef _WIN32
@@ -65,40 +82,12 @@ struct aligned_allocator
 		_aligned_free(p);
 #endif
 	}
-
-#if 0
-	pointer address(reference value) const { return &value; }
-	const_pointer address(const_reference value) const { return &value; }
-
-	size_type max_size () const throw()
-	{
-		return std::numeric_limits<size_type>::max();
-	}
-
-//	typename std::enable_if<std::is_default_constructible<T>::value,void>::type
-	void construct(pointer p)
-	{
-		//std::allocator<int> a(*this);
-		::new (static_cast<void*>(p)) T();
-	}
-
-	void construct(pointer p, const T &value)
-	{
-		new (static_cast<void*>(p)) T(value);
-	}
-
-	void destroy(pointer p)
-	{
-		p->~T();
-	}
-#endif
 };
 
 /**
- * Checks whether two aligned allocators are equal.
- * Two allocators are equal if the memory allocated using one allocator
- * can be deallocated by the other.
- * @returns This function always returns <code>true</code>.
+ * Checks whether two aligned allocators are equal. Two allocators are equal
+ * if the memory allocated using one allocator can be deallocated by the other.
+ * @returns Always @c true.
  * @ingroup AlignedAllocator
  */
 template <class T1, size_t A1, class T2, size_t A2>
@@ -108,10 +97,9 @@ bool operator == (const aligned_allocator<T1,A1> &, const aligned_allocator<T2,A
 }
 
 /**
- * Checks whether two aligned allocators are not equal.
- * Two allocators are equal if the memory allocated using one allocator
- * can be deallocated by the other.
- * @returns This function always returns <code>false</code>.
+ * Checks whether two aligned allocators are not equal. Two allocators are equal
+ * if the memory allocated using one allocator can be deallocated by the other.
+ * @returns Always @c false.
  * @ingroup AlignedAllocator
  */
 template <class T1, size_t A1, class T2, size_t A2>

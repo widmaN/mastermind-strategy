@@ -19,7 +19,9 @@ namespace Heuristics {
 template <int Levels>
 struct MinimizeWorstCase
 {
+	/// @cond FALSE
 	static_assert(Levels == 1, "Only Levels == 1 is supported at present.");
+	/// @endcond
 
 	/// Data type of the score (unsigned integer).
 	typedef unsigned int score_t;

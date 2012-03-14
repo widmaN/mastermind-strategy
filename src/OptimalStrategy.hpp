@@ -69,6 +69,7 @@ private:
 
 public:
 
+	/// Constructs the heuristic.
 	MinimizeLowerBound(Engine &engine)
 		: e(engine), _cache(e.rules().size()+1)
 	{

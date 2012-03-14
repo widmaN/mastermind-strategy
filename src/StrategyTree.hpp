@@ -131,10 +131,12 @@ public:
 		StrategyTree::const_iterator root);
 
 #if 1
+	/// Returns the name.
 	std::string name() const { return _name; }
 #endif
 
-	Codeword suggestion() // const
+	/// Returns the suggested guess for the root state.
+	Codeword suggestion() const
 	{
 		auto children = _tree.children(_root);
 		if (children.empty())
@@ -144,29 +146,37 @@ public:
 	}
 
 #if 1
-	StrategyTree::const_iterator child(Feedback feedback) const
+	/// Returns a node iterator to the child state corresponding to making 
+	/// the suggested guess receiving the given response. If the response
+	/// is impossible, returns a null iterator.
+	StrategyTree::const_iterator child(Feedback response) const
 	{
-		return _children[feedback.value()];
+		return _children[response.value()];
 	}
 #endif
 
 	double time() const { return _time; }
 
+	/// Returns the maximum depth of all leaf nodes.
 	int max_depth() const
 	{
 		return (int)_depth_freq.size() - 1;
 	}
 
+	/// Returns the number of leaf nodes with the given depth.
 	unsigned int count_depth(int depth) const
 	{
 		return (depth >= 0 && depth <= max_depth())?
 			_depth_freq[depth] : 0;
 	}
 
+	/// Returns the sum of the depths of all leaf nodes.
 	size_t total_depth() const { return _total_depth; }
 
+	/// Returns the total number of secrets revealed in this branch.
 	unsigned int total_secrets() const { return _total_secrets; }
 
+	/// Returns the average number of guesses used to reveal each secret.
 	double average_depth() const
 	{
 		return (double)total_depth() / total_secrets();

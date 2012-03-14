@@ -8,19 +8,25 @@
 
 namespace Mastermind {
 
-// Dummy test driver that does nothing in the test and always returns success.
+/// Dummy test driver that does nothing in the test and always returns success.
+/// @ingroup prog
 template <class Routine>
-struct TestDriver
+class TestDriver
 {
 	Engine &e;
 	Routine f;
 
+public:
+
+	/// Constructs a dummy test driver.
 	TestDriver(Engine &engine, Routine func) : e(engine), f(func) { }
 
+	/// Runs the test.
 	bool operator () () const { return true; }
 };
 
-// Compares the running time of two routines.
+/// Compares the running time of two routines.
+/// @ingroup prog
 template <class Routine>
 bool compareRoutines(
 	Engine &e,
@@ -112,12 +118,20 @@ public:
 #endif
 
 #if 1
-// Codeword comparison benchmark.
-// Test:     Compare a given codeword to 5040 non-repeatable codewords, and
-//           update a frequency table of the responses.
-// Results:  (100,000 runs, x64, VC++ 2010)
-// generic:  1.68 s (feedback) / 2.46 s (freq)
-// norepeat: 0.62 s (feedback) / 1.18 s (freq)
+/**
+ * Test driver that executes a codeword comparison routine.
+ *
+ * Benchmark results:
+ * <pre>
+ * Test:     Compare a given codeword to 5040 non-repeatable codewords, and
+ *           update a frequency table of the responses.
+ * Results:  (100,000 runs, x64, VC++ 2010)
+ * generic:  1.68 s (feedback) / 2.46 s (freq)
+ * norepeat: 0.62 s (feedback) / 1.18 s (freq)
+ * </pre>
+ *
+ * @ingroup prog
+ */
 template <> class TestDriver<ComparisonRoutine>
 {
 	Engine &e;
@@ -128,17 +142,21 @@ template <> class TestDriver<ComparisonRoutine>
 	FeedbackFrequencyTable freq;
 
 public:
-	TestDriver(Engine &env, ComparisonRoutine func)
-		: e(env), f(func), codewords(e.generateCodewords()),
+
+	/// Constructs the test driver.
+	TestDriver(Engine &engine, ComparisonRoutine func)
+		: e(engine), f(func), codewords(e.generateCodewords()),
 		count(codewords.size()), secret(codewords[count/2])
 		{ }
 
+	/// Runs the test.
 	void operator()()
 	{
 		freq.resize(Feedback::size(e.rules()));
 		f(secret, codewords.data(), codewords.size(), 0, freq.data());
 	}
 
+	/// Compares the results of two runs.
 	bool operator == (const TestDriver &r) const
 	{
 		if (freq.size() != r.freq.size())
@@ -159,6 +177,7 @@ public:
 		return true;
 	}
 
+	/// Outputs the result.
 	friend std::ostream& operator << (std::ostream &os, const TestDriver &r)
 	{
 		return os << r.freq;

@@ -159,4 +159,7 @@
       <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Doxyfile" />
+  </ItemGroup>
 </Project>
