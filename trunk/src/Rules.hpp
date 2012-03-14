@@ -137,6 +137,7 @@ public:
 	}
 };
 
+/// @cond DETAILS
 namespace details {
 
 struct RulesFormatter
@@ -160,6 +161,7 @@ inline std::istream& operator >> (std::istream &s, const RulesFormatter &f)
 }
 
 } // namespace details
+/// @endcond
 
 /// Sets the rules to be associated with a stream.
 /// @ingroup Rules

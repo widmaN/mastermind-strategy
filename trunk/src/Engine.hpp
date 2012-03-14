@@ -62,6 +62,8 @@ typedef util::bitmask<unsigned int, MM_MAX_COLORS> ColorMask;
 ///////////////////////////////////////////////////////////////////////////
 // Definition of Engine.
 
+/// Defines a set of algorithms associated with a specific set of rules.
+/// @ingroup algo
 class Engine
 {
 	Rules _rules;
@@ -72,6 +74,7 @@ class Engine
 
 public:
 
+	/// Constructs an algorithm engine for the given rules.
 	Engine(const Rules &rules) : _rules(rules),
 #if 0
 		_compare(rules.repeatable()? 
@@ -86,8 +89,10 @@ public:
 	{
 	}
 
+	/// Returns the underlying rules of this engine.
 	const Rules& rules() const { return _rules; }
 
+	/// Returns a range of all codewords for the underlying rules.
 	CodewordConstRange universe() const { return _all; }
 
 	/// Compares two codewords and returns the feedback.
@@ -98,8 +103,8 @@ public:
 		return feedback;
 	}
 
-	/// Compares a codeword to a list of codewords and returns the 
-	/// feedback frequencies.
+	/// Compares a codeword to a list of codewords and returns the feedback
+	/// frequencies.
 	FeedbackFrequencyTable compare(
 		const Codeword &guess, 
 		CodewordConstRange secrets) const
@@ -113,30 +118,27 @@ public:
 		return freq;
 	}
 
-	/// Compares a codeword to a list of codewords and returns the 
-	/// feedbacks as well as their frequencies.
+	/// Compares a codeword to a list of codewords and returns the feedbacks
+	/// as well as their frequencies.
 	FeedbackFrequencyTable compare(
 		const Codeword &guess, 
 		CodewordConstRange secrets,
 		FeedbackList &feedbacks) const
 	{
+		assert(!secrets.empty());
 		feedbacks.resize(secrets.size());
-		if (secrets.empty())
-			return FeedbackFrequencyTable();
-
 		FeedbackFrequencyTable freq(Feedback::size(rules()));
 		_compare(guess, &secrets[0], secrets.size(), feedbacks.data(), freq.data());
 		return freq;
 	}
 
-	/// Generates all codewords that conforms to the given set of rules.
+	/// Generates all codewords for the underlying set of rules.
 	CodewordList generateCodewords() const 
 	{
 		// Call the generation routine once to get the count.
 		const size_t count = _generate(_rules, NULL);
 
 		// Create an empty list.
-		// @todo: do not initialize Codewords.
 		CodewordList list(count);
 
 		// Call the generation routine again to fill in the codewords.
@@ -144,16 +146,19 @@ public:
 		return list;
 	}
 
+	/// Returns the elements from match the given response when compared
+	/// to the given guess.
 	CodewordList filterByFeedback(
 		const CodewordList &list,
 		const Codeword &guess, 
-		const Feedback &feedback) const;
+		const Feedback &response) const;
 
 	/**
-	 * Partitions a list of codewords by their feedback when compared to
+	 * Partitions a list of codewords by their response when compared to
 	 * a given guess. The codewords in the list are re-ordered in-place
-	 * such that codewords with the same feedback when compared to @c guess
-	 * are stored consecutively.
+	 * such that codewords with the same feedback are stored consecutively.
+	 * In addition, the partition is stable, i.e. any two codewords with 
+	 * the same feedback will retain the same relative order.
 	 */
 	CodewordPartition partition(
 		CodewordRange codewords, 
@@ -168,7 +173,7 @@ public:
 		return ColorMask((ColorMask::value_type)mask_present);
 	}
 
-	/// Returns a bit-mask of the colors that are present in a list of
+	/// Returns a bit-mask of the colors that are present in any of the
 	/// codewords.
 	ColorMask colorMask(CodewordConstRange codewords) const
 	{
