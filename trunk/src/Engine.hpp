@@ -25,7 +25,7 @@ namespace Mastermind {
 ///////////////////////////////////////////////////////////////////////////
 // Definition of CodewordList and related types.
 
-typedef 	std::vector<Codeword,util::aligned_allocator<Codeword,16>> CodewordList;
+typedef std::vector<Codeword,util::aligned_allocator<Codeword,16>> CodewordList;
 
 typedef CodewordList::iterator CodewordIterator;
 typedef CodewordList::const_iterator CodewordConstIterator;

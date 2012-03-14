@@ -30,6 +30,9 @@ struct aligned_allocator
 	typedef const T&  const_reference;
 	typedef T         value_type;
 #endif
+	typedef typename std::allocator<T>::size_type size_type;
+	typedef typename std::allocator<T>::pointer pointer;
+	typedef typename std::allocator<T>::const_pointer const_pointer;
 
 	/// Defines an aligned allocator suitable for allocating elements of type
 	/// @c U.

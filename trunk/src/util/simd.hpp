@@ -237,26 +237,27 @@ inline xmm_u16 sad(const xmm_u8 &a, const xmm_u8 &b) { return _mm_sad_epu8(a, b)
 /// @ingroup SIMD
 inline xmm_u8 min(const xmm_u8 &a, const xmm_u8 &b) { return _mm_min_epu8(a, b); }
 
-
+#if 0
 template <int Begin, int End, int Step, class V>
 inline int sum(const simd_slice_t<V,Begin,End,Step> &x)
 {
 	static_assert(false, "Not implemented");
 }
+#endif
 
-template <> inline int sum(const simd_slice_t<xmm_u8,0,16,1> &x)
+inline int sum(const simd_slice_t<xmm_u8,0,16,1> &x)
 {
 	const xmm_u16 &t = sad(x.array, xmm_u8::zero());
 	return extract<0>(t) + extract<4>(t);
 }
 
-template <> inline int sum(const simd_slice_t<xmm_u8,0,8,1> &x)
+inline int sum(const simd_slice_t<xmm_u8,0,8,1> &x)
 {
 	const xmm_u16 &t = sad(x.array, xmm_u8::zero());
 	return extract<0>(t);
 }
 
-template <> inline int sum(const simd_slice_t<xmm_u8,8,16,1> &x)
+inline int sum(const simd_slice_t<xmm_u8,8,16,1> &x)
 {
 	const xmm_u16 &t = sad(x.array, xmm_u8::zero());
 	return extract<4>(t);
