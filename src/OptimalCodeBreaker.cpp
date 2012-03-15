@@ -7,6 +7,8 @@
 #include <functional>
 #include <numeric>
 
+// #define ENABLE_CALL_COUNTER 0
+
 #include "Engine.hpp"
 #include "Strategy.hpp"
 #include "Equivalence.hpp"
@@ -19,8 +21,6 @@
 #include "util/io_format.hpp"
 
 using namespace Mastermind;
-
-REGISTER_CALL_COUNTER(OptimalRecursion)
 
 /**
  * Searches for an obviously optimal strategy for the given remaining secrets.
@@ -124,7 +124,7 @@ static StrategyCost fill_strategy_tree(
 	StrategyTree::iterator where // iterator to the current state
 	)
 {
-	UPDATE_CALL_COUNTER(OptimalRecursion, (int)secrets.size());
+	UPDATE_CALL_COUNTER("OptimalRecursion", (int)secrets.size());
 
 	bool verbose = false; // (depth < 1);
 

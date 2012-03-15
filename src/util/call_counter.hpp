@@ -8,13 +8,6 @@
 #ifndef UTILITIES_CALL_COUNTER_HPP
 #define UTILITIES_CALL_COUNTER_HPP
 
-/// Define <code>ENABLE_CALL_COUNTER = 1</code> to enable call counter
-/// support at run time. You can also use the -D compiler option.
-/// @ingroup CallCounter
-#ifndef ENABLE_CALL_COUNTER
-#define ENABLE_CALL_COUNTER 1
-#endif
-
 #include <string>
 #include <map>
 #include <iostream>
@@ -23,18 +16,17 @@
 
 namespace util {
 
-#if ENABLE_CALL_COUNTER
-
 /**
  * Represents a counter that collects function call statistics.
- * It supports to up to <code>2<sup>32</sup>-1</code> operations per
+ * It supports to up to <code>2<sup>32</sup>-2</code> operations per
  * call. 
  * The total number of calls (or operations) is up to (2^64-1).
  * @ingroup CallCounter
  */
 class call_counter
 {
-	std::string _name; // name of the routine being profiled
+	// Name of the routine being profiled.
+	std::string _name; 
 
 	// Classifies the call statistics into groups, grouped by the 
 	// number of operations in a call as follows:
@@ -47,6 +39,30 @@ class call_counter
 	};
 	static const int N = sizeof(unsigned int)*8;
 	group_t _stat[N];
+
+	typedef std::map<std::string, call_counter> registry_type;
+
+	/// Returns a map of registered call counters.
+	static registry_type& get_registry()
+	{
+		static registry_type ccs;
+		return ccs;
+	}
+
+#if 0
+	// Use static variable which probably saves a branching instruction.
+	// However, the variable must be explicitly defined in some CPP file.
+	static bool _enabled;
+	static bool &get_enabled() { return _enabled; }
+#else
+	// Use static local variable. This doesn't require explicit definition
+	// in another CPP file.
+	static bool &get_enabled()
+	{
+		static bool _enabled = true;
+		return _enabled;
+	}
+#endif
 
 public:
 
@@ -122,14 +138,12 @@ public:
 		return os;
 	}
 
-public:
-
 	/// Returns a reference to the global call counter of the given name.
-	/// If not call counter of this name exists, a new one with the name
+	/// If no call counter of this name exists, a new one with the name
 	/// is created and returned.
 	static call_counter& get(const std::string &name)
 	{
-		static std::map<std::string, call_counter> ccs;
+		registry_type &ccs = get_registry();
 		auto it = ccs.find(name);
 		if (it == ccs.end())
 		{
@@ -137,26 +151,62 @@ public:
 		}
 		return it->second;
 	}
+
+	/// Enables or disables call counter statistics globally.
+	static void enable(bool flag)
+	{
+		get_enabled() = flag;
+	}
+
+	/// Checks whether call counter is enabled at a global level.
+	static bool enabled()
+	{
+		return get_enabled();
+	}
+
+	/// Returns a map of all registered call counters.
+	static const registry_type& registry()
+	{
+		return get_registry();
+	}
 };
-#endif // ENABLE_CALL_COUNTER
-
-#if ENABLE_CALL_COUNTER
-
-/// Registers a call counter.
-/// @ingroup CallCounter
-#define REGISTER_CALL_COUNTER(id) \
-	static util::call_counter& _call_counter_##id = 	util::call_counter::get(#id);
-
-/// Updates the call statistics for a call counter.
-/// @ingroup CallCounter
-#define UPDATE_CALL_COUNTER(id,nops) \
-	(_call_counter_##id).add_call(nops)
-
-#else
-#define REGISTER_CALL_COUNTER(id)
-#define UPDATE_CALL_COUNTER(id,nops)
-#endif
 
 } // namespace util
+
+#ifndef ENABLE_CALL_COUNTER
+/** 
+ * Define <code>ENABLE_CALL_COUNTER = 0</code> explicitly to disable the 
+ * <code>UPDATE_CALL_COUNTER</code> macro at compile time. This completely
+ * removes the run-time overhead of updating call counters. 
+ *
+ * Alternatively, <code>UPDATE_CALL_COUNTER</code> can be enabled or disabled
+ * at run-time via <code>call_counter::enable()</code>. However, some small 
+ * overhead still remains in this case.
+ *
+ * If <code>ENABLE_CALL_COUNTER</code> is not explicitly defined and 
+ * <code>call_counter::enable()</code> is not called, call counters are 
+ * enabled by default.
+ *
+ * @remarks This macro MUST be defined the same in all translation units.
+ *      Otherwise the compiler may cache part of the generated code and the
+ *      final result is unpredictable.
+ *
+ * @ingroup CallCounter
+ */
+#define ENABLE_CALL_COUNTER 1
+#endif
+
+/// Registers a global call counter of the given name (if not already
+/// registered) and updates its call statistics.
+/// @ingroup CallCounter
+#if ENABLE_CALL_COUNTER
+#define UPDATE_CALL_COUNTER(id,nops) do { \
+	if (util::call_counter::enabled()) { \
+		static util::call_counter& _call_counter = util::call_counter::get(id); \
+		_call_counter.add_call(nops); \
+	} } while (0)
+#else
+#define UPDATE_CALL_COUNTER(id,nops) do {} while (0)
+#endif
 
 #endif // UTILITIES_CALL_COUNTER_HPP

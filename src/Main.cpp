@@ -220,6 +220,9 @@ static void usage()
 		<< omp_get_max_threads() << "]\n"
 #endif
 		"    -po         make guess from remaining possibilities only\n"
+#if ENABLE_CALL_COUNTER
+		"    -prof       collect and display profiling details before exit\n"
+#endif
 		//"    -q          display minimal information\n"
 		"    -v,-vv      verbose mode; extra v for even more verbose\n"
 		"Rules: 'p' pegs 'c' colors ['r'|'n']\n"
@@ -348,16 +351,6 @@ static int build_strategy(
 		std::cout << util::header;
 		std::cout << info;
 	}
-
-	// Display debug info if required.
-	if (verbose >= 2)
-	{
-		std::cout << std::endl;
-		std::cout << util::call_counter::get("EvaluateHeuristic_Possibilities") << std::endl;
-		std::cout << util::call_counter::get("EvaluateHeuristic_Candidates") << std::endl;
-		std::cout << util::call_counter::get("ComputeLowerBound_Steps") << std::endl;
-		std::cout << util::call_counter::get("ComputeLowerBound_Depth") << std::endl;
-	}
 	return 0;
 }
 
@@ -389,6 +382,7 @@ int main(int argc, char* argv[])
 #endif
 	int max_depth = 1000;
 	bool pos_only = false;
+	bool prof = false; // whether to enable profiling (call counting)
 
 	// Parse command line arguments.
 	for (int i = 1; i < argc; i++)
@@ -465,6 +459,15 @@ int main(int argc, char* argv[])
 		{
 			pos_only = true;
 		}
+		else if (s == "-prof")
+		{
+#if ENABLE_CALL_COUNTER
+			prof = true;
+#else
+			std::cerr << "Warning: option -prof is not supported by this build"
+				" and is ignored." << std::endl;
+#endif
+		}
 		else if (s == "-mt")
 		{
 			int n = -1;
@@ -514,6 +517,9 @@ int main(int argc, char* argv[])
 	omp_set_nested(0);
 #endif
 
+	// Enables or disables profiling according to -prof switch.
+	util::call_counter::enable(prof);
+
 	// Create an algorithm engine.
 	Engine e(rules);
 
@@ -544,18 +550,44 @@ int main(int argc, char* argv[])
 	std::unique_ptr<EquivalenceFilter> filter_obj(std::move(filter));
 
 	// Execute the specified action.
+	int ret = 0;
 	switch (mode)
 	{
 	case StrategyMode:
-		return build_strategy(e, filter, verbose, strat_name, strat_file,
+		ret = build_strategy(e, filter, verbose, strat_name, strat_file,
 			max_depth, pos_only);
+		break;
 	case PlayerMode:
-		return interactive_player(e, verbose, secret);
+		ret = interactive_player(e, verbose, secret);
+		break;
 	case DebugMode:
-		return interactive_analyst(e, verbose);
+		ret = interactive_analyst(e, verbose);
+		break;
 	case TestMode:
-		return test(rules, verbose ? true : false);
+		ret = test(rules, verbose ? true : false);
+		break;
 	default:
 		USAGE_ERROR("missing mode");
 	}
+
+	// Display available profiling results. It is useful to disgard the 
+	// profiling switch here to detect any code that doesn't respect the
+	// switch.
+#if 0
+	if (prof)
+#endif
+	{
+		if (prof)
+		{
+			std::cout << std::endl << "**** Profiling Details ****" << std::endl;
+		}
+		auto cr = util::call_counter::registry();
+		for (auto it = cr.begin(); it != cr.end(); ++it)
+		{
+			if (it->second.total_calls() > 0)
+				std::cout << it->second << std::endl;
+		}
+	}
+
+	return ret;
 }
