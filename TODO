@@ -1,0 +1,105 @@
+Release Criteria for Version 1.0 (Mar 2012)
+------------------------------------------------
+Scope:
+  This release includes the mmstrat executable. It does not include the book.
+
+Functionality:
+  Able to find heuristic strategies for the four most popular heuristics.
+  Able to find optimal strategy subject to MinSteps objective.
+  OpenMP support for heuristic strategies.
+  Able to output a strategy in Knuth, Irving, Enhanced, or XML notation.
+  Command switches are correctly documented and works as documented.
+  Enable player mode, diagnostic mode, and strategy mode.
+  HTML help documentation.
+
+Portability:
+  The cmake build system should work correctly on both Windows and Linux.
+  The build system should be able to detect SSE2 support and fail if not present.
+  Reduce reliance on Intrinsics (especially advanced intrinsics) where possible.
+
+Distribution:
+  The source code is distributed under MIT Licence in .zip format.
+  Under Windows, statically-linked binaries are provided for 32-bit and 64-bit.
+
+Plan for Version 1.1 (Apr 2012):
+  Improve Knuth's strategy to multi-level comparison.
+  Add a few more non-important heuristics for testing.
+  Add -po switch to control the possibility only constraint.
+  Add various minor optimizations to improve speed.
+  Able to read strategy in Irving, Knuth, Enhanced, or XML format.
+
+Plan for Version 1.2 (May 2012):
+  Add -md switch to control the maximum depth constraint.
+  Find optimal strategy subject to MinDepth objective.
+  Find optimal strategy subject to MinWorst objective.
+  Improve lower bound estimate in the first few levels of the game.
+  Improve lower bound estimate when there are only a dozen remaining possibilites.
+  OpenMP support for optimal strategies.
+
+Plan for Version 1.3 (Jun 2012):
+  Complete the book.
+  Add support for variants (static, dynamic, head-to-head, etc.)
+
+Plan for Version 2.0:
+  Qt or Java GUI. (mmstratx)
+
+High Priority
+---------------
+Implement Irving notation reading and auto-complete
+Simplify the Irving notation to adopt Knuth's notation for less-obvious guess.
+
+Medium Priority
+-----------------
+In optimal code breaker, when we rank the candidate guesses, we needn't compute
+  a full cost estimate; instead, we could just compute 'steps', and visit the
+  candidates by that score. This should reduce cost computation time, and 
+  hopefully doesn't impact the visiting order too negatively.
+Fix the optimization routine to respect -md switch
+Try minimize the number of secrets revealed in a worst number of steps
+Improve optimal strategy subject to maximum number of steps
+Improve lower bound estimate
+MinimizeWorstCase heuristic needs more comparison when the first compare equal
+Investigate why multi-threading doesn't benefit any more... maybe we should
+  move multithreading to another part? Like for heuristic strategies, to the
+  partition part? For optimal strategies, i don't know
+Simplify fill_obvious_strategy_tree to only add a simple guess instead of
+  expanding the whole optimal tree redundantly.
+
+Low Priority
+--------------
+Add a simple GUI for displaying/comparing strategies
+Add a dynamic_tree implementation with the same interface as simple_tree.
+  This helps to find a common interface for the client code. Then we can
+  compare the performance by using either tree as underlying storage.
+Try optimize color equivalence and constraint equivalence code (which combined
+  account for 20% of runtime)
+Try to understand why changing the data type of StrategyTree::TDepth from
+  int or size_t to char or short degrades performance by 5-7%? This is 
+  really weird. If this is so, are there other places that we might actually
+  improve the performance by using a native type? [e.g. frequency counting]
+
+Finished
+----------
+[done] Add -prof command switch to enable call counter profiling.
+[done] Make the code compatible with the latest Intel C++ compiler.
+[done] Optimized ColorEquivalenceFilter when there is only one excluded color.
+[done] Investigate why GCC is slow; seems to be failing to automatically inline
+       a template function not explicitly marked as inline.
+[done] Consolidates various constraints by the StrategyConstraint class
+[done] Corrected Engine::compare() to enable return value optimization under VC.
+[done] Output strategy tree in Irving notation
+[done] Apply OpenMP at a higher level for heuristic strategies.
+[done] Check vector::resize implementation
+[done] Improve Feedback class implementation and documentation
+[done] Reduce the size of FeedbackFrequencyTable to MaxOutcomes
+[done] Refactor comparison routine to reduce code duplication
+[done] Move benchmark tests to Benchmark.hpp
+[done] Move HRTimer to hr_timer
+[done] Move other utility routines under the util directory
+[done] Write doxygen documentation for utility routines
+[done] Write book to describe the data structure, algorith, etc.
+
+Abandoned
+-----------
+[done] Check tree data structure to get a name for our strategy tree layout
+[done] Optimize compare_tiny using 64-bit integer

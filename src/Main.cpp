@@ -203,51 +203,69 @@ static int TestBound(Rules rules)
 static void usage()
 {
 	std::cerr <<
-		"Mastermind [options] [-r rules] [-e equiv-filter] mode\n"
-		"Build a Mastermind strategy and output the strategy tree.\n"
-		"Version 0.5 (2012). Configured with max " << MM_MAX_PEGS << " pegs and "
-		<< MM_MAX_COLORS << " colors.\n"
-		"Modes:\n"
-		"    -d          interactive debugger\n"
-		"    -p [secret] interactive player (optionally) using the given secret\n"
-		"    -s strat    build strategy 'strat' and output strategy tree\n"
-		"    -t          run tests\n"
-		"Options:\n"
-		"    -h          display this help screen and exit\n"
-		"    -md [depth] limit the maximum number of guesses to reveal any secret\n"
-#ifdef _OPENMP
-		"    -mt [n]     enable parallel execution with n threads [default="
-		<< omp_get_max_threads() << "]\n"
-#endif
-		"    -po         make guess from remaining possibilities only\n"
-#if ENABLE_CALL_COUNTER
-		"    -prof       collect and display profiling details before exit\n"
-#endif
-		//"    -q          display minimal information\n"
-		"    -v,-vv      verbose mode; extra v for even more verbose\n"
+		"Usage: mmstrat [-r rules] mode [options]\n"
 		"Rules: 'p' pegs 'c' colors ['r'|'n']\n"
 		"    mm,p4c6r    [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
 		"    bc,p4c10n   Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
 		"    lg,p5c8r    Logik (5 pegs, 8 colors, with repetition)\n"
-		// @todo descriptions for heuristic strategies 
+		"Modes:\n"
+		"    -d          interactive diagnostics\n"
+		"    -p [secret] interactive player (optionally using the given secret)\n"
+		"    -s strat    build strategy 'strat' and output strategy tree\n"
+#ifndef NDEBUG
+		"    -t          run tests\n"
+#endif
 		// @todo -file switch to process a strategy tree file directly
+		//"    file path   read strategy from 'path'; use - for STDIN\n"
+		// @todo descriptions for heuristic strategies 
 		"Strategies: (~ indicates no favor of remaining possibility as guess)\n"
-		"    file path   read strategy from 'path'; use - for STDIN\n"
 		"    simple      simple strategy\n"
 		"    minmax      min-max heuristic strategy\n"
 		"    minavg[~]   min-average heuristic strategy\n"
 		"    entropy[~]  max-entropy heuristic strategy\n"
 		"    parts[~]    max-parts heuristic strategy\n"
+#ifndef NDEBUG
 		"    minlb       min-lowerbound heuristic strategy\n"
-		"    optimal[+]  optimal strategy that minimizes the total number of steps\n"
-		"                + : in case of a tie, minimizes the worst-case depth\n"
+#endif
+		"    optimal     optimal strategy that minimizes the total number of steps\n"
+		"                required to reveal all secrets\n"
+#ifndef NDEBUG
+		"    optimal+    in case of a tie, minimizes the worst-case depth\n"
 		//"    optimal++   in addition to 'optimal+', minimizes the number of secrets\n"
 		//"                revealed using the worst-case number of steps\n"
-		"Equivalence filters:\n"
-		"    default     composite filter (color + constraint)\n"
-		"    color       filter by color equivalence\n"
-		"    constraint  filter by constraint equivalence\n"
-		"    none        do not apply any filter\n"
+#endif
+		"Options:\n"
+		"    -e filter   specifies one of the following equivalence filters to use:\n"
+		"                default     composite filter (color + constraint)\n"
+		"                color       filter by color equivalence\n"
+		"                constraint  filter by constraint equivalence\n"
+		"                none        do not apply any filter\n"
+		"    -h          display this help screen and exit\n"
+#ifndef NDEBUG
+		"    -md [depth] limit the maximum number of guesses to reveal any secret\n"
+#endif
+#ifdef _OPENMP
+		"    -mt [n]     enable parallel execution with n threads [default="
+		<< omp_get_max_threads() << "]\n"
+#endif
+#ifndef NDEBUG
+		"    -po         make guess from remaining possibilities only\n"
+#endif
+#if ENABLE_CALL_COUNTER
+		"    -prof       collect and display profiling details before exit\n"
+#endif
+		"    -q          quiet mode; display minimal information\n"
+		"    -v          displays version and exit\n"
+		"";
+}
+
+static void version()
+{
+	std::cout << 
+		"Mastermind-Strategies Version 1.0 (Mar 2012).\n"
+		"Configured with max " << MM_MAX_PEGS << " pegs and "
+		<< MM_MAX_COLORS << " colors.\n"
+		"Visit http://code.google.com/p/mastermind-strategy/ for updates.\n"
 		"";
 }
 
@@ -257,7 +275,7 @@ static void usage()
 // TODO: Output strategy tree after finishing a run
 
 // extern int strategy(std::string strat);
-extern int interactive_player(Engine & e, int verbose, Codeword secret);
+extern int interactive_player(Engine & e, int verbose, const Codeword &secret);
 extern int interactive_analyst(Engine & e, int verbose);
 extern int test(const Rules &rules, bool verbose);
 
@@ -366,7 +384,7 @@ int main(int argc, char* argv[])
 	Rules rules(4, 6, true);
 #endif
 
-	int verbose = 0;
+	int verbose = 1;
 	enum Mode
 	{
 		DefaultMode = 0,
@@ -432,6 +450,10 @@ int main(int argc, char* argv[])
 		{
 			usage();
 			return 0;
+		}
+		else if (s == "-q")
+		{
+			verbose = 0;
 		}
 		else if (s == "-r")
 		{
@@ -499,12 +521,15 @@ int main(int argc, char* argv[])
 		}
 		else if (s == "-v")
 		{
-			verbose = 1;
+			version();
+			return 0;
 		}
+#if 0
 		else if (s == "-vv")
 		{
 			verbose = 2;
 		}
+#endif
 		else
 		{
 			USAGE_REQUIRE(false, "unknown option: " << s);

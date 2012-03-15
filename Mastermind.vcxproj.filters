@@ -161,5 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Doxyfile" />
+    <None Include="COPYING" />
+    <None Include="README" />
+    <None Include="TODO" />
   </ItemGroup>
 </Project>
