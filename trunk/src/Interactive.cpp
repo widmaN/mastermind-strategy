@@ -214,7 +214,7 @@ static void help_player()
 /// until either the user enter "quit" or reveals the secret.
 /// Important output are put to STDOUT. 
 /// Informational messages are put to STDOUT.
-int interactive_player(Engine &e, int verbose, Codeword secret)
+int interactive_player(Engine &e, int verbose, const Codeword &_secret)
 {
 	Analyst game(e.rules());
 
@@ -227,6 +227,7 @@ int interactive_player(Engine &e, int verbose, Codeword secret)
 	}
 
 	// Generate a secret if one is not specified.
+	Codeword secret = _secret;
 	if (secret.empty())
 	{
 		srand((unsigned int)time(NULL));
