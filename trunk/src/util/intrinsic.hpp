@@ -18,6 +18,7 @@
 namespace util { namespace intrinsic {
 
 /// Returns the number of bits set in an integer.
+#if 0
 template <class T>
 inline int pop_count(T value)
 {
@@ -26,6 +27,7 @@ inline int pop_count(T value)
 		++n;
 	return n;
 }
+#endif
 
 /// @cond DETAILS
 #if defined(_WIN32)
@@ -52,6 +54,7 @@ inline int pop_count(unsigned long long x) { return __builtin_popcountll(x); }
 #endif // defined(_WIN32)
 /// @endcond
 
+#if 0
 /// Returns the (zero-based) position of the least significant bit set
 /// in an integer. If the integer is zero, the return value is undefined.
 template <class T>
@@ -68,6 +71,7 @@ inline int bit_scan_forward(T x)
 	}
 	return i;
 }
+#endif
 
 /// @cond DETAILS
 #if defined(_WIN32)
@@ -105,6 +109,7 @@ inline int bit_scan_forward(unsigned long long x) { return __builtin_ctzll(x); }
 #endif // defined(_WIN32)
 /// @endcond
 
+#if 0
 /// Returns the (zero-based) position of the most significant bit set
 /// in an integer. If the integer is zero, the return value is undefined.
 template <class T>
@@ -123,6 +128,7 @@ inline int bit_scan_reverse(T x)
 	}
 	return i;
 }
+#endif
 
 /// @cond DETAILS
 #if defined(_WIN32)
@@ -152,9 +158,9 @@ inline int bit_scan_reverse(unsigned long long x)
 }
 #endif // defined(_WIN64)
 #else  // defined(_WIN32)
-inline int bit_scan_reverse(unsigned long long x) { return sizeof(long long) - __builtin_clzll(x); }
-inline int bit_scan_reverse(unsigned long x) { return sizeof(long) - __builtin_clzl(x); }
-inline int bit_scan_reverse(unsigned int x) { return sizeof(int) - __builtin_clz(x); }
+inline int bit_scan_reverse(unsigned long long x) { return sizeof(long long)*8 - __builtin_clzll(x); }
+inline int bit_scan_reverse(unsigned long x) { return sizeof(long)*8 - __builtin_clzl(x); }
+inline int bit_scan_reverse(unsigned int x) { return sizeof(int)*8 - __builtin_clz(x); }
 inline int bit_scan_reverse(unsigned short x) { return bit_scan_reverse((unsigned int)x); }
 inline int bit_scan_reverse(unsigned char x) { return bit_scan_reverse((unsigned int)x); }
 #endif // defined(_WIN32)
