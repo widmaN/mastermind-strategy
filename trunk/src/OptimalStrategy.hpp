@@ -153,10 +153,8 @@ public:
 		lb.depth = (unsigned short)(depth_bitset == 0 ? 
 			0 : util::intrinsic::bit_scan_reverse(depth_bitset));
 
-		REGISTER_CALL_COUNTER(ComputeLowerBound_Steps);
-		UPDATE_CALL_COUNTER(ComputeLowerBound_Steps, lb.steps);
-		REGISTER_CALL_COUNTER(ComputeLowerBound_Depth);
-		UPDATE_CALL_COUNTER(ComputeLowerBound_Depth, lb.depth);
+		UPDATE_CALL_COUNTER("ComputeLowerBound_Steps", lb.steps);
+		UPDATE_CALL_COUNTER("ComputeLowerBound_Depth", lb.depth);
 		return lb;
 	}
 

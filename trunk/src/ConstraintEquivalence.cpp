@@ -11,11 +11,6 @@
 #include "util/call_counter.hpp"
 #include "util/bitmask.hpp"
 
-REGISTER_CALL_COUNTER(ConstraintEquivalence)
-// REGISTER_CALL_COUNTER(ConstraintEquivalenceIdentity)
-REGISTER_CALL_COUNTER(ConstraintEquivalencePermutation)
-REGISTER_CALL_COUNTER(ConstraintEquivalenceCrossout)
-
 namespace Mastermind {
 
 /// Represents an incremental constraint equivalence filter.

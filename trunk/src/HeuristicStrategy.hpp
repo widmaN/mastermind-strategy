@@ -119,10 +119,8 @@ public:
 		CodewordConstRange candidates,
 		score_type *scores) const
 	{
-		REGISTER_CALL_COUNTER(EvaluateHeuristic_Possibilities);
-		REGISTER_CALL_COUNTER(EvaluateHeuristic_Candidates);
-		UPDATE_CALL_COUNTER(EvaluateHeuristic_Possibilities, (unsigned int)possibilities.size());
-		UPDATE_CALL_COUNTER(EvaluateHeuristic_Candidates, (unsigned int)candidates.size());
+		UPDATE_CALL_COUNTER("EvaluateHeuristic_Possibilities", (unsigned int)possibilities.size());
+		UPDATE_CALL_COUNTER("EvaluateHeuristic_Candidates", (unsigned int)candidates.size());
 
 		assert(scores != NULL);
 
@@ -152,10 +150,8 @@ public:
 		CodewordConstRange possibilities,
 		CodewordConstRange candidates) const
 	{
-		REGISTER_CALL_COUNTER(EvaluateHeuristic_Possibilities);
-		REGISTER_CALL_COUNTER(EvaluateHeuristic_Candidates);
-		UPDATE_CALL_COUNTER(EvaluateHeuristic_Possibilities, (unsigned int)possibilities.size());
-		UPDATE_CALL_COUNTER(EvaluateHeuristic_Candidates, (unsigned int)candidates.size());
+		UPDATE_CALL_COUNTER("EvaluateHeuristic_Possibilities", (unsigned int)possibilities.size());
+		UPDATE_CALL_COUNTER("EvaluateHeuristic_Candidates", (unsigned int)candidates.size());
 
 		if (candidates.empty())
 			return Codeword();
