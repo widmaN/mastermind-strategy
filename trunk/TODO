@@ -15,7 +15,7 @@ Functionality:
 Portability:
   The cmake build system should work correctly on both Windows and Linux.
   The build system should be able to detect SSE2 support and fail if not present.
-  Reduce reliance on Intrinsics (especially advanced intrinsics) where possible.
+  Remove non-essential uses of on Intrinsics (especially advanced intrinsics).
 
 Distribution:
   The source code is distributed under MIT Licence in .zip format.
