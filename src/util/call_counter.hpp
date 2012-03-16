@@ -18,9 +18,10 @@ namespace util {
 
 /**
  * Represents a counter that collects function call statistics.
- * It supports to up to <code>2<sup>32</sup>-2</code> operations per
- * call. 
- * The total number of calls (or operations) is up to (2^64-1).
+ * It supports to up to <code>2^32-2</code> operations per call for 32-bit
+ * and <code>2^64-2</code> operations per call for 64-bit. Under either
+ * architecture, the total number of calls (or operations) supported is 
+ * up to <code>2^64-1</code>.
  * @ingroup CallCounter
  */
 class call_counter
@@ -37,7 +38,9 @@ class call_counter
 		unsigned long long ops;   // number of operations
 		group_t() : calls(0), ops(0) { }
 	};
-	static const int N = sizeof(unsigned int)*8;
+
+	// N = number of groups, determined by the size of size_t.
+	static const int N = sizeof(size_t)*8;
 	group_t _stat[N];
 
 	typedef std::map<std::string, call_counter> registry_type;
@@ -92,9 +95,9 @@ public:
 
 	/// Records one function call with a given number of operations.
 	/// @param ops Number of operations in this call.
-	void add_call(unsigned int ops)
+	void add_call(size_t ops)
 	{
-		assert(ops + 1 > 0);
+		assert(ops != (size_t)-1);
 
 		// The group is the location of the most significant 1.
 		unsigned int pos = util::intrinsic::bit_scan_reverse(ops + 1);
