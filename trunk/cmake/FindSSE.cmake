@@ -1,30 +1,72 @@
 # This script checks for the highest level of SSE support on the host
 # by compiling and running small C++ programs that uses SSE intrinsics.
 #
+# You can invoke this module using the following command:
+#
+#   FIND_PACKAGE(SSE [major[.minor]] [EXACT] [QUIET|REQUIRED])
+#
+# where the version string is one of:
+#
+#   1.0 for SSE support
+#   2.0 for SSE2 support
+#   3.0 for SSE3 support
+#   3.1 for SSSE3 support
+#   4.1 for SSE 4.1 support
+#   4.2 for SSE 4.2 support
+#
+# Note that any ".0" in the above version string is optional.
+#
 # If any SSE support is detected, the following variables are set:
 #
 #   SSE_FOUND   = 1
-#   SSE_VERSION = 10 for SSE support
-#                 20 for SSE2 support
-#                 30 for SSE3 support
-#                 31 for SSSE3 support
-#                 41 for SSE 4.1 support
-#                 42 for SSE 4.2 support
+#   SSE_VERSION = the requested version, if EXACT is true, or
+#                 the highest SSE version found.
 # 
 # If SSE is not supported on the host platform, these variables are
-# not set.
+# not set. If QUIET is true, the module does not print a message if
+# SSE if missing. If REQUIRED is true, the module produces a fatal
+# error if SSE support is missing.
 # 
 
 include(CheckCXXSourceRuns)
 
+# Generate a list of SSE versions to test.
+if(SSE_FIND_VERSION_EXACT)
+  if(SSE_FIND_VERSION VERSION_EQUAL "4.2")
+    set(_SSE_TEST_42 1)
+  elseif(SSE_FIND_VERSION VERSION_EQUAL "4.1")
+    set(_SSE_TEST_41 1)
+  elseif(SSE_FIND_VERSION VERSION_EQUAL "3.1")
+    set(_SSE_TEST_31 1)
+  elseif(SSE_FIND_VERSION VERSION_EQUAL "3.0")
+    set(_SSE_TEST_30 1)
+  elseif(SSE_FIND_VERSION VERSION_EQUAL "2.0")
+    set(_SSE_TEST_20 1)
+  elseif(SSE_FIND_VERSION VERSION_EQUAL "1.0")
+    set(_SSE_TEST_10 1)
+  endif()
+else()
+  if(NOT SSE_FIND_VERSION VERSION_GREATER "4.2")
+    set(_SSE_TEST_42 1)
+  elseif(NOT SSE_FIND_VERSION VERSION_GREATER "4.1")
+    set(_SSE_TEST_41 1)
+  elseif(NOT SSE_FIND_VERSION VERSION_GREATER "3.1")
+    set(_SSE_TEST_31 1)
+  elseif(NOT SSE_FIND_VERSION VERSION_GREATER "3.0")
+    set(_SSE_TEST_30 1)
+  elseif(NOT SSE_FIND_VERSION VERSION_GREATER "2.0")
+    set(_SSE_TEST_20 1)
+  elseif(NOT SSE_FIND_VERSION VERSION_GREATER "1.0")
+    set(_SSE_TEST_10 1)
+  endif()  
+endif()
+
+# Set compiler flag to generate instructions for the host architecture.
 set(CMAKE_REQUIRED_FLAGS "-march=native")
 
-# Set the following variable to 1 if you want to return as soon as a test 
-# returns success.
-set(SSE_CHECK_SHORTCUT 0)
-
 # Check for SSE 4.2 support.
-check_cxx_source_runs("
+if(_SSE_TEST_42)
+  check_cxx_source_runs("
   #include <emmintrin.h>
   #include <nmmintrin.h>
   int main()
@@ -41,19 +83,17 @@ check_cxx_source_runs("
       return 0;
     else
       return 1;
-  }"
-  SSE_42_DETECTED)
-
-if(NOT SSE_FOUND AND SSE_42_DETECTED)
-  set(SSE_VERSION 42)
-  set(SSE_FOUND 1)
-  if(SSE_CHECK_SHORTCUT)
+  }" SSE_42_DETECTED)
+  if(SSE_42_DETECTED)
+    set(SSE_VERSION "4.2")
+    set(SSE_FOUND 1)
     return()
   endif()
 endif()
 
 # Check for SSE 4.1 support.
-check_cxx_source_runs("
+if(_SSE_TEST_41)
+  check_cxx_source_runs("
   #include <emmintrin.h>
   #include <smmintrin.h>
   int main()
@@ -70,19 +110,17 @@ check_cxx_source_runs("
       return 0;
     else
       return 1;
-  }"
-  SSE_41_DETECTED)
-
-if(NOT SSE_FOUND AND SSE_41_DETECTED)
-  set(SSE_VERSION 41)
-  set(SSE_FOUND 1)
-  if(SSE_CHECK_SHORTCUT)
+  }" SSE_41_DETECTED)
+  if(SSE_41_DETECTED)
+    set(SSE_VERSION "4.1")
+    set(SSE_FOUND 1)
     return()
   endif()
 endif()
 
 # Check for SSSE 3 support.
-check_cxx_source_runs("
+if(_SSE_TEST_31)
+  check_cxx_source_runs("
   #include <emmintrin.h>
   #include <tmmintrin.h>
   int main()
@@ -98,19 +136,17 @@ check_cxx_source_runs("
       return 0;
     else
       return 1;
-  }"
-  SSE_31_DETECTED)
-
-if(NOT SSE_FOUND AND SSE_31_DETECTED)
-  set(SSE_VERSION 31)
-  set(SSE_FOUND 1)
-  if(SSE_CHECK_SHORTCUT)
+  }" SSE_31_DETECTED)
+  if(SSE_31_DETECTED)
+    set(SSE_VERSION "3.1")
+    set(SSE_FOUND 1)
     return()
   endif()
 endif()
 
 # Check for SSE 3 support.
-check_cxx_source_runs("
+if(_SSE_TEST_30)
+  check_cxx_source_runs("
   #include <emmintrin.h>
   #ifdef _WIN32
     #include <intrin.h>
@@ -133,19 +169,17 @@ check_cxx_source_runs("
       return 0;
     else
       return 1;
-  }"
-  SSE_30_DETECTED)
-
-if(NOT SSE_FOUND AND SSE_30_DETECTED)
-  set(SSE_VERSION 30)
-  set(SSE_FOUND 1)
-  if(SSE_CHECK_SHORTCUT)
+  }" SSE_30_DETECTED)
+  if(SSE_30_DETECTED)
+    set(SSE_VERSION "3.0")
+    set(SSE_FOUND 1)
     return()
   endif()
 endif()
 
 # Check for SSE2 support.
-check_cxx_source_runs("
+if(_SSE_TEST_20)
+  check_cxx_source_runs("
   #include <emmintrin.h>
 
   int main()
@@ -163,19 +197,17 @@ check_cxx_source_runs("
       return 0;
     else
       return 1;
-  }"
-  SSE_20_DETECTED)
-
-if(NOT SSE_FOUND AND SSE_20_DETECTED)
-  set(SSE_VERSION 20)
-  set(SSE_FOUND 1)
-  if(SSE_CHECK_SHORTCUT)
+  }" SSE_20_DETECTED)
+  if(SSE_20_DETECTED)
+    set(SSE_VERSION "2.0")
+    set(SSE_FOUND 1)
     return()
   endif()
 endif()
 
 # Check for SSE support.
-check_cxx_source_runs("
+if(_SSE_TEST_10)
+  check_cxx_source_runs("
   #include <emmintrin.h>
   int main()
   {
@@ -191,13 +223,27 @@ check_cxx_source_runs("
       return 0;
     else
       return 1;
-  }"
-  SSE_10_DETECTED)
-
-if(NOT SSE_FOUND AND SSE_10_DETECTED)
-  set(SSE_VERSION 10)
-  set(SSE_FOUND 1)
-  if(SSE_CHECK_SHORTCUT)
+  }" SSE_10_DETECTED)
+  if(SSE_10_DETECTED)
+    set(SSE_VERSION "1.0")
+    set(SSE_FOUND 1)
     return()
   endif()
+endif()
+
+# If no SSE support is found, print an error message.
+if(NOT SSE_FOUND)
+  
+  if(SSE_FIND_VERSION)
+    set(_SSE_ERROR_MESSAGE "SSE ${SSE_FIND_VERSION} support is not found on this architecture")
+  else()
+    set(_SSE_ERROR_MESSAGE "SSE support is not found on this architecture")
+  endif()
+
+  if(SSE_FIND_REQUIRED)
+    message(FATAL_ERROR "${_SSE_ERROR_MESSAGE}")
+  elseif(NOT SSE_FIND_QUIETLY)
+    message(STATUS "${_SSE_ERROR_MESSAGE}")
+  endif()
+
 endif()
