@@ -4,13 +4,13 @@ Scope:
   This release includes the mmstrat executable. It does not include the book.
 
 Functionality:
+  Able to output a strategy in Knuth, Irving, Enhanced, or XML notation.
+  Enable player mode, diagnostic mode, and strategy mode.
+  HTML help documentation.
   Able to find heuristic strategies for the four most popular heuristics.
   Able to find optimal strategy subject to MinSteps objective.
   OpenMP support for heuristic strategies.
-  Able to output a strategy in Knuth, Irving, Enhanced, or XML notation.
   Command switches are correctly documented and works as documented.
-  Enable player mode, diagnostic mode, and strategy mode.
-  HTML help documentation.
 
 Portability:
   The cmake build system should work correctly on both Windows and Linux.
