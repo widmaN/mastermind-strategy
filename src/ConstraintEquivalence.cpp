@@ -139,10 +139,11 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 			canonical.push_back(candidate);
 	}
 
-#if 0
-	UPDATE_CALL_COUNTER(ConstraintEquivalence, canonical.size());
-	UPDATE_CALL_COUNTER(ConstraintEquivalencePermutation, pp.size());
-	UPDATE_CALL_COUNTER(ConstraintEquivalenceCrossout, (n-canonical.size()+1));
+#if 1
+	UPDATE_CALL_COUNTER("ConstraintEquivalence_Input", candidates.size());
+	UPDATE_CALL_COUNTER("ConstraintEquivalence_Output", canonical.size());
+	//UPDATE_CALL_COUNTER("ConstraintEquivalence_WaysToPermute", pp.size());
+	UPDATE_CALL_COUNTER("ConstraintEquivalence_Reduction", candidates.size() - canonical.size());
 #endif
 
 	return canonical;
