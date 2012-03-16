@@ -3,6 +3,7 @@
 #include "Algorithm.hpp"
 #include "Equivalence.hpp"
 #include "util/intrinsic.hpp"
+#include "util/call_counter.hpp"
 
 namespace Mastermind {
 
@@ -31,10 +32,19 @@ public:
 	virtual CodewordList get_canonical_guesses(
 		CodewordConstRange candidates) const
 	{
+#if 0 // MSVC produces slow code if this block is used
+		CodewordList canonical;
+		if (e.rules().repeatable())
+			canonical = filter_rep(candidates);
+		else
+			canonical = filter_norep(candidates);
+		return canonical;
+#else
 		if (e.rules().repeatable())
 			return filter_rep(candidates);
 		else
 			return filter_norep(candidates);
+#endif
 	}
 
 	virtual void add_constraint(
@@ -153,6 +163,14 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 			canonical.push_back(guess);
 		}
 	}
+
+#if 1
+	UPDATE_CALL_COUNTER("ColorEquivalence_Input", candidates.size());
+	UPDATE_CALL_COUNTER("ColorEquivalence_Output", canonical.size());
+	UPDATE_CALL_COUNTER("ColorEquivalence_Reduction", candidates.size() - canonical.size());
+	//UPDATE_CALL_COUNTER("ColorEquivalence_WaysToPermute", pp.size());
+#endif
+
 	return canonical;
 }
 
