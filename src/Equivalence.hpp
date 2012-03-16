@@ -83,6 +83,12 @@ public:
 		_filter1->add_constraint(guess, response, remaining);
 		_filter2->add_constraint(guess, response, remaining);
 	}
+
+	/// Returns the first filter.
+	const EquivalenceFilter* first() const { return _filter1.get(); }
+
+	/// Returns the second filter.
+	const EquivalenceFilter* second() const { return _filter2.get(); }
 };
 
 } // namespace Mastermind

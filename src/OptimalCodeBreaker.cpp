@@ -7,8 +7,6 @@
 #include <functional>
 #include <numeric>
 
-// #define ENABLE_CALL_COUNTER 0
-
 #include "Engine.hpp"
 #include "Strategy.hpp"
 #include "Equivalence.hpp"
@@ -98,7 +96,8 @@ typedef HeuristicStrategy<Heuristics::MinimizeLowerBound> LowerBoundEstimator;
 /**
  * Searches for an optimal strategy for the given set of remaining secrets.
  *
- * @param depth
+ * @param depth Depth of the current state. This is equal to the number of 
+ *      guesses already made.
  * @param threshold Branch pruning threshold. If the cost of revealing all
  *      the secrets would reach or exceed this threshold, the function will
  *      fail. This parameter should be set to the currently best cost achieved
@@ -109,19 +108,23 @@ typedef HeuristicStrategy<Heuristics::MinimizeLowerBound> LowerBoundEstimator;
  *      any strategy would reach or exceed the cut-off threshold.
  * @todo Add progress report (0% - 100%)
  */
+// @todo: We might change the equivalence filter interface to operate on
+// the input inplace? This could save a few memory copies but may change
+// the output.
 // all the secrets, or -1 if such optimal will not be less than _best_.
 static StrategyCost fill_strategy_tree(
 	Engine &e,
-	CodewordRange secrets,       // remaining secrets
-	EquivalenceFilter *filter,
-	LowerBoundEstimator &estimator,
-	const int depth,   // Depth of the current state; this is equal to the
-	                   // number of guesses already made.
-	StrategyObjective obj,       // objective
-	StrategyConstraints c,       // constraints
-	StrategyCost threshold,      // prunes branch if cost >= threshold
-	StrategyTree &tree,          // tree to store the strategy found
-	StrategyTree::iterator where // iterator to the current state
+	CodewordRange secrets,            // remaining secrets; will be partitioned
+	CodewordRange candidates,         // canonical guesses; may be sorted
+	const EquivalenceFilter *filter1, // response-independent equivalence filter
+	const EquivalenceFilter *filter2, // response-dependent equivalence filter
+	LowerBoundEstimator &estimator,   // lower bound estimator
+	const int depth,                  // depth of the current state; root=0
+	StrategyObjective obj,            // objective
+	StrategyConstraints c,            // constraints
+	StrategyCost threshold,           // prunes branch if cost >= threshold
+	StrategyTree &tree,               // tree to store the strategy found
+	StrategyTree::iterator where      // iterator to the current state
 	)
 {
 	UPDATE_CALL_COUNTER("OptimalRecursion", (int)secrets.size());
@@ -179,8 +182,8 @@ static StrategyCost fill_strategy_tree(
 #endif
 
 	// Filter canonical guesses as candidates.
-	CodewordList candidates = filter->get_canonical_guesses(e.universe());
-	VERBOSE_COUT("Found " << candidates.size() << " canonical guesses.");
+	//CodewordList candidates = filter->get_canonical_guesses(e.universe());
+	//VERBOSE_COUT("Found " << candidates.size() << " canonical guesses.");
 
 	// Compute a lower bound of the cost for each candidate guess, exluding
 	// the cost of making the initial guess because this is the same for all
@@ -343,7 +346,18 @@ static StrategyCost fill_strategy_tree(
 				<< ", best = " << best << std::endl;
 		}
 
-		// Find the best guess for each partition.
+		// Find the best guess for each partition. We adopt a two-phase
+		// equivalence filtering method. First, we filter all possible
+		// codewords by (response-indepedent) constraint equivalence.
+		// This can be done once for all response classes. Then, for each
+		// individual response class, we apply the response-dependent 
+		// color equivalence filter.
+		CodewordList pre_filtered;
+		std::unique_ptr<EquivalenceFilter> pre_filter(filter1->clone());
+		pre_filter->add_constraint(guess, Feedback(), e.universe());
+		// @todo we may change the interface of add_constraint to return
+		// a new filter.
+
 		bool pruned = false;
 		StrategyTree this_tree(e.rules());
 		for (size_t j = 0; j < nresponses && !pruned; ++j)
@@ -399,11 +413,23 @@ static StrategyCost fill_strategy_tree(
 				// If the lower bound is greater than the cut-off, we don't
 				// need to proceed any more.
 
-				std::unique_ptr<EquivalenceFilter> new_filter(filter->clone());
-				new_filter->add_constraint(guess, feedback, cell);
+				// Apply constraint filter on the candidate guesses if not 
+				// already done so. This filter does not depend on the response,
+				// so a single run can be used for all response classes.
+				if (pre_filtered.empty())
+				{
+					pre_filtered = pre_filter->get_canonical_guesses(e.universe());
+				}
 
-				// @todo: Check this
-				cell_cost = fill_strategy_tree(e, cell, new_filter.get(), estimator,
+				// Apply color filter on the pre-filtered candidates.
+				std::unique_ptr<EquivalenceFilter> new_filter(filter2->clone());
+				new_filter->add_constraint(guess, feedback, cell);
+				CodewordList canonical = new_filter->get_canonical_guesses(pre_filtered);
+
+				// @todo: Check this. The minus sign doesn't work for complex
+				// cost structure.
+				cell_cost = fill_strategy_tree(e, cell, canonical,
+					pre_filter.get(), new_filter.get(), estimator,
 					depth + 1, obj, c, threshold - (lb - lb_part[j]),
 					this_tree, it);
 			}
@@ -471,18 +497,11 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 {
 	CodewordList all = e.generateCodewords();
 
-	// Create a "suitable" equivalence filter.
-	std::unique_ptr<EquivalenceFilter> filter(
-#if 0
-		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Dummy")(e)
-		//RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e)
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e)
-#else
-		new CompositeEquivalenceFilter(
-			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e),
-			RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e))
-#endif
-		);
+	// Creates a composite equivalence filter by chaining a
+	// response-indepedent filter with a response-dependent filter.
+	CompositeEquivalenceFilter filter(
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e),
+		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e));
 
 	// Create a strategy tree.
 	StrategyTree tree(e.rules());
@@ -496,9 +515,13 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 	// Create a cost lower-bound estimator.
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
 
+	// Filter canonical candidates for the initial guess.
+	CodewordList initial = filter.get_canonical_guesses(e.universe());
+
 	// Recursively find an optimal strategy.
 	StrategyCost threshold(1000000, 100, 0);
-	/* int best = */ fill_strategy_tree(e, all, filter.get(), estimator,
+	/* int best = */ fill_strategy_tree(e, all, initial, 
+		filter.first(), filter.second(), estimator,
 		0, obj, c, threshold, tree, tree.root());
 	// std::cout << "OPTIMAL: " << best << std::endl;
 	return tree;

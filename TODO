@@ -47,6 +47,11 @@ High Priority
 ---------------
 Implement Irving notation reading and auto-complete
 Simplify the Irving notation to adopt Knuth's notation for less-obvious guess.
+Add call counter to check how often is the first guess tried not the best guess
+  in an optimal strategy search level.
+Does it make sense to 'bootstrap' a good tree before depth-first-search for
+  an optimal tree from a given state?
+In recursive optimal search, the minus sign doesn't work.
 
 Medium Priority
 -----------------
@@ -80,6 +85,9 @@ Try to understand why changing the data type of StrategyTree::TDepth from
 
 Finished
 ----------
+[done] Apply constraint equivalence filter only once for each candidate guess.
+[done] Add call counter to record the number of input and output of each 
+       equivalence filters.
 [done] Add -prof command switch to enable call counter profiling.
 [done] Make the code compatible with the latest Intel C++ compiler.
 [done] Optimized ColorEquivalenceFilter when there is only one excluded color.
