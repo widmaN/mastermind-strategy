@@ -1,16 +1,16 @@
 # Check for SSE2 support on the platform.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-find_package(SSE)
-if(NOT SSE_FOUND)
-  message(FATAL_ERROR "SSE support is missing on this architecture.")
-else()
-  message(STATUS "Found SSE intrinsic support: version ${SSE_VERSION}")
-endif()
+find_package(SSE 2.0 REQUIRED)
+#if(NOT SSE_FOUND)
+#  message(FATAL_ERROR "SSE support is missing on this architecture.")
+#else()
+#  message(STATUS "Found SSE intrinsic support: version ${SSE_VERSION}")
+#endif()
 
 # Check for OpenMP support in the compiler.
 find_package(OpenMP QUIET)
 if(OPENMP_FOUND)
-  message(STATUS "Found OpenMP compiler switch: ${OpenMP_CXX_FLAGS}")
+#  message(STATUS "Found OpenMP compiler switch: ${OpenMP_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 else()
   message(STATUS "Missing OpenMP compiler support.")
