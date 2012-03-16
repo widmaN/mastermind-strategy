@@ -1,6 +1,8 @@
 /**
- * @defgroup Intrinsic Intrinsic Functions
  * @ingroup util
+ * @defgroup CompilerIntrinsic Compiler Intrinsics
+ * Portable implementation of compiler intrinsics with a uniform signature.
+ * @{
  */
 
 #ifndef UTILITIES_INTRINSIC_HPP
@@ -12,32 +14,41 @@
 //#include <x86intrin.h>
 #endif
 
-/// @ingroup Intrinsic
-// @{
-
 namespace util { namespace intrinsic {
 
+// @cond DETAILS
+
+/// Implements an intrinsic function by a call to another function with the
+/// same argument type.
+#define DELEGATE_INTRINSIC(return_type, name, type, delegate_name) \
+	inline return_type name(type x) { return delegate_name(x); }
+
+/// Implements an intrinsic function by a call to the intrinsic function of
+/// the same name but with a cast argument type.
+#define DELEGATE_INTRINSIC_CAST(return_type, name, type, delegate_type) \
+	inline return_type name(type x) { return name((delegate_type)x); }
+
+// @endcond
+
 /// Returns the number of bits set in an integer.
-#if 0
 template <class T>
-inline int pop_count(T value)
+inline int pop_count(T x)
 {
 	int n = 0;
-	for (; value; value &= (value - T(1)))
+	for (; x; x &= (x - T(1)))
 		++n;
 	return n;
 }
-#endif
 
-/// @cond DETAILS
+// @cond DETAILS
 #if defined(_WIN32)
 #if HAVE_POPCOUNT
-inline int pop_count(unsigned char x) { return _popcnt(x); }
-inline int pop_count(unsigned short x) { return __popcnt16(x); }
-inline int pop_count(unsigned int x) { return __popcnt(x); }
-inline int pop_count(unsigned long x) { return __popcnt(x); }
+DELEGATE_INTRINSIC(int, pop_count, unsigned short, __popcnt16)
+DELEGATE_INTRINSIC(int, pop_count, unsigned int,   __popcnt)
+DELEGATE_INTRINSIC_CAST(int, pop_count, unsigned char, unsigned int)
+DELEGATE_INTRINSIC_CAST(int, pop_count, unsigned long, unsigned int)
 #if defined(_WIN64)
-inline int pop_count(unsigned long long x) { return __popcnt64(x); }
+DELEGATE_INTRINSIC(int, pop_count, unsigned long long, __popcnt64)
 #else // _WIN64
 inline int pop_count(unsigned long long x) 
 {
@@ -46,15 +57,21 @@ inline int pop_count(unsigned long long x)
 #endif // defined(_WIN64)
 #endif // HAVE_POPCOUNT
 #else  // defined(_WIN32)
-inline int pop_count(unsigned char x) { return __builtin_popcount(x); }
-inline int pop_count(unsigned short x) { return __builtin_popcount(x); }
-inline int pop_count(unsigned int x) { return __builtin_popcount(x); }
-inline int pop_count(unsigned long x) { return __builtin_popcountl(x); }
-inline int pop_count(unsigned long long x) { return __builtin_popcountll(x); }
+DELEGATE_INTRINSIC(int, pop_count, unsigned int, __builtin_popcount)
+DELEGATE_INTRINSIC(int, pop_count, unsigned long, __builtin_popcountl)
+DELEGATE_INTRINSIC(int, pop_count, unsigned long long, __builtin_popcountll)
+DELEGATE_INTRINSIC_CAST(int, pop_count, unsigned char,  unsigned int)
+DELEGATE_INTRINSIC_CAST(int, pop_count, unsigned short, unsigned int)
 #endif // defined(_WIN32)
-/// @endcond
 
-#if 0
+DELEGATE_INTRINSIC_CAST(int, pop_count, char,        unsigned char)
+DELEGATE_INTRINSIC_CAST(int, pop_count, signed char, unsigned char)
+DELEGATE_INTRINSIC_CAST(int, pop_count, short,       unsigned short)
+DELEGATE_INTRINSIC_CAST(int, pop_count, int,         unsigned int)
+DELEGATE_INTRINSIC_CAST(int, pop_count, long,        unsigned long)
+DELEGATE_INTRINSIC_CAST(int, pop_count, long long,   unsigned long long)
+// @endcond
+
 /// Returns the (zero-based) position of the least significant bit set
 /// in an integer. If the integer is zero, the return value is undefined.
 template <class T>
@@ -71,9 +88,8 @@ inline int bit_scan_forward(T x)
 	}
 	return i;
 }
-#endif
 
-/// @cond DETAILS
+// @cond DETAILS
 #if defined(_WIN32)
 inline int bit_scan_forward(unsigned long x)
 {
@@ -81,9 +97,9 @@ inline int bit_scan_forward(unsigned long x)
 	_BitScanForward(&pos, x);
 	return pos;
 }
-inline int bit_scan_forward(unsigned int x) { return bit_scan_forward((unsigned long)x); }
-inline int bit_scan_forward(unsigned short x) { return bit_scan_forward((unsigned long)x); }
-inline int bit_scan_forward(unsigned char x) { return bit_scan_forward((unsigned long)x); }
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, unsigned int,   unsigned long)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, unsigned short, unsigned long)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, unsigned char,  unsigned long)
 #if defined(_WIN64)
 inline int bit_scan_forward(unsigned long long x)
 {
@@ -101,15 +117,21 @@ inline int bit_scan_forward(unsigned long long x)
 }
 #endif // defined(_WIN64)
 #else  // defined(_WIN32)
-inline int bit_scan_forward(unsigned char x) { return __builtin_ctz(x); }
-inline int bit_scan_forward(unsigned short x) { return __builtin_ctz(x); }
-inline int bit_scan_forward(unsigned int x) { return __builtin_ctz(x); }
-inline int bit_scan_forward(unsigned long x) { return __builtin_ctzl(x); }
-inline int bit_scan_forward(unsigned long long x) { return __builtin_ctzll(x); }
+DELEGATE_INTRINSIC(int, bit_scan_forward, unsigned int, __builtin_ctz)
+DELEGATE_INTRINSIC(int, bit_scan_forward, unsigned long, __builtin_ctzl)
+DELEGATE_INTRINSIC(int, bit_scan_forward, unsigned long long, __builtin_ctzll)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, unsigned char, unsigned int)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, unsigned short, unsigned int)
 #endif // defined(_WIN32)
-/// @endcond
 
-#if 0
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, char,        unsigned char)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, signed char, unsigned char)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, short,       unsigned short)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, int,         unsigned int)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, long,        unsigned long)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_forward, long long,   unsigned long long)
+// @endcond
+
 /// Returns the (zero-based) position of the most significant bit set
 /// in an integer. If the integer is zero, the return value is undefined.
 template <class T>
@@ -128,9 +150,8 @@ inline int bit_scan_reverse(T x)
 	}
 	return i;
 }
-#endif
 
-/// @cond DETAILS
+// @cond DETAILS
 #if defined(_WIN32)
 inline int bit_scan_reverse(unsigned long x)
 {
@@ -138,9 +159,9 @@ inline int bit_scan_reverse(unsigned long x)
 	_BitScanReverse(&pos, x);
 	return pos;
 }
-inline int bit_scan_reverse(unsigned int x) { return bit_scan_reverse((unsigned long)x); }
-inline int bit_scan_reverse(unsigned short x) { return bit_scan_reverse((unsigned long)x); }
-inline int bit_scan_reverse(unsigned char x) { return bit_scan_reverse((unsigned long)x); }
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, unsigned int,   unsigned long)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, unsigned short, unsigned long)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, unsigned char,  unsigned long)
 #if defined(_WIN64)
 inline int bit_scan_reverse(unsigned long long x)
 {
@@ -158,14 +179,22 @@ inline int bit_scan_reverse(unsigned long long x)
 }
 #endif // defined(_WIN64)
 #else  // defined(_WIN32)
-inline int bit_scan_reverse(unsigned long long x) { return sizeof(long long)*8 - __builtin_clzll(x); }
-inline int bit_scan_reverse(unsigned long x) { return sizeof(long)*8 - __builtin_clzl(x); }
-inline int bit_scan_reverse(unsigned int x) { return sizeof(int)*8 - __builtin_clz(x); }
-inline int bit_scan_reverse(unsigned short x) { return bit_scan_reverse((unsigned int)x); }
-inline int bit_scan_reverse(unsigned char x) { return bit_scan_reverse((unsigned int)x); }
+DELEGATE_INTRINSIC(int, bit_scan_reverse, unsigned int, __builtin_clz)
+DELEGATE_INTRINSIC(int, bit_scan_reverse, unsigned long, __builtin_clzl)
+DELEGATE_INTRINSIC(int, bit_scan_reverse, unsigned long long, __builtin_clzll)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, unsigned char, unsigned int)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, unsigned short, unsigned int)
 #endif // defined(_WIN32)
-/// @endcond
+
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, char,        unsigned char)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, signed char, unsigned char)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, short,       unsigned short)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, int,         unsigned int)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, long,        unsigned long)
+DELEGATE_INTRINSIC_CAST(int, bit_scan_reverse, long long,   unsigned long long)
+// @endcond
 
 } } // namespace util::intrinsic
 
 #endif // UTILITIES_INTRINSIC_HPP
+// @--}
