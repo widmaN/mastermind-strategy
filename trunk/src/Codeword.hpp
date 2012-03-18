@@ -8,8 +8,9 @@
 #include <algorithm>
 #include <cassert>
 
-#include "util/intrinsic.hpp"
 #include "Rules.hpp"
+#include "util/intrinsic.hpp"
+#include "util/simd.hpp"
 
 namespace Mastermind {
 
@@ -86,18 +87,22 @@ public:
 		return _counter[color];
 	}
 
-#if 0
 	/// Tests whether the codeword contains any color more than once.
-	bool repeated() const
+	bool has_repetition() const
 	{
+#if 1
+		int mask = util::simd::byte_mask(
+			util::simd::simd_t<int8_t,16>(_value) > (int8_t)1);
+		return (mask & ((1 << MM_MAX_COLORS) - 1)) != 0;
+#else	
 		for (int i = 0; i < MM_MAX_COLORS; ++i)
 		{
 			if (_counter[i] > 1)
 				return true;
 		}
 		return false;
-	}
 #endif
+	}
 
 #if 0
 	/// Returns the number of pegs in the codeword.

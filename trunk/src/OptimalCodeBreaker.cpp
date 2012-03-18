@@ -271,6 +271,15 @@ static StrategyCost fill_strategy_tree(
 			continue;
 		}
 
+#if 0
+		static size_t test_counter = 0;
+		++test_counter;
+		if (test_counter == 8479)
+		{
+			__debugbreak();
+		}
+#endif
+
 		// Partition the remaining secrets using this guess.
 		// Note that after successive calls to @c partition,
 		// the order of the secrets are shuffled. However,

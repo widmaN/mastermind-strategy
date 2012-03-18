@@ -166,6 +166,9 @@ operator |= (simd_t<T,N,__m128i> &a, T b)
 inline xmm_i8 operator == (const xmm_i8 &a, const xmm_i8 &b) { return _mm_cmpeq_epi8(a, b); }
 inline xmm_u8 operator == (const xmm_u8 &a, const xmm_u8 &b) { return _mm_cmpeq_epi8(a, b); }
 
+/// Element-wise comparison for greater than.
+inline xmm_i8 operator > (const xmm_i8 &a, const xmm_i8 &b) { return _mm_cmpgt_epi8(a, b); }
+
 /// Creates a 16-bit mask from the most significant bits of the 16 bytes,
 /// and zero extends the upper bits in the result.
 /// @ingroup SIMD
