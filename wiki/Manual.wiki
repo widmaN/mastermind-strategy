@@ -1,0 +1,133 @@
+#summary Manual page for mmstrat utility.
+
+= NAME =
+
+mmstrat - build Mastermind strategies
+
+= SYNOPSIS =
+
+mmstrat *-s* _strategy_ `[`options`]` `[`*-r* rules`]`
+
+mmstrat *-p* `[`_secret_`]` [options]
+
+mmstrat *-d* [options]
+
+= DESCRIPTION =
+
+This program demonstrates state-of-the-art strategies for playing the Mastermind game.
+
+The program has three mutually exclusive modes of operation, which must be specified by one of the following command line option:
+
+  * *-s* _strategy_
+  Strategy mode. The program will build the strategy tree using the given _strategy_ for the given rules (which can be specified by the *-r* switch). After the tree is built, it is printed to STDOUT in Irving format. A list of available strategies is detailed in the next section.
+
+  * *-p* [_secret_]
+  Player mode. This will launch an interactive interface where the user inputs guesses and the program gives responses. The program exits when the user reveals the secret. If _secret_ is specified, it is used by the program as the secret. This is only useful for debugging purpose.
+
+  * *-d*
+  Diagnostics mode. This will launch an interactive debugger which provides a set of commands for examining the codeword space.
+
+= STRATEGIES =
+
+There are two categories of strategies implemented by this program: heuristic strategies and optimal strategies. A heuristic strategy relies on a heuristic function to make a _good_ guess, while an optimal strategy performs an exhaustive search to find an _optimal_ guess.
+
+The following heuristic strategies are implemented: (~ indicates no favor of remaining possibility as guess)
+
+  * *simple* simple strategy
+  * *minmax* min-max heuristic strategy
+  * *minavg*`[~]` min-average heuristic strategy
+  * *entropy*`[~]` max-entropy heuristic strategy
+  * *parts*`[~]` max-parts heuristic strategy
+
+The following optimal strategies are implemented:
+
+  * *optimal* optimal strategy that minimizes the total number of steps required to reveal all secrets
+
+= OPTIONS =
+
+The program accepts a set of options which control the behavior of various strategies. The most relevant options are probably *-r* and *-md*.
+
+  * *-e* _filter_ 
+  Specifies the equivalence filter to use when checking for canonical guesses. This option is for testing purpose only because the default filter works very well. Available filters are:
+    * *default* 
+    composite filter (color + constraint)
+    * *color*   
+    filter by color equivalence
+    * *constraint*
+    filter by constraint equivalence
+    * *none*
+    do not apply any filter
+
+  * *-h*
+  Display help screen and exit.
+
+  * *-md* _depth_
+  Specify the maximum number of guesses allowed to reveal any single secret. This option is only supported for an optimal strategy. If not all secrets can be revealed within _depth_ guesses, no strategy will be generated.
+
+  * *-mt* _n_
+  Enable parallel execution with _n_ threads. If _n_ is not specified, it defaults to the number of logical processors (CPUs or cores) on the host machine. If this option is not specified or if multithreading is not supported on the host machine, the program will execute in a single thread.
+
+  * *-po*
+  Make guesses from remaining possibilities only. If this option is not specified, the program will make guesses from the entire set of valid codewords. Specifying this option will drastically reduce the execution time of the program, at the cost of finding only a sub-optimal strategy.
+
+  * *-prof*
+  Collect and display profiling details. The program has built-in support for intrumental profiling on critical routines, but the profiling is not turned on by default. Specifying this option will collect profiling data at run-time, and display them before the program exits. There is a slight performance panelty (around 5%) to collect profiling data.
+
+  * *-q*
+  Quiet mode; display minimal information.
+
+  * *-r* _rules_
+  Specify the rules of the game. A set of rules consists of three parts:
+    # number of pegs
+    # number of colors
+    # whether repetition of color is allowed
+  The rules are specified in the form "*p* _pegs_ *c* _colors_ *r*" to allow color repetition or "*p* _pegs_ *c* _colors_ *n*" to disallow color repetition, without quotes or spaces in between. In addition, it can take one of the following predefined values:
+    * *mm* or `p4c6r`
+    Standard Mastermind rules (4 pegs, 6 colors, with repetition). This is the default if no *-r* option is given.
+    * *bc* or `p4c10n`
+    Bulls and Cows rules (4 pegs, 10 colors, no repetition).
+    * *lg* or `p5c8r`
+    Logik rules (5 pegs, 8 colors, with repetition).
+
+  * *-v*
+  Display version and exit.
+
+= OUTPUT =
+
+Describe the strategy tree output format here.
+
+= EXAMPLES =
+
+The following command finds an optimal strategy for the standard Mastermind rules. It is optimal in the sense that it takes the lowest average number of guesses to reveal each secret. This should produce a result below one second.
+
+  `mmstrat -s optimal`
+
+The following command finds an optimal strategy for Bulls and Cows rules. This takes about 5-10 minutes to run on a modern computer.
+
+  `mmstrat -s optimal -r bc`
+
+The following command finds a heuristic strategy for Logik rules using the `entropy` heuristic. In addition, on machines with multiple CPUs or cores, it will execute with two threads. This takes about 10 seconds to run.
+
+  `mmstrat -s entropy -r p5c8r -mt 2`
+
+= SEE ALSO =
+
+A list of related commands or functions.
+
+= BUGS =
+    
+List known bugs.
+
+= AUTHOR =
+
+fancidev@gmail.com
+
+= COPYRIGHT =
+
+This program and its source code is distributed under MIT License.
+
+= VERSION =
+
+Mastermind-Strategies Version 1.0 (Mar 2012).
+
+Visit [http://code.google.com/p/mastermind-strategy/] for updates.
