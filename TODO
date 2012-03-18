@@ -45,6 +45,11 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
+It is probably better to change types to unsigned where possible, because
+  this tends to reduce redundant MOVSX instructions.
+Import wiki as a subfolder and consolidate documentation into it.
+Write manual page in wiki markup and use a script to convert it into manpage
+  and html.
 Implement Irving notation reading and auto-complete
 Simplify the Irving notation to adopt Knuth's notation for less-obvious guess.
 Add call counter to check how often is the first guess tried not the best guess
@@ -55,6 +60,7 @@ In recursive optimal search, the minus sign doesn't work.
 
 Medium Priority
 -----------------
+Fix MSVC level 4 warnings and gcc pedantic warnings
 In optimal code breaker, when we rank the candidate guesses, we needn't compute
   a full cost estimate; instead, we could just compute 'steps', and visit the
   candidates by that score. This should reduce cost computation time, and 
@@ -63,6 +69,7 @@ Fix the optimization routine to respect -md switch
 Try minimize the number of secrets revealed in a worst number of steps
 Improve optimal strategy subject to maximum number of steps
 Improve lower bound estimate
+Improve simd_t related code (use slice more consistently)
 MinimizeWorstCase heuristic needs more comparison when the first compare equal
 Investigate why multi-threading doesn't benefit any more... maybe we should
   move multithreading to another part? Like for heuristic strategies, to the
@@ -82,9 +89,12 @@ Try to understand why changing the data type of StrategyTree::TDepth from
   int or size_t to char or short degrades performance by 5-7%? This is 
   really weird. If this is so, are there other places that we might actually
   improve the performance by using a native type? [e.g. frequency counting]
+Improve 32-bit performance
 
 Finished
 ----------
+[done] Added specialized comparison routine when one of the codewords being 
+  compared contains no repeated colors. This routine is disabled by default.
 [done] Apply constraint equivalence filter only once for each candidate guess.
 [done] Add call counter to record the number of input and output of each 
        equivalence filters.
