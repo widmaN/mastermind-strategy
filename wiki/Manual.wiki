@@ -33,11 +33,16 @@ There are two categories of strategies implemented by this program: heuristic st
 
 The following heuristic strategies are implemented: (~ indicates no favor of remaining possibility as guess)
 
-  * *simple* simple strategy
-  * *minmax* min-max heuristic strategy
-  * *minavg*`[~]` min-average heuristic strategy
-  * *entropy*`[~]` max-entropy heuristic strategy
-  * *parts*`[~]` max-parts heuristic strategy
+  * *simple* 
+  simple strategy
+  * *minmax* 
+  min-max heuristic strategy
+  * *minavg*`[`*~*`]` 
+  min-average heuristic strategy
+  * *entropy*`[`*~*`]` 
+  max-entropy heuristic strategy
+  * *parts*`[`*~*`]` 
+  max-parts heuristic strategy
 
 The following optimal strategies are implemented:
 
@@ -99,20 +104,23 @@ Describe the strategy tree output format here.
 = EXAMPLES =
 
 The following command finds an optimal strategy for the standard Mastermind rules. It is optimal in the sense that it takes the lowest average number of guesses to reveal each secret. This should produce a result below one second.
-
-  `mmstrat -s optimal`
+{{{
+  mmstrat -s optimal
+}}}
 
 The following command finds an optimal strategy for Bulls and Cows rules. This takes about 5-10 minutes to run on a modern computer.
-
-  `mmstrat -s optimal -r bc`
+{{{
+  mmstrat -s optimal -r bc
+}}}
 
 The following command finds a heuristic strategy for Logik rules using the `entropy` heuristic. In addition, on machines with multiple CPUs or cores, it will execute with two threads. This takes about 10 seconds to run.
-
-  `mmstrat -s entropy -r p5c8r -mt 2`
+{{{
+  mmstrat -s entropy -r p5c8r -mt 2
+}}}
 
 = SEE ALSO =
 
-A list of related commands or functions.
+Visit http://code.google.com/p/mastermind-strategy/ for updates.
 
 = BUGS =
     
@@ -125,9 +133,3 @@ fancidev@gmail.com
 = COPYRIGHT =
 
 This program and its source code is distributed under MIT License.
-
-= VERSION =
-
-Mastermind-Strategies Version 1.0 (Mar 2012).
-
-Visit [http://code.google.com/p/mastermind-strategy/] for updates.
