@@ -3,6 +3,8 @@
 
 #include <string>
 #include <cmath>
+#include <algorithm>
+#include <functional>
 
 #include "Engine.hpp"
 #include "util/wrapped_float.hpp"
@@ -10,29 +12,45 @@
 namespace Mastermind {
 namespace Heuristics {
 
-/// A conservative heuristic that scores a guess as the worst-case
-/// number of remaining possibilities (Knuth, 1976).
-/// The score to minimize is <code>Max{ n[i] }</code>, where
-/// <code>n[i]</code> is the number of elements in partition
-/// <code>i</code>.
-/// @ingroup Heuristic
-template <int Levels>
+/**
+ * Heuristic that scores a guess by the worst-case number of remaining 
+ * possibilities (Knuth, 1976). If two guesses produce the same number of
+ * of remaining possibilities in the worst case, the second-to-worst number
+ * is compared, and so on.
+ *
+ * If a correction is applied (which is the default), a cell corresponding
+ * to a perfect match is assumed to be empty, because it will not "remain"
+ * after this guess.
+ *
+ * @ingroup Heuristic
+ */ 
 struct MinimizeWorstCase
 {
-	/// @cond FALSE
-	static_assert(Levels == 1, "Only Levels == 1 is supported at present.");
-	/// @endcond
+	/// Flag indicating whether to make an adjustment to the score
+	/// if the guess is among the remaining possibilities.
+	bool apply_correction;
 
-	/// Data type of the score (unsigned integer).
-	typedef unsigned int score_t;
+	/// Constructs the heuristic using the given policy.
+	MinimizeWorstCase(bool _apply_correction = true)
+		: apply_correction(_apply_correction) { }
+
+	/// Type of the score (a sorted array of partition sizes in descending
+	/// order). 
+	typedef FeedbackFrequencyTable score_t;
 
 	/// Short identifier of the heuristic function.
 	std::string name() const { return "minmax"; }
 
-	/// Computes the heuristic score - size of the largest partition.
+	/// Returns a sorted array of partition sizes in descending order.
 	score_t compute(const FeedbackFrequencyTable &freq) const
 	{
-		return freq.max();
+		FeedbackFrequencyTable score(freq);
+		if (apply_correction)
+		{
+			score[score.size()-1] = 0;
+		}
+		std::sort(score.begin(), score.end(), std::greater<unsigned int>());
+		return score;
 	}
 };
 
