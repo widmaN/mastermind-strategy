@@ -220,7 +220,7 @@ static void usage()
 		// @todo descriptions for heuristic strategies 
 		"Strategies: (~ indicates no favor of remaining possibility as guess)\n"
 		"    simple      simple strategy\n"
-		"    minmax      min-max heuristic strategy\n"
+		"    minmax[~]   min-max heuristic strategy\n"
 		"    minavg[~]   min-average heuristic strategy\n"
 		"    entropy[~]  max-entropy heuristic strategy\n"
 		"    parts[~]    max-parts heuristic strategy\n"
@@ -300,19 +300,21 @@ static int build_heuristic_strategy_tree(
 	if (name == "simple")
 		strat = new SimpleStrategy(e);
 	else if (name == "minmax")
-		strat = new HeuristicStrategy<MinimizeWorstCase<1>>(e);
-	else if (name == "minavg~")
-		strat = new HeuristicStrategy<MinimizeAverage>(e, MinimizeAverage(false));
+		strat = new HeuristicStrategy<MinimizeWorstCase>(e, MinimizeWorstCase(true));
+	else if (name == "minmax~")
+		strat = new HeuristicStrategy<MinimizeWorstCase>(e, MinimizeWorstCase(false));
 	else if (name == "minavg")
 		strat = new HeuristicStrategy<MinimizeAverage>(e, MinimizeAverage(true));
-	else if (name == "entropy~")
-		strat = new HeuristicStrategy<MaximizeEntropy>(e, MaximizeEntropy(false));
+	else if (name == "minavg~")
+		strat = new HeuristicStrategy<MinimizeAverage>(e, MinimizeAverage(false));
 	else if (name == "entropy")
 		strat = new HeuristicStrategy<MaximizeEntropy>(e, MaximizeEntropy(true));
-	else if (name == "parts~")
-		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(false));
+	else if (name == "entropy~")
+		strat = new HeuristicStrategy<MaximizeEntropy>(e, MaximizeEntropy(false));
 	else if (name == "parts")
 		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(true));
+	else if (name == "parts~")
+		strat = new HeuristicStrategy<MaximizePartitions>(e, MaximizePartitions(false));
 	else if (name == "minlb")
 		strat = new HeuristicStrategy<MinimizeLowerBound>(e, MinimizeLowerBound(e));
 	else

@@ -65,11 +65,24 @@ public:
 	/// Returns a const pointer to the first frequency value.
 	const TVal* data() const { return _freq; }
 
-	/// Returns a begin iterator of the frequency table.
+	/// Returns an iterator that points to the beginning of the table.
+	TVal* begin() { return _freq + 0; }
+
+	/// Returns a const iterator that points to the beginning of the table.
 	const TVal* begin() const { return _freq + 0; }
 
-	/// Returns an end iterator of the frequency table.
+	/// Returns an iterator that points past the end of the table.
+	TVal* end() { return _freq + _count; }
+
+	/// Returns a const iterator that points past the end of the table.
 	const TVal* end() const { return _freq + _count; }
+
+	/// Returns a reference to the frequency of the <code>k</code>-th element.
+	TVal& operator [] (size_t k)
+	{
+		assert(k < _count);
+		return _freq[k];
+	}
 
 	/// Returns the frequency of the <code>k</code>-th element.
 	TVal operator [] (size_t k) const
@@ -111,6 +124,16 @@ operator << (std::ostream& os, const frequency_table<TKey,TVal,Capacity> &f)
 	}
 	os << "Total: " << total << std::endl;
 	return os;
+}
+
+/// Compares two frequency tables lexicographcially.
+/// @ingroup FreqTable
+template <class TKey, class TVal, size_t Capacity>
+inline bool operator < (
+	const frequency_table<TKey,TVal,Capacity> &t1,
+	const frequency_table<TKey,TVal,Capacity> &t2)
+{
+	return std::lexicographical_compare(t1.begin(), t1.end(), t2.begin(), t2.end());
 }
 
 } // namespace util

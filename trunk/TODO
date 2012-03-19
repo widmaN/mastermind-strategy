@@ -6,22 +6,18 @@ Scope:
 Functionality:
   Able to output a strategy in Knuth, Irving, Enhanced, or XML notation.
   Enable player mode, diagnostic mode, and strategy mode.
-  HTML help documentation.
   Able to find heuristic strategies for the four most popular heuristics.
   Able to find optimal strategy subject to MinSteps objective.
-  OpenMP support for heuristic strategies.
   Command switches are correctly documented and works as documented.
 
 Portability:
   The cmake build system should work correctly on both Windows and Linux.
-  The build system should be able to detect SSE2 support and fail if not present.
 
 Distribution:
   The source code is distributed under MIT Licence in .zip format.
   Under Windows, statically-linked binaries are provided for 32-bit and 64-bit.
 
 Plan for Version 1.1 (Apr 2012):
-  Improve Knuth's strategy to multi-level comparison.
   Add a few more non-important heuristics for testing.
   Add -po switch to control the possibility only constraint.
   Add various minor optimizations to improve speed.
@@ -37,7 +33,7 @@ Plan for Version 1.2 (May 2012):
 
 Plan for Version 1.3 (Jun 2012):
   Complete the book.
-  Add support for variants (static, dynamic, head-to-head, etc.)
+  Add support for rule variants (static, dynamic, head-to-head, etc.)
 
 Plan for Version 2.0:
   Qt or Java GUI. (mmstratx)
@@ -92,6 +88,7 @@ Improve 32-bit performance
 
 Finished
 ----------
+[done] Improved Knuth's strategy to multi-level comparison.
 [done] Added specialized comparison routine when one of the codewords being 
   compared contains no repeated colors. This routine is disabled by default.
 [done] Apply constraint equivalence filter only once for each candidate guess.

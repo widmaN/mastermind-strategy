@@ -404,7 +404,7 @@ int test(const Rules &rules, bool /* verbose */)
 	using namespace Mastermind::Heuristics;
 	Strategy* strats[] = {
 		new SimpleStrategy(e),
-		new HeuristicStrategy<MinimizeWorstCase<1>>(e),
+		new HeuristicStrategy<MinimizeWorstCase>(e),
 #if 0
 		new HeuristicStrategy<MinimizeAverage>(e),
 		new HeuristicStrategy<MaximizeEntropy<false>>(e),
