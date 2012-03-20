@@ -55,7 +55,7 @@ namespace Mastermind {
 template <class Heuristic>
 class HeuristicStrategy : public Strategy
 {
-	Engine &e;
+	const Engine *e;
 	Heuristic h;
 
 	struct choice_t
@@ -100,7 +100,7 @@ public:
 	typedef typename Heuristic::score_t score_type;
 
 	/// Constructs the strategy.
-	HeuristicStrategy(Engine &engine, const Heuristic &heuristic = Heuristic())
+	HeuristicStrategy(const Engine *engine, const Heuristic &heuristic = Heuristic())
 		: e(engine), h(heuristic) { }
 
 	Heuristic& heuristic() { return h; }
@@ -134,7 +134,7 @@ public:
 		{
 			// Partition the remaining possibilities.
 			Codeword guess = candidates[i];
-			FeedbackFrequencyTable freq = e.compare(guess, possibilities);
+			FeedbackFrequencyTable freq = e->compare(guess, possibilities);
 
 			// Compute a score of the partition.
 			score_type score = h.compute(freq);
@@ -229,7 +229,7 @@ public:
 			for (int i = 0; i < n; ++i)
 			{
 				Codeword guess = candidates[i];
-				FeedbackFrequencyTable freq = e.compare(guess, possibilities);
+				FeedbackFrequencyTable freq = e->compare(guess, possibilities);
 
 				// Compute a score of the partition.
 				score_type score = h.compute(freq);

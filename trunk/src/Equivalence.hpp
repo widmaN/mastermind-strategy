@@ -33,7 +33,7 @@ struct EquivalenceFilter
 
 /// Typedef of pointer to function that creates an equivalence filter.
 /// @ingroup equiv
-typedef EquivalenceFilter* (*CreateEquivalenceFilterRoutine)(Engine &e);
+typedef EquivalenceFilter* (*CreateEquivalenceFilterRoutine)(const Engine *e);
 
 /// Composite equivalence filter which chains two underlying filters.
 /// @ingroup equiv
@@ -56,7 +56,7 @@ public:
 	// Constructs a composite filter that chains two individual filters
 	/// of the given names in the routine registry of
 	/// @c CreateEquivalenceFilterRoutine.
-	CompositeEquivalenceFilter(Engine &e, const char *name1, const char *name2)
+	CompositeEquivalenceFilter(const Engine *e, const char *name1, const char *name2)
 		: _filter1(RoutineRegistry<CreateEquivalenceFilterRoutine>::get(name1)(e)),
 		 _filter2(RoutineRegistry<CreateEquivalenceFilterRoutine>::get(name2)(e))
 	{

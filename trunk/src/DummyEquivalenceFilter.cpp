@@ -27,7 +27,7 @@ public:
 	}
 };
 
-static EquivalenceFilter* CreateDummyEquivalenceFilter(Engine&)
+static EquivalenceFilter* CreateDummyEquivalenceFilter(const Engine *)
 {
 	return new DummyEquivalenceFilter();
 }

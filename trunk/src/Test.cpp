@@ -124,7 +124,7 @@ static void simulate_guessing(
 
 #if 1
 static void test_strategy_tree(
-	Engine &e,
+	const Engine *e,
 	Strategy *strategies[],
 	size_t n,
 	EquivalenceFilter *filter,
@@ -132,7 +132,7 @@ static void test_strategy_tree(
 	// const Codeword& first_guess)
 {
 	//CodewordList all = e.generateCodewords();
-	Rules rules = e.rules();
+	Rules rules = e->rules();
 	//Feedback target = Feedback::perfectValue(rules);
 	util::hr_timer timer;
 
@@ -330,7 +330,8 @@ int test(const Rules &rules, bool /* verbose */)
 #endif
 
 	// Set up the standard engine.
-	Engine e(rules);
+	Engine engine(rules);
+	const Engine *e = &engine;
 
 #if 1
 	compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
@@ -403,7 +404,7 @@ int test(const Rules &rules, bool /* verbose */)
 
 	using namespace Mastermind::Heuristics;
 	Strategy* strats[] = {
-		new SimpleStrategy(e),
+		new SimpleStrategy(),
 		new HeuristicStrategy<MinimizeWorstCase>(e),
 #if 0
 		new HeuristicStrategy<MinimizeAverage>(e),

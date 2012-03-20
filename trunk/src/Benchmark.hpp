@@ -13,13 +13,13 @@ namespace Mastermind {
 template <class Routine>
 class TestDriver
 {
-	Engine &e;
+	const Engine *e;
 	Routine f;
 
 public:
 
 	/// Constructs a dummy test driver.
-	TestDriver(Engine &engine, Routine func) : e(engine), f(func) { }
+	TestDriver(const Engine *engine, Routine func) : e(engine), f(func) { }
 
 	/// Runs the test.
 	bool operator () () const { return true; }
@@ -29,7 +29,7 @@ public:
 /// @ingroup prog
 template <class Routine>
 bool compareRoutines(
-	Engine &e,
+	const Engine *e,
 	const char *routine1,
 	const char *routine2,
 	long times)
@@ -134,25 +134,25 @@ public:
  */
 template <> class TestDriver<ComparisonRoutine>
 {
-	Engine &e;
+	const Engine *e;
 	ComparisonRoutine f;
 	CodewordList codewords;
 	size_t count;
-	Codeword secret;
 	FeedbackFrequencyTable freq;
+	Codeword secret;
 
 public:
 
 	/// Constructs the test driver.
-	TestDriver(Engine &engine, ComparisonRoutine func)
-		: e(engine), f(func), codewords(e.generateCodewords()),
+	TestDriver(const Engine *engine, ComparisonRoutine func)
+		: e(engine), f(func), codewords(e->generateCodewords()),
 		count(codewords.size()), secret(codewords[count/2])
 		{ }
 
 	/// Runs the test.
 	void operator()()
 	{
-		freq.resize(Feedback::size(e.rules()));
+		freq.resize(Feedback::size(e->rules()));
 		f(secret, codewords.data(), codewords.size(), 0, freq.data());
 	}
 

@@ -22,7 +22,7 @@ StrategyTreeInfo::StrategyTreeInfo(
 	const StrategyTree &tree,
 	double time,
 	StrategyTree::const_iterator root)
-	: _tree(tree), _root(root), _total_secrets(0), _total_depth(0),
+	: _tree(&tree), _root(root), _total_secrets(0), _total_depth(0),
 	_children(Feedback::size(tree.rules())), _name(name), _time(time)
 {
 	Feedback perfect = Feedback::perfectValue(tree.rules());

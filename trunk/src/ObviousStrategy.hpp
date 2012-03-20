@@ -8,7 +8,7 @@
 namespace Mastermind {
 
 Codeword make_obvious_guess(
-	Engine &e,
+	const Engine *e,
 	CodewordConstRange possibilities,
 	int max_depth,
 	StrategyObjective min_obj,
@@ -56,12 +56,12 @@ Codeword make_obvious_guess(
  */
 class ObviousStrategy : public Strategy
 {
-	Engine &e;
+	const Engine *e;
 
 public:
 
 	/// Constructs the strategy.
-	ObviousStrategy(Engine &engine) : e(engine) { }
+	ObviousStrategy(const Engine *engine) : e(engine) { }
 
 	virtual std::string name() const
 	{
@@ -117,7 +117,7 @@ public:
 
 		// If the number of possibilities is greater than the number of
 		// distinct feedbacks, there will be no obvious guess.
-		size_t p = e.rules().pegs();
+		size_t p = e->rules().pegs();
 		if (count > p*(p+3)/2)
 			return Codeword();
 
@@ -128,7 +128,7 @@ public:
 		for (size_t i = 0; i < count; ++i)
 		{
 			Codeword guess = possibilities[i];
-			FeedbackFrequencyTable freq = e.compare(guess, possibilities);
+			FeedbackFrequencyTable freq = e->compare(guess, possibilities);
 			size_t nonzero = freq.nonzero_count();
 			if (nonzero == count)
 			{

@@ -214,12 +214,12 @@ static void help_player()
 /// until either the user enter "quit" or reveals the secret.
 /// Important output are put to STDOUT. 
 /// Informational messages are put to STDOUT.
-int interactive_player(Engine &e, int verbose, const Codeword &_secret)
+int interactive_player(const Engine *e, int verbose, const Codeword &_secret)
 {
-	Analyst game(e.rules());
+	Analyst game(e->rules());
 
 	// Generate all codewords.
-	CodewordList all = e.generateCodewords();
+	CodewordList all = e->generateCodewords();
 	if (verbose)
 	{
 		std::cout << "There are " << all.size() << " codewords. "
@@ -279,7 +279,7 @@ int interactive_player(Engine &e, int verbose, const Codeword &_secret)
 		{
 			Codeword guess;
 			std::istringstream ss(cmd);
-			if (!(ss >> setrules(e.rules()) >> guess))
+			if (!(ss >> setrules(e->rules()) >> guess))
 			{
 				std::cout << "Invalid command or guess: " << cmd << std::endl;
 				continue;
@@ -291,12 +291,12 @@ int interactive_player(Engine &e, int verbose, const Codeword &_secret)
 				continue;
 			}
 #endif
-			Feedback response = e.compare(guess, secret);
+			Feedback response = e->compare(guess, secret);
 			if (verbose)
 				std::cout << guess << " ";
 			std::cout << response << std::endl;
 			game.push_constraint(guess, response);
-			if (response == Feedback::perfectValue(e.rules()))
+			if (response == Feedback::perfectValue(e->rules()))
 				break;
 		}
 	}
@@ -320,16 +320,16 @@ static void help_analyst()
 		"";
 }
 
-int interactive_analyst(Engine &e, int /* verbose */)
+int interactive_analyst(const Engine *e, int /* verbose */)
 {
-	Analyst game(e.rules());
+	Analyst game(e->rules());
 
 	// Display available commands.
 	help_analyst();
 
 	// Generate all codewords.
 	std::cout << "Generating all codewords..." << std::endl;
-	CodewordList all = e.generateCodewords();
+	CodewordList all = e->generateCodewords();
 	std::cout << "Done. There are " << all.size() << " codewords." << std::endl;
 
 	for (;;)
@@ -353,7 +353,7 @@ int interactive_analyst(Engine &e, int /* verbose */)
 		{
 			Codeword guess;
 			Feedback response;
-			if (!(ss >> setrules(e.rules()) >> guess >> response))
+			if (!(ss >> setrules(e->rules()) >> guess >> response))
 			{
 				std::cout << "Expecting: push guess response\n";
 				continue;
@@ -400,7 +400,7 @@ int interactive_analyst(Engine &e, int /* verbose */)
 			else
 			{
 				ss.unget();
-				for (Codeword guess; ss >> setrules(e.rules()) >> guess; )
+				for (Codeword guess; ss >> setrules(e->rules()) >> guess; )
 				{
 #if 0
 					if (!guess.valid(e.rules()))

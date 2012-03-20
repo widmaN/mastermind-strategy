@@ -13,7 +13,7 @@ class SimpleStrategy : public Strategy
 public:
 
 	/// Constructs the strategy.
-	SimpleStrategy(Engine &) { }
+	SimpleStrategy() { }
 
 	/// Returns the name of the strategy.
 	virtual std::string name() const

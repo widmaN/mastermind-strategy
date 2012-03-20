@@ -16,14 +16,14 @@ namespace Mastermind {
 /// Represents an incremental constraint equivalence filter.
 class ConstraintEquivalenceFilter : public EquivalenceFilter
 {
-	Engine &e;
+	const Engine *e;
 	ColorMask free_colors;
 
 	std::vector<	CodewordPermutation> pp;
 
 public:
 
-	ConstraintEquivalenceFilter(Engine &engine);
+	ConstraintEquivalenceFilter(const Engine *engine);
 
 	virtual EquivalenceFilter* clone() const
 	{
@@ -41,8 +41,8 @@ public:
 };
 
 /// Initializes a constraint equivalence filter.
-ConstraintEquivalenceFilter::ConstraintEquivalenceFilter(Engine &engine)
-	: e(engine), free_colors(ColorMask::fill(e.rules().colors()))
+ConstraintEquivalenceFilter::ConstraintEquivalenceFilter(const Engine *engine)
+	: e(engine), free_colors(ColorMask::fill(e->rules().colors()))
 {
 	// Generate all peg permutations, and associate with each peg
 	// permutation a fully unrestricted partial color permutation.
@@ -51,7 +51,7 @@ ConstraintEquivalenceFilter::ConstraintEquivalenceFilter(Engine &engine)
 	{
 		pp.push_back(p);
 	}
-	while (std::next_permutation(p.peg + 0, p.peg + e.rules().pegs()));
+	while (std::next_permutation(p.peg + 0, p.peg + e->rules().pegs()));
 }
 
 // Returns a list of canonical guesses given the current constraints.
@@ -95,7 +95,7 @@ CodewordList ConstraintEquivalenceFilter::get_canonical_guesses(
 			// Take, for example, 1223. It must be able to map to 1123 and
 			// show that it's not canonical.
 			ColorMask free_from = free_colors, free_to = free_colors;
-			for (int k = 0; k < e.rules().pegs(); ++k)
+			for (int k = 0; k < e->rules().pegs(); ++k)
 			{
 				// Let c be the color on peg k of the peg-permuted candidate.
 				int c = permuted_candidate[k];
@@ -174,7 +174,7 @@ void ConstraintEquivalenceFilter::add_constraint(
 		// Try to map the color on each peg onto itself.
 		ColorMask free_from = free_colors, free_to = free_colors;
 		bool ok = true;
-		for (int j = 0; j < e.rules().pegs() && ok; ++j)
+		for (int j = 0; j < e->rules().pegs() && ok; ++j)
 		{
 			if (free_from[permuted[j]])
 			{
@@ -212,7 +212,7 @@ void ConstraintEquivalenceFilter::add_constraint(
 	}
 
 	// Restrict the color mask.
-	for (int i = 0; i < e.rules().pegs(); ++i)
+	for (int i = 0; i < e->rules().pegs(); ++i)
 	{
 		free_colors.reset(guess[i]);
 	}
@@ -226,7 +226,7 @@ void ConstraintEquivalenceFilter::add_constraint(
 	// will remain.
 }
 
-static EquivalenceFilter* CreateConstraintEquivalenceFilter(Engine &e)
+static EquivalenceFilter* CreateConstraintEquivalenceFilter(const Engine *e)
 {
 	return new ConstraintEquivalenceFilter(e);
 }
