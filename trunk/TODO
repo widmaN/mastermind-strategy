@@ -8,6 +8,7 @@ Functionality:
   Enable strategy mode (mmstrat).
   Able to find heuristic strategies for the four most popular heuristics.
   Able to find optimal strategy for the MinSteps objective.
+  Add -po switch to control the possibility only constraint.
   Make sure command switches are correctly documented and works as documented.
 
 Portability:
@@ -20,8 +21,7 @@ Distribution:
 Plan for Version 1.1 (Apr 2012):
   Enable codemaker mode (mmdeal), codebreaker mode (mmbreak), and debugging
     mode (mmdebug).
-  Add a few more non-important heuristics for testing.
-  Add -po switch to control the possibility only constraint.
+  Add a few more less-important heuristics for testing.
   Add various minor optimizations to improve speed.
   Able to read strategy in Irving, Knuth, Enhanced, or XML format.
 
@@ -42,7 +42,7 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
-Add -nc switch to specify "no correction" for heuristic strategies.
+Move certain static variables into a CPP file to simplify the code.
 In documentation, classify switches according to the type of strategies 
   (i.e. heuristic or optimal) they work on.
 Implement Irving notation reading and auto-complete
@@ -96,13 +96,14 @@ Improve 32-bit performance
 
 Finished
 ----------
+[done] Add -nc switch to specify "no correction" for heuristic strategies.
 [done] Fix MSVC level 4 warnings and gcc pedantic warnings.
 [done] Change Engine& to Engine* to prepare for future virtual interface.
 [done] Write manual page in wiki markup and use a script to convert it.
 [done] Import wiki as a subfolder and consolidate documentation into it.
 [done] Improved Knuth's strategy to multi-level comparison.
 [done] Added specialized comparison routine when one of the codewords being 
-  compared contains no repeated colors. This routine is disabled by default.
+       compared contains no repeated colors. This is disabled by default.
 [done] Apply constraint equivalence filter only once for each candidate guess.
 [done] Add call counter to record the number of input and output of each 
        equivalence filters.

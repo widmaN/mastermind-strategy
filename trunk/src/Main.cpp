@@ -204,6 +204,7 @@ static void usage()
 {
 	std::cerr <<
 		"Usage: mmstrat [-r rules] -s strategy [options]\n"
+		"Builds the specified strategy for the given rules.\n"
 		"Rules: 'p' pegs 'c' colors 'r'|'n'\n"
 		"    mm,p4c6r    [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
 		"    bc,p4c10n   Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
@@ -215,10 +216,11 @@ static void usage()
 		"    -s strat    build strategy 'strat' and output strategy tree\n"
 		"    -t          run tests\n"
 #endif
-		// @todo -file switch to process a strategy tree file directly
-		//"    file path   read strategy from 'path'; use - for STDIN\n"
 		// @todo descriptions for heuristic strategies 
-		"Strategies: (~ indicates no favor of remaining possibility as guess)\n"
+		"Strategies:\n"
+#ifndef NDEBUG
+		"    replay path replay the strategy in 'path'; use - for STDIN\n"
+#endif
 		"    simple      simple strategy\n"
 		"    minmax      min-max heuristic strategy\n"
 		"    minavg      min-average heuristic strategy\n"
@@ -229,11 +231,6 @@ static void usage()
 #endif
 		"    optimal     optimal strategy; see -o switch\n"
 		"General Options:\n"
-		"    -e filter   specifies one of the following equivalence filters to use:\n"
-		"                default     composite filter (color + constraint)\n"
-		"                color       filter by color equivalence\n"
-		"                constraint  filter by constraint equivalence\n"
-		"                none        do not apply any filter\n"
 		"    -h          display this help screen and exit\n"
 #ifdef _OPENMP
 		"    -mt [n]     enable parallel execution with n threads [default="
@@ -244,17 +241,27 @@ static void usage()
 		"    -prof       collect and display profiling details before exit\n"
 #endif
 		"    -q          quiet mode; display minimal information\n"
+		"    -S          output strategy summary instead of strategy tree\n"
 		"    -v          displays version and exit\n"
 		"Options for Heuristic Strategies:\n"
+		"    -e filter   specify the equivalence filter to use, which is one of:\n"
+		"                default     composite filter (color + constraint)\n"
+		"                color       filter by color equivalence\n"
+		"                constraint  filter by constraint equivalence\n"
+		"                none        do not apply any filter\n"
 		"    -nc         do not apply a correction to the heuristic score\n"
-		"                which favors guesses from remaining possibilities\n"
+		"                which favors guesses from remaining possibilities.\n" 
+		"    -no         Do not attempt to make an obvious guess before applying\n"
+		"                the heuristic function. This option is useful for debugging\n"
+		"                purpose if the heuristic function may yield a guess that\n"
+		"                is different than an obvious guess when one exists.\n"
 		"Options for Optimal Strategies:\n"
 #ifndef NDEBUG
 		"    -md [depth] limit the maximum number of guesses to reveal any secret\n"
 #endif
-		"    -o [level]  specify one of the following levels of optimization:\n"
-#ifndef NDEBUG
+		"    -o [level]  specify the level of optimization, which is one of:\n"
 		"                1 - (default) minimize steps\n"
+#ifndef NDEBUG
 		"                2 - minimize steps, then depth\n"
 		"                3 - minimize steps, then depth, then worst count\n"
 #endif
