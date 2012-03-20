@@ -10,7 +10,7 @@ namespace Mastermind {
 /// Represents a color equivalence filter.
 class ColorEquivalenceFilter : public EquivalenceFilter
 {
-	Engine &e;
+	const Engine *e;
 	ColorMask _unguessed;
 	ColorMask _excluded;
 
@@ -19,8 +19,8 @@ class ColorEquivalenceFilter : public EquivalenceFilter
 
 public:
 
-	ColorEquivalenceFilter(Engine &engine)
-		: e(engine), _unguessed(ColorMask::fill(e.rules().colors()))
+	ColorEquivalenceFilter(const Engine *engine)
+		: e(engine), _unguessed(ColorMask::fill(e->rules().colors()))
 	{
 	}
 
@@ -40,7 +40,7 @@ public:
 			canonical = filter_norep(candidates);
 		return canonical;
 #else
-		if (e.rules().repeatable())
+		if (e->rules().repeatable())
 			return filter_rep(candidates);
 		else
 			return filter_norep(candidates);
@@ -52,9 +52,9 @@ public:
 		Feedback /* response */,
 		CodewordConstRange remaining)
 	{
-		_excluded = ColorMask::fill(e.rules().colors());
-		_excluded.reset(e.colorMask(remaining));
-		_unguessed.reset(e.colorMask(guess));
+		_excluded = ColorMask::fill(e->rules().colors());
+		_excluded.reset(e->colorMask(remaining));
+		_unguessed.reset(e->colorMask(guess));
 		_unguessed.reset(_excluded);
 	}
 };
@@ -77,7 +77,7 @@ CodewordList ColorEquivalenceFilter::filter_rep(
 	{
 		Codeword guess = *it;
 		bool ok = true;
-		for (int j = 0; j < e.rules().pegs(); j++)
+		for (int j = 0; j < e->rules().pegs(); j++)
 		{
 			int c = guess[j];
 			if (_excluded[c] && c > first)
@@ -129,7 +129,7 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 		ColorMask excluded = _excluded;
 		bool ok = true;
 
-		for (int j = 0; j < e.rules().pegs(); j++)
+		for (int j = 0; j < e->rules().pegs(); j++)
 		{
 			int c = guess[j];
 			if (excluded[c])
@@ -174,7 +174,7 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 	return canonical;
 }
 
-static EquivalenceFilter* CreateColorEquivalenceFilter(Engine &e)
+static EquivalenceFilter* CreateColorEquivalenceFilter(const Engine *e)
 {
 	return new ColorEquivalenceFilter(e);
 }

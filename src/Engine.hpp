@@ -76,13 +76,8 @@ public:
 
 	/// Constructs an algorithm engine for the given rules.
 	Engine(const Rules &rules) : _rules(rules),
-#if 0
-		_compare(rules.repeatable()? 
-			compare_codewords_generic : compare_codewords_norepeat),
-#else
 		_compare(RoutineRegistry<ComparisonRoutine>::get(
 			rules.repeatable()? "generic" : "norepeat")),
-#endif
 		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
 		_mask(RoutineRegistry<MaskRoutine>::get("generic")),
 		_all(generateCodewords())

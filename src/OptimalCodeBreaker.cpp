@@ -26,7 +26,7 @@ using namespace Mastermind;
  * @returns The cost of the obvious strategy if one is found; otherwise zero.
  */
 static StrategyCost fill_obviously_optimal_strategy(
-	Engine &e,             // algorithm engine
+	const Engine *e,       // algorithm engine
 	CodewordRange secrets, // list of remaining secrets
 	StrategyObjective obj,
 	StrategyConstraints c,
@@ -46,13 +46,13 @@ static StrategyCost fill_obviously_optimal_strategy(
 	// Automatically fill the strategy tree using this guess.This requires
 	// all cells in the partition to have no more than two possibilities.
 	// This is equivalent to Knuth's 'x' notation in writing a strategy.
-	Feedback perfect = Feedback::perfectValue(e.rules());
+	Feedback perfect = Feedback::perfectValue(e->rules());
 	FeedbackList fbs;
-	e.compare(guess, secrets, fbs);
+	e->compare(guess, secrets, fbs);
 	size_t n = secrets.size();
 	unsigned int cost = 0;
 
-	for (size_t j = 0; j < Feedback::size(e.rules()); ++j)
+	for (size_t j = 0; j < Feedback::size(e->rules()); ++j)
 	{
 		Codeword first;
 		StrategyTree::iterator it;
@@ -75,7 +75,7 @@ static StrategyCost fill_obviously_optimal_strategy(
 				{
 					cost += 3;
 					tree.insert_child(
-						tree.insert_child(it, StrategyNode(first, e.compare(secrets[i], first))),
+						tree.insert_child(it, StrategyNode(first, e->compare(secrets[i], first))),
 						StrategyNode(secrets[i], perfect));
 				}
 			}
@@ -113,7 +113,7 @@ typedef HeuristicStrategy<Heuristics::MinimizeLowerBound> LowerBoundEstimator;
 // the output.
 // all the secrets, or -1 if such optimal will not be less than _best_.
 static StrategyCost fill_strategy_tree(
-	Engine &e,
+	const Engine *e,
 	CodewordRange secrets,            // remaining secrets; will be partitioned
 	CodewordRange candidates,         // canonical guesses; may be sorted
 	const EquivalenceFilter *filter1, // response-independent equivalence filter
@@ -138,7 +138,7 @@ static StrategyCost fill_strategy_tree(
 		return StrategyCost();
 
 	// Initialize common variables.
-	const Feedback perfect = Feedback::perfectValue(e.rules());
+	const Feedback perfect = Feedback::perfectValue(e->rules());
 	const unsigned int nsecrets = (int)secrets.size();
 
 	// Short-cut if there is only one secret.
@@ -221,7 +221,7 @@ static StrategyCost fill_strategy_tree(
 
 	// Initialize state variables to store the best guess and its cost so far.
 	StrategyCost best;
-	StrategyTree best_tree(e.rules());
+	StrategyTree best_tree(e->rules());
 
 	// Try each candidate guess.
 	size_t candidate_count = candidates.size();
@@ -284,7 +284,7 @@ static StrategyCost fill_strategy_tree(
 		// Note that after successive calls to @c partition,
 		// the order of the secrets are shuffled. However,
 		// that should not impact the optimality of the result.
-		CodewordPartition cells = e.partition(secrets, guess);
+		CodewordPartition cells = e->partition(secrets, guess);
 
 		// Sort the partitions by their size, so that smaller partitions
 		// (i.e. smaller search trees) are processed first. This helps
@@ -363,12 +363,12 @@ static StrategyCost fill_strategy_tree(
 		// color equivalence filter.
 		CodewordList pre_filtered;
 		std::unique_ptr<EquivalenceFilter> pre_filter(filter1->clone());
-		pre_filter->add_constraint(guess, Feedback(), e.universe());
+		pre_filter->add_constraint(guess, Feedback(), e->universe());
 		// @todo we may change the interface of add_constraint to return
 		// a new filter.
 
 		bool pruned = false;
-		StrategyTree this_tree(e.rules());
+		StrategyTree this_tree(e->rules());
 		for (size_t j = 0; j < nresponses && !pruned; ++j)
 		{
 			Feedback feedback = Feedback(responses[j]);
@@ -427,7 +427,7 @@ static StrategyCost fill_strategy_tree(
 				// so a single run can be used for all response classes.
 				if (pre_filtered.empty())
 				{
-					pre_filtered = pre_filter->get_canonical_guesses(e.universe());
+					pre_filtered = pre_filter->get_canonical_guesses(e->universe());
 				}
 
 				// Apply color filter on the pre-filtered candidates.
@@ -502,9 +502,10 @@ static StrategyCost fill_strategy_tree(
 	return best;
 }
 
-StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int max_depth = 100)
+StrategyTree build_optimal_strategy_tree(
+	const Engine *e, bool min_depth = false, int max_depth = 100)
 {
-	CodewordList all = e.generateCodewords();
+	CodewordList all = e->generateCodewords();
 
 	// Creates a composite equivalence filter by chaining a
 	// response-indepedent filter with a response-dependent filter.
@@ -513,7 +514,7 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e));
 
 	// Create a strategy tree.
-	StrategyTree tree(e.rules());
+	StrategyTree tree(e->rules());
 
 	// Set options.
 	StrategyObjective obj = min_depth ? MinDepth : MinSteps;
@@ -525,7 +526,7 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
 
 	// Filter canonical candidates for the initial guess.
-	CodewordList initial = filter.get_canonical_guesses(e.universe());
+	CodewordList initial = filter.get_canonical_guesses(e->universe());
 
 	// Recursively find an optimal strategy.
 	StrategyCost threshold(1000000, 100, 0);
@@ -556,6 +557,7 @@ StrategyTree build_optimal_strategy_tree(Engine &e, bool min_depth = false, int 
 // And FIND_LAST happens to return a strategy with the least worst-case
 // secrets.
 
+#if 0
 void test_optimal_strategy(Engine &e)
 {
 	util::hr_timer t1;
@@ -566,4 +568,4 @@ void test_optimal_strategy(Engine &e)
 	StrategyTreeInfo info("optimal", tree, t, tree.root());
 	std::cout << std::endl << util::header << info;
 }
-
+#endif

@@ -42,7 +42,6 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
-Change Engine& to Engine* to prepare for future virtual interface.
 Implement Irving notation reading and auto-complete
 Simplify the Irving notation to adopt Knuth's notation for less-obvious guess.
 Add call counter to check how often is the first guess tried not the best guess
@@ -89,6 +88,7 @@ Improve 32-bit performance
 
 Finished
 ----------
+[done] Change Engine& to Engine* to prepare for future virtual interface.
 [done] Write manual page in wiki markup and use a script to convert it.
 [done] Import wiki as a subfolder and consolidate documentation into it.
 [done] Improved Knuth's strategy to multi-level comparison.

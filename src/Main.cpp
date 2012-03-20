@@ -275,8 +275,8 @@ static void version()
 // TODO: Output strategy tree after finishing a run
 
 // extern int strategy(std::string strat);
-extern int interactive_player(Engine & e, int verbose, const Codeword &secret);
-extern int interactive_analyst(Engine & e, int verbose);
+extern int interactive_player(const Engine *e, int verbose, const Codeword &secret);
+extern int interactive_analyst(const Engine *e, int verbose);
 extern int test(const Rules &rules, bool verbose);
 
 extern void pause_output();
@@ -291,14 +291,14 @@ extern void pause_output();
 	} while (0)
 
 static int build_heuristic_strategy_tree(
-	Engine &e, const EquivalenceFilter *filter, int /* verbose */,
+	const Engine *e, const EquivalenceFilter *filter, int /* verbose */,
 	const std::string &name, bool pos_only, StrategyTree &tree)
 {
 	using namespace Mastermind::Heuristics;
 
 	Strategy *strat = NULL;
 	if (name == "simple")
-		strat = new SimpleStrategy(e);
+		strat = new SimpleStrategy();
 	else if (name == "minmax")
 		strat = new HeuristicStrategy<MinimizeWorstCase>(e, MinimizeWorstCase(true));
 	else if (name == "minmax~")
@@ -329,17 +329,17 @@ static int build_heuristic_strategy_tree(
 }
 
 extern StrategyTree build_optimal_strategy_tree(
-	Engine &e, bool min_depth = false, int max_depth = 100);
+	const Engine *e, bool min_depth = false, int max_depth = 100);
 
 // verbose: 0 = quiet, 1 = verbose, 2 = very verbose
 static int build_strategy(
-	Engine &e, const EquivalenceFilter *filter, int verbose,
+	const Engine *e, const EquivalenceFilter *filter, int verbose,
 	const std::string &name, const std::string & /* file */,
 	int max_depth, bool pos_only)
 {
 	using namespace Mastermind::Heuristics;
 
-	StrategyTree tree(e.rules());
+	StrategyTree tree(e->rules());
 	util::hr_timer timer;
 
 	timer.start();
@@ -548,7 +548,8 @@ int main(int argc, char* argv[])
 	util::call_counter::enable(prof);
 
 	// Create an algorithm engine.
-	Engine e(rules);
+	Engine engine(rules);
+	const Engine *e = &engine;
 
 	// Create the specified equivalence filter.
 	EquivalenceFilter *filter = NULL;

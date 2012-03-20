@@ -44,7 +44,7 @@ Codeword MakeGuess(
 
 // Free-standing function that builds a strategy tree.
 StrategyTree BuildStrategyTree(
-	Engine &e, 
+	const Engine *e, 
 	Strategy *strat, 
 	const EquivalenceFilter *filter,
 	const CodeBreakerOptions &options);

@@ -6,7 +6,7 @@ namespace Mastermind {
 
 // Create a free-standing function to make a guess.
 Codeword MakeGuess(
-	Engine &e,
+	const Engine *e,
 	CodewordConstRange secrets,
 	Strategy *strat,
 	const EquivalenceFilter *filter,
@@ -32,7 +32,7 @@ Codeword MakeGuess(
 
 	// Initialize the set of candidate guesses.
 	CodewordConstRange candidates = options.possibility_only ?
-		secrets : e.universe();
+		secrets : e->universe();
 
 	// Filter the candidate set to remove "equivalent" guesses.
 	CodewordList canonical = filter->get_canonical_guesses(candidates);
@@ -53,7 +53,7 @@ Codeword MakeGuess(
 static void FillStrategy(
 	StrategyTree &tree,            // the tree to fill
 	StrategyTree::iterator where,  // iterator to the current state
-	Engine &e,                     // algorithm engine
+	const Engine *e,               // algorithm engine
 	unsigned char depth,           // number of guesses made so far
 	const CodewordRange &secrets,  // list of remaining possibilities
 	Strategy *strat,
@@ -67,10 +67,10 @@ static void FillStrategy(
 		return;
 
 	// Partition the possibility set using this guess.
-	CodewordPartition cells = e.partition(secrets, guess);
+	CodewordPartition cells = e->partition(secrets, guess);
 
 	// Recursively fill the strategy for each possible response.
-	Feedback perfect = Feedback::perfectValue(e.rules());
+	Feedback perfect = Feedback::perfectValue(e->rules());
 #if _OPENMP
 	// index variable in OpenMP 'for' statement must have signed integral type
 	#pragma omp parallel for schedule(dynamic)
@@ -84,7 +84,7 @@ static void FillStrategy(
 
 		// Create a subtree rooted from this guess/response pair.
 		Feedback response(k);
-		StrategyTree subtree(e.rules(), StrategyNode(guess, response)); // , depth + 1);
+		StrategyTree subtree(e->rules(), StrategyNode(guess, response)); // , depth + 1);
 
 		if (response == perfect)
 		{
@@ -110,22 +110,19 @@ static void FillStrategy(
 #endif
 		{
 			tree.insert_child(where, subtree, true);
-			//tree.append(subtree);
 		}
 	}
 }
 
 StrategyTree BuildStrategyTree(
-	Engine &e, 
+	const Engine *e, 
 	Strategy *strat, 
 	const EquivalenceFilter *filter,
 	const CodeBreakerOptions &options)
 {
-	CodewordList all = e.generateCodewords();
+	CodewordList all = e->generateCodewords();
 
-	StrategyTree tree(e.rules());
-	//StrategyTree::Node root;
-	//tree.append(root);
+	StrategyTree tree(e->rules());
 
 	int progress = 0;
 	FillStrategy(tree, tree.root(), e, 0, all, strat, filter, options, &progress);

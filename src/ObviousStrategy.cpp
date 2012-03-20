@@ -129,7 +129,7 @@ StrategyCost estimate_obvious_lowerbound(
  *      more than max_depth depth, and achieves at least min_obj.
  */
 Codeword make_obvious_guess(
-	Engine &e,
+	const Engine *e,
 	CodewordConstRange possibilities,
 	int max_depth,
 	StrategyObjective min_obj,
@@ -170,7 +170,7 @@ Codeword make_obvious_guess(
 	// If the number of possibilities is greater than the number of
 	// distinct feedbacks, there will (very likely) be no obvious guess.
 	// So we won't make any further attempt.
-	int p = e.rules().pegs();
+	int p = e->rules().pegs();
 	if (count > p*(p+3)/2)
 		return Codeword();
 
@@ -192,7 +192,7 @@ Codeword make_obvious_guess(
 	for (int i = 0; i < count; ++i)
 	{
 		Codeword guess = possibilities[i];
-		FeedbackFrequencyTable freq = e.compare(guess, possibilities);
+		FeedbackFrequencyTable freq = e->compare(guess, possibilities);
 		unsigned int nonzero = 1;  // 4A0B
 		unsigned int maxfreq = 0;
 		for (size_t j = 0; j < freq.size() - 2; ++j) // skip 3A0B and 4A0B
@@ -243,7 +243,7 @@ Codeword make_obvious_guess(
 	// Now it's not obvious whether our guess is optimal. We make an attempt
 	// to estimate the lower bound of cost of any non-possible guess.
 #if 1
-	StrategyCost lb = estimate_obvious_lowerbound(e.rules(), possibilities);
+	StrategyCost lb = estimate_obvious_lowerbound(e->rules(), possibilities);
 	if (!superior(lb, cost, min_obj))
 	{
 		obj = min_obj;

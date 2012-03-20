@@ -64,17 +64,17 @@ public:
 
 private:
 
-	Engine &e;
+	//Engine &e;
 	std::vector<score_t> _cache;
 
 public:
 
 	/// Constructs the heuristic.
-	MinimizeLowerBound(Engine &engine)
-		: e(engine), _cache(e.rules().size()+1)
+	MinimizeLowerBound(const Engine *engine)
+		: /* e(engine), */ _cache(engine->rules().size()+1)
 	{
 		// Build a cache of simple estimates.
-		int p = e.rules().pegs();
+		int p = engine->rules().pegs();
 		int b = p*(p+3)/2-1;
 		for (size_t n = 0; n < _cache.size(); ++n)
 		{

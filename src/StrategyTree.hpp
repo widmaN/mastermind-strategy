@@ -96,7 +96,7 @@ public:
 /// Encapsulates information of a strategy tree or branch.
 class StrategyTreeInfo
 {
-	const StrategyTree &_tree;
+	const StrategyTree *_tree;
 
 	// Index of the first sub-state within this branch.
 	StrategyTree::const_iterator _root;
@@ -138,7 +138,7 @@ public:
 	/// Returns the suggested guess for the root state.
 	Codeword suggestion() const
 	{
-		auto children = _tree.children(_root);
+		auto children = _tree->children(_root);
 		if (children.empty())
 			return Codeword();
 		else
