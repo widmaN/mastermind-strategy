@@ -1,30 +1,16 @@
-#summary Manual page for mmstrat utility.
+#summary Manual page for the mmstrat utility.
 
 = NAME =
 
-mmstrat, mmserve, mmbreak, mmdebug - build Mastermind strategies
+mmstrat - build Mastermind strategies
 
 = SYNOPSIS =
 
-mmstrat `[`options`]` `[`*-r* _rules_`]` *-s* _strategy_
-
-mmserve `[`options`]` `[`*-r* _rules_`]` `[`_secret_`]`
-
-mmbreak `[`options`]` `[`*-r* _rules_`]` *-s* _strategy_
-
-mmdebug `[`options`]`
+mmstrat `[`*-r* _rules_`]` *-s* _strategy_ `[`options`]`
 
 = DESCRIPTION =
 
-These programs demonstrate state-of-the-art strategies for playing the Mastermind game.
-
-*mmstrat* builds a strategy tree for the given _rules_ using the given _strategy_ and outputs the strategy tree to STDOUT.
-
-*mmserve* works as a codemaker. It reads from STDIN one guess at a time, and prints a response. The program exits when the user reveals the secret. If _secret_ is specified, it is used by the program as the secret. This is only useful for debugging purpose.
-
-*mmbreak* works as a codebreaker. 
-
-*mmdebug* is diagnostics mode. This will launch an interactive debugger which provides a set of commands for examining the codeword space.
+*mmstrat* builds a strategy tree for the given _rules_ using the given _strategy_. After the tree is built, it is output to STDOUT in Irving format.
 
 = RULES =
 
@@ -64,10 +50,10 @@ A heuristic strategy can be selected by *-s* _heuristic_. It makes a guess based
   * *parts*
   max-parts heuristic strategy
 
-Additional options can be specified to amend the behavior of the strategies. In general you don't need to specify any of these options, as the default values offer the best performance. The options are provided for testing purpose only.
+Additional options can be specified to control features of the strategies. In general you don't need to specify any of them, as the default values offer the best performance.
 
   * *-e* _filter_ 
-  Specifies the equivalence filter to use when checking for canonical guesses. Available filters are:
+  Specifies the equivalence filter to use when checking for canonical guesses. This option does not affect the output; it only affects the speed. It may be used to compare the performance of different filters. Available filters are:
     * *default* 
     composite filter (color + constraint)
     * *color*   
@@ -78,7 +64,7 @@ Additional options can be specified to amend the behavior of the strategies. In 
     do not apply any filter
 
   * *-nc* 
-  Do not apply a correction to the heuristic score for guesses from remaining possibilities. By default, a correction is applied in this case which effectively favors guesses from remaining possibilities.
+  Do not apply a correction to the heuristic score for guesses from remaining possibilities. By default, a correction term is applied which effectively favors guesses from remaining possibilities.
 
   * *-no*
   Do not attempt to make an obvious guess before applying the heuristic function. By default, an obvious guess is attempted and used if found. Specifying this option may be useful if the heuristic function may yield a guess that is different than an obvious guess.
@@ -90,6 +76,11 @@ An optimal strategy can be selected by *-s optimal*. It performs an exhaustive s
   * *-md* _depth_
   Specify the maximum number of guesses allowed to reveal any single secret. This option is only supported for an optimal strategy. If not all secrets can be revealed within _depth_ guesses, no strategy will be generated.
 
+  * *-O* _level_
+  Specify the level of optimization to perform. A higher level of optimization produces a more ideal solution, but takes more time to run. Available values are:
+    * *1* 
+    Minimize the total number of guesses required to reveal all secrets. This is the default if no *-o* option is given.
+
 = OPTIONS =
 
   * *-h*
@@ -99,7 +90,7 @@ An optimal strategy can be selected by *-s optimal*. It performs an exhaustive s
   Enable parallel execution with _n_ threads. If _n_ is not specified, it defaults to the number of logical processors (CPUs or cores) on the host machine. If this option is not specified or if multithreading is not supported on the host machine, the program will execute in a single thread.
 
   * *-po*
-  Make guesses from remaining possibilities only. If this option is not specified, the program will make guesses from the entire set of valid codewords. Specifying this option will drastically reduce the execution time of the program, at the cost of finding only a sub-optimal strategy.
+  Make a guess from remaining possibilities only. By default, the program will make a guess from the entire set of valid codewords. Specifying this option will drastically reduce the running time of the program, at the cost of yielding only a sub-optimal strategy.
 
   * *-prof*
   Collect and display profiling details. The program has built-in support for intrumental profiling on critical routines, but the profiling is not turned on by default. Specifying this option will collect profiling data at run-time, and display them before the program exits. There is a slight performance panelty (around 5%) to collect profiling data.
@@ -136,7 +127,7 @@ where `Total` is the total number of guesses required to reveal all secrets, `De
 
 = EXAMPLES =
 
-The following command finds an optimal strategy for the standard Mastermind rules. It is optimal in the sense that it takes the lowest average number of guesses to reveal each secret. This should produce a result below one second.
+The following command finds an optimal strategy for the standard Mastermind rules. It is optimal in the sense that it takes the lowest average number of guesses to reveal each secret. This should produce a result within one second.
 {{{
   mmstrat -s optimal
 }}}
@@ -162,7 +153,3 @@ List known bugs.
 = AUTHOR =
 
 fancidev@gmail.com
-
-= COPYRIGHT =
-
-This program and its source code is distributed under MIT License.
