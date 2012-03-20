@@ -136,9 +136,9 @@ template <> class TestDriver<ComparisonRoutine>
 {
 	Engine &e;
 	ComparisonRoutine f;
-	Codeword secret;
 	CodewordList codewords;
 	size_t count;
+	Codeword secret;
 	FeedbackFrequencyTable freq;
 
 public:

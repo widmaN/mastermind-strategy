@@ -2,6 +2,7 @@
 #define MASTERMIND_RULES_HPP
 
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include "util/choose.hpp"
 
@@ -40,12 +41,8 @@ class Rules
 	uint8_t _pegs;     // number of pegs
 	uint8_t _colors;   // number of colors
 	bool _repeatable;  // whether the same color can appear more than once
-	uint8_t _reserved; // padding to make the structure size == 4.
 
 public:
-
-	/// Type of a packed representation of a Rules object.
-	typedef long packed_type;
 
 	/// Constructs an empty set of rules.
 	Rules() 	: _pegs(0), _colors(0), _repeatable(false) { }
@@ -122,11 +119,20 @@ public:
 			return util::choice<size_t>(_colors, _pegs, true, _repeatable);
 	}
 
+	/// Type of a packed representation of a Rules object.
+	/// The packed value will be used in an iostream, so its type must be
+	/// <code>long</code>.
+	typedef long packed_type;
+
 	/// Returns a packed value representing this set of rules.
 	packed_type pack() const 
 	{
-		static_assert(sizeof(long) == sizeof(Rules), "Mismatch structure size");
-		return *reinterpret_cast<const packed_type *>(this);
+		static_assert(sizeof(long) >= sizeof(Rules), 
+			"Packed type's size is not enough to encode object.");
+
+		long value = 0;
+		memcpy(&value, this, sizeof(Rules));
+		return value;
 	}
 
 	/// Unpacks a set of rules from a packed value.
@@ -134,8 +140,12 @@ public:
 	/// ensuring the correctness of the operation.
 	static Rules unpack(packed_type value)
 	{
-		static_assert(sizeof(long) == sizeof(Rules), "Mismatch structure size");
-		return *reinterpret_cast<const Rules *>(&value);
+		static_assert(sizeof(long) >= sizeof(Rules), 
+			"Packed type's size is not enough to encode object.");
+
+		Rules rules;
+		memcpy(&rules, &value, sizeof(Rules));
+		return rules;
 	}
 };
 
