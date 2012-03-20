@@ -333,8 +333,8 @@ int test(const Rules &rules, bool /* verbose */)
 	Engine e(rules);
 
 #if 1
-	//compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
-	compareRoutines<ComparisonRoutine>(e, "generic", "test", 100000*LOOP_FLAG);
+	compareRoutines<ComparisonRoutine>(e, "generic", "norepeat", 100000*LOOP_FLAG);
+	//compareRoutines<ComparisonRoutine>(e, "generic", "test", 100000*LOOP_FLAG);
 
 	//compareRoutines<GenerationRoutine>(e, "generic", "generic", 100*LOOP_FLAG);
 	//compareRoutines<MaskRoutine>(e, "generic", "unrolled", 100000*LOOP_FLAG);

@@ -168,7 +168,7 @@ public:
 	ColorMask colorMask(const Codeword &c) const
 	{
 		int mask_absent = util::simd::byte_mask(
-			util::simd::simd_t<uint8_t,16>(c.value()) == (uint8_t)0);
+			*(util::simd::simd_t<uint8_t,16>*)(&c) == (uint8_t)0);
 		int mask_present = ~mask_absent & ((1 << MM_MAX_COLORS) - 1);
 		return ColorMask((ColorMask::value_type)mask_present);
 	}

@@ -47,7 +47,8 @@ class GenericComparer
 
 public:
 
-	GenericComparer(const Codeword &_secret) : secret(_secret.value())
+	GenericComparer(const Codeword &_secret) 
+		: secret(*reinterpret_cast<const simd_t *>(&_secret))
 	{
 		// Change 0xff in secret to 0x0f.
 		secret &= (uint8_t)0x0f;
@@ -96,7 +97,7 @@ public:
 		const simd_t mask_pegs = util::simd::fill_left<MM_MAX_PEGS>((uint8_t)0x10);
 		// const simd_t mask_colors = util::simd::fill_right<MM_MAX_COLORS>((uint8_t)0xff);
 
-		const simd_t guess(_guess.value());
+		const simd_t guess(*reinterpret_cast<const simd_t *>(&_guess));
 
 		// Compute nA.
 		// It turns out that there's a significant (20%) performance hit if
@@ -156,7 +157,7 @@ class NoRepeatComparer
 public:
 
 	NoRepeatComparer(const Codeword &_secret)
-		: secret(_secret.value()) 
+		: secret(*reinterpret_cast<const simd_t *>(&_secret))
 	{
 		// Change 0xFF in secret to 0x0F
 		secret &= (int8_t)0x0f;
@@ -186,7 +187,7 @@ public:
 	Feedback operator () (const Codeword &guess) const 
 	{
 		return lookup.table
-			[ util::simd::byte_mask(simd_t(guess.value()) == secret) ];
+			[ util::simd::byte_mask(*reinterpret_cast<const simd_t *>(&guess) == secret) ];
 	}
 };
 

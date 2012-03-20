@@ -1,6 +1,7 @@
 #ifndef MASTERMIND_RULES_HPP
 #define MASTERMIND_RULES_HPP
 
+#include <cstdint>
 #include <iostream>
 #include "util/choose.hpp"
 
@@ -36,32 +37,30 @@ namespace Mastermind {
 /// @ingroup Rules
 class Rules
 {
-	union 
-	{
-		long _value;          // packed value
-		struct 
-		{
-			char _pegs;       // number of pegs
-			char _colors;     // number of colors
-			bool _repeatable; // whether the same color can appear more than once
-		};
-	};
+	uint8_t _pegs;     // number of pegs
+	uint8_t _colors;   // number of colors
+	bool _repeatable;  // whether the same color can appear more than once
+	uint8_t _reserved; // padding to make the structure size == 4.
 
 public:
 
+	/// Type of a packed representation of a Rules object.
+	typedef long packed_type;
+
 	/// Constructs an empty set of rules.
-	Rules() 	: _value(0) { }
+	Rules() 	: _pegs(0), _colors(0), _repeatable(false) { }
 
 	/// Constructs a set of rules with the given parameters.
 	/// If the input is invalid, an empty set of rules is constructed.
-	Rules(int pegs, int colors, bool repeatable) : _value(0)
+	Rules(int pegs, int colors, bool repeatable) 
+		: _pegs(0), _colors(0), _repeatable(false)
 	{
 		if ((pegs > 0 && pegs <= MM_MAX_PEGS)
 			&& (colors > 0 && colors <= MM_MAX_COLORS)
 			&& (repeatable || colors >= pegs))
 		{
-			_pegs = (char)pegs;
-			_colors = (char)colors;
+			_pegs = (uint8_t)pegs;
+			_colors = (uint8_t)colors;
 			_repeatable = repeatable;
 		}
 	}
@@ -106,7 +105,7 @@ public:
 	bool repeatable() const { return _repeatable; }
 
 	/// Tests whether this set of rules is empty.
-	bool empty() const { return _value == 0; }
+	bool empty() const { return _pegs == 0; }
 
 	/// Tests whether this set of rules is non-empty.
 	operator void* () const { return empty()? 0 : (void*)this; }
@@ -124,16 +123,19 @@ public:
 	}
 
 	/// Returns a packed value representing this set of rules.
-	long pack() const { return _value; }
+	packed_type pack() const 
+	{
+		static_assert(sizeof(long) == sizeof(Rules), "Mismatch structure size");
+		return *reinterpret_cast<const packed_type *>(this);
+	}
 
 	/// Unpacks a set of rules from a packed value.
 	/// No validity check is performed, so the caller is responsible for
 	/// ensuring the correctness of the operation.
-	static Rules unpack(long value)
+	static Rules unpack(packed_type value)
 	{
-		Rules r;
-		r._value = value;
-		return r;
+		static_assert(sizeof(long) == sizeof(Rules), "Mismatch structure size");
+		return *reinterpret_cast<const Rules *>(&value);
 	}
 };
 

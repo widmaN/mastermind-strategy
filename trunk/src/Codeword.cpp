@@ -2,8 +2,26 @@
 #include <algorithm>
 
 #include "Codeword.hpp"
+#include "util/simd.hpp"
 
 namespace Mastermind {
+
+/// Tests whether the codeword contains any color more than once.
+bool Codeword::has_repetition() const
+{
+#if 1
+	int mask = util::simd::byte_mask(
+		*(util::simd::simd_t<int8_t,16>*)this > (int8_t)1);
+	return (mask & ((1 << MM_MAX_COLORS) - 1)) != 0;
+#else	
+	for (int i = 0; i < MM_MAX_COLORS; ++i)
+	{
+		if (_counter[i] > 1)
+			return true;
+	}
+	return false;
+#endif
+}
 
 bool Codeword::conforming(const Rules &rules) const
 {
