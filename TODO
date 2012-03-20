@@ -5,10 +5,10 @@ Scope:
 
 Functionality:
   Able to output a strategy in Knuth, Irving, Enhanced, or XML notation.
-  Enable player mode, diagnostic mode, and strategy mode.
+  Enable strategy mode (mmstrat).
   Able to find heuristic strategies for the four most popular heuristics.
-  Able to find optimal strategy subject to MinSteps objective.
-  Command switches are correctly documented and works as documented.
+  Able to find optimal strategy for the MinSteps objective.
+  Make sure command switches are correctly documented and works as documented.
 
 Portability:
   The cmake build system should work correctly on both Windows and Linux.
@@ -18,6 +18,8 @@ Distribution:
   Under Windows, statically-linked binaries are provided for 32-bit and 64-bit.
 
 Plan for Version 1.1 (Apr 2012):
+  Enable codemaker mode (mmdeal), codebreaker mode (mmbreak), and debugging
+    mode (mmdebug).
   Add a few more non-important heuristics for testing.
   Add -po switch to control the possibility only constraint.
   Add various minor optimizations to improve speed.
@@ -40,11 +42,7 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
-It is probably better to change types to unsigned where possible, because
-  this tends to reduce redundant MOVSX instructions.
-Import wiki as a subfolder and consolidate documentation into it.
-Write manual page in wiki markup and use a script to convert it into manpage
-  and html.
+Change Engine& to Engine* to prepare for future virtual interface.
 Implement Irving notation reading and auto-complete
 Simplify the Irving notation to adopt Knuth's notation for less-obvious guess.
 Add call counter to check how often is the first guess tried not the best guess
@@ -56,6 +54,9 @@ In recursive optimal search, the minus sign doesn't work.
 Medium Priority
 -----------------
 Fix MSVC level 4 warnings and gcc pedantic warnings
+Separate mastermind library and front-end utilities. Ensure binary compat.
+It is probably better to change types to unsigned where possible, because
+  this tends to reduce redundant MOVSX instructions.
 In optimal code breaker, when we rank the candidate guesses, we needn't compute
   a full cost estimate; instead, we could just compute 'steps', and visit the
   candidates by that score. This should reduce cost computation time, and 
@@ -88,6 +89,8 @@ Improve 32-bit performance
 
 Finished
 ----------
+[done] Write manual page in wiki markup and use a script to convert it.
+[done] Import wiki as a subfolder and consolidate documentation into it.
 [done] Improved Knuth's strategy to multi-level comparison.
 [done] Added specialized comparison routine when one of the codewords being 
   compared contains no repeated colors. This routine is disabled by default.

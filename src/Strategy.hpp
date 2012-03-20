@@ -55,6 +55,10 @@ struct StrategyConstraints
 	//	: max_depth(_max_depth), pos_only(_pos_only), use_obvious(_use_obvious) { }
 };
 
+#ifndef USE_UNNAMED_STRUCT 
+#define USE_UNNAMED_STRUCT 0
+#endif
+
 /**
  * Represents the cost of a strategy in terms of the number of guesses
  * required to reveal the secrets.
@@ -74,18 +78,22 @@ struct StrategyConstraints
  */
 struct StrategyCost
 {
+#if USE_UNNAMED_STRUCT
 	union
 	{
 		unsigned long long value;
 		struct
 		{
+#endif
 			unsigned short worst; // number of secrets revealed using max depth
 			unsigned short depth; // number of guesses needed in the worst case
 			unsigned int   steps; // total number of steps to reveal all secrets
+#if USE_UNNAMED_STRUCT
 		};
 	};
+#endif
 
-	StrategyCost() : value(0) { }
+	StrategyCost() : worst(0), depth(0), steps(0) { }
 	StrategyCost(unsigned int _steps, unsigned short _depth, unsigned short _worst)
 		: worst(_worst),  depth(_depth), steps(_steps) { }
 
@@ -107,24 +115,55 @@ struct StrategyCost
 	}
 
 	/// Tests whether the cost is zero.
-	bool operator ! () const { return value == 0; }
+	bool operator ! () const { return steps == 0; }
 
 	/// Tests whether the cost is not zero.
 	//operator void* () const { return value == 0 ? 0 : (void*)this; }
 };
 
+/// Checks if strategy cost @c a is strictly superior to (i.e. lower than)
+/// strategy cost @c b with regard to the objective @c obj.
+inline bool superior(const StrategyCost &a, const StrategyCost &b, StrategyObjective obj)
+{
+	if (a.steps < b.steps)
+		return true;
+	if (b.steps < a.steps)
+		return false;
+	if (obj <= MinSteps)
+		return false;
+
+	if (a.depth < b.depth)
+		return true;
+	if (b.depth < a.depth)
+		return false;
+	if (obj <= MinDepth)
+		return false;
+
+	return a.worst < b.worst;
+}
+
 /// Compares the costs of two strategies.
 /// @ingroup strat
 inline bool operator < (const StrategyCost &c1, const StrategyCost &c2)
 {
+#if USE_UNNAMED_STRUCT
 	return c1.value < c2.value;
+#else
+	return superior(c1, c2, MinWorst);
+	//return *(const long long *)&c1 < *(const long long *)&c2;
+#endif
 }
 
 /// Tests whether two strategy costs are equal.
 /// @ingroup strat
 inline bool operator == (const StrategyCost &c1, const StrategyCost &c2)
 {
+#if USE_UNNAMED_STRUCT
 	return c1.value == c2.value;
+#else
+	return c1.steps == c2.steps && c1.depth == c2.depth && c1.worst == c2.worst;
+	//return memcmp(&c1, &c2, sizeof(StrategyCost)) == 0;
+#endif
 }
 
 /// Outputs strategy cost to a stream.
@@ -198,27 +237,6 @@ inline bool superior(const StrategyCost &a, const StrategyCost &b, StrategyObjec
 	return a.worst < b.worst;
 }
 #endif
-
-/// Checks if strategy cost @c a is strictly superior to (i.e. lower than)
-/// strategy cost @c b with regard to the objective @c obj.
-inline bool superior(const StrategyCost &a, const StrategyCost &b, StrategyObjective obj)
-{
-	if (a.steps < b.steps)
-		return true;
-	if (b.steps < a.steps)
-		return false;
-	if (obj <= MinSteps)
-		return false;
-
-	if (a.depth < b.depth)
-		return true;
-	if (b.depth < a.depth)
-		return false;
-	if (obj <= MinDepth)
-		return false;
-
-	return a.worst < b.worst;
-}
 
 /**
  * Interface for a Mastermind strategy.
