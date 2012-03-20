@@ -27,8 +27,8 @@ Plan for Version 1.1 (Apr 2012):
 
 Plan for Version 1.2 (May 2012):
   Add -md switch to control the maximum depth constraint.
-  Find optimal strategy subject to MinDepth objective.
-  Find optimal strategy subject to MinWorst objective.
+  Find optimal strategy for MinDepth objective.
+  Find optimal strategy for MinWorst objective.
   Improve lower bound estimate in the first few levels of the game.
   Improve lower bound estimate when there are only a dozen remaining possibilites.
   OpenMP support for optimal strategies.
@@ -42,17 +42,25 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
+Add -nc switch to specify "no correction" for heuristic strategies.
+In documentation, classify switches according to the type of strategies 
+  (i.e. heuristic or optimal) they work on.
 Implement Irving notation reading and auto-complete
 Simplify the Irving notation to adopt Knuth's notation for less-obvious guess.
+Move the functionality of ObviousStrategy to a free-standing function.
+Add a free-standing function to automatically fill a strategy-tree.
+In simple_tree, check for the level of inserted node, and implement logic if
+  the node being inserted is not the last one of its level.
 Add call counter to check how often is the first guess tried not the best guess
-  in an optimal strategy search level.
-Does it make sense to 'bootstrap' a good tree before depth-first-search for
-  an optimal tree from a given state?
-In recursive optimal search, the minus sign doesn't work.
+  in an optimal strategy search level. A good lower bound estimate should 
+  cause the first guess to be an optimal guess.
+In recursive optimal search, the minus sign doesn't work except for MinSteps
+  objective.
 
 Medium Priority
 -----------------
-Fix MSVC level 4 warnings and gcc pedantic warnings
+Does it make sense to 'bootstrap' a good tree before depth-first-search for
+  an optimal tree from a given state?
 Separate mastermind library and front-end utilities. Ensure binary compat.
 It is probably better to change types to unsigned where possible, because
   this tends to reduce redundant MOVSX instructions.
@@ -88,6 +96,7 @@ Improve 32-bit performance
 
 Finished
 ----------
+[done] Fix MSVC level 4 warnings and gcc pedantic warnings.
 [done] Change Engine& to Engine* to prepare for future virtual interface.
 [done] Write manual page in wiki markup and use a script to convert it.
 [done] Import wiki as a subfolder and consolidate documentation into it.
