@@ -334,7 +334,7 @@ extern StrategyTree build_optimal_strategy_tree(
 static int build_strategy(
 	const Engine *e, const EquivalenceFilter *filter, int verbose,
 	const std::string &name, const std::string & /* file */,
-	int max_depth, bool pos_only, bool no_correction)
+	int max_depth, bool pos_only, bool no_correction, bool summary)
 {
 	using namespace Mastermind::Heuristics;
 
@@ -360,14 +360,28 @@ static int build_strategy(
 			return ret;
 	}
 
-	// WriteStrategy_TextFormat(std::cout, tree);
-
-	StrategyTreeInfo info(name, tree, tree.root());
-	if (verbose)
+	// Output result.
+	if (summary)
 	{
-		std::cout << util::header;
-		std::cout << info;
+		StrategyTreeInfo info(name, tree, tree.root());
+		if (verbose)
+		{
+			std::cout << util::header;
+			std::cout << info;
+		}
+		else
+		{
+			// @todo The following output should be output directly from
+			// a StrategyCost object.
+			std::cout << info.total_depth() << ':' << info.max_depth() << ':' 
+				<< info.count_depth(info.max_depth()) << std::endl;
+		}
 	}
+	else
+	{
+		WriteStrategy_TextFormat(std::cout, tree);
+	}
+	
 	return 0;
 }
 
@@ -401,6 +415,7 @@ int main(int argc, char* argv[])
 	bool pos_only = false;
 	bool prof = false; // whether to enable profiling (call counting)
 	bool no_correction = false;
+	bool summary = false;
 
 	// Parse command line arguments.
 	for (int i = 1; i < argc; i++)
@@ -422,6 +437,10 @@ int main(int argc, char* argv[])
 				USAGE_REQUIRE(ss >> setrules(rules) >> secret,
 					"expecting secret after -p");
 			}
+		}
+		else if (s == "-S")
+		{
+			summary = true;
 		}
 		else if (s == "-s")
 		{
@@ -585,7 +604,7 @@ int main(int argc, char* argv[])
 	{
 	case StrategyMode:
 		ret = build_strategy(e, filter, verbose, strat_name, strat_file,
-			max_depth, pos_only, no_correction);
+			max_depth, pos_only, no_correction, summary);
 		break;
 	case PlayerMode:
 		ret = interactive_player(e, verbose, secret);
