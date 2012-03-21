@@ -61,7 +61,7 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 	}
 
 	// Display label.
-	os  << std::setw(8) << info.name()
+	os  << std::left << std::setw(8) << info.name() << std::right
 		<< std::setw(8) << info.total_depth() << " "
 		<< std::setw(5) << std::setprecision(3)
 		<< std::fixed << info.average_depth();
