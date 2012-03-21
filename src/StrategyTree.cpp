@@ -22,7 +22,7 @@ StrategyTreeInfo::StrategyTreeInfo(
 	const StrategyTree &tree,
 	StrategyTree::const_iterator root)
 	: _tree(&tree), _root(root), _total_secrets(0), _total_depth(0),
-	_children(Feedback::size(tree.rules())), _name(name)
+	_depth_freq(1), 	_children(Feedback::size(tree.rules())), _name(name)
 {
 	Feedback perfect = Feedback::perfectValue(tree.rules());
 	auto root_depth = root.depth();
