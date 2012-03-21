@@ -134,8 +134,7 @@ static void test_strategy_tree(
 	//CodewordList all = e.generateCodewords();
 	Rules rules = e->rules();
 	//Feedback target = Feedback::perfectValue(rules);
-	util::hr_timer timer;
-
+	
 	std::cout
 		<< "Game Settings" << std::endl
 		<< "---------------" << std::endl
@@ -160,13 +159,11 @@ static void test_strategy_tree(
 		Strategy *strat = strategies[i];
 
 		// Build a strategy tree of this code breaker
-		timer.start();
 		EquivalenceFilter *copy = filter->clone();
 		StrategyTree tree = BuildStrategyTree(e, strat, copy, options);
 		delete copy;
-		double t = timer.stop();
 
-		StrategyTreeInfo info(strat->name(), tree, t, tree.root());
+		StrategyTreeInfo info(strat->name(), tree, tree.root());
 		std::cout << info;
 	}
 }

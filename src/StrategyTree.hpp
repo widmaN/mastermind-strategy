@@ -119,7 +119,6 @@ class StrategyTreeInfo
 	std::vector<StrategyTree::const_iterator> _children;
 
 	std::string _name;
-	double _time;
 
 public:
 
@@ -127,7 +126,6 @@ public:
 	StrategyTreeInfo(
 		const std::string &name,
 		const StrategyTree &tree,
-		double time,
 		StrategyTree::const_iterator root);
 
 #if 1
@@ -154,8 +152,6 @@ public:
 		return _children[response.value()];
 	}
 #endif
-
-	double time() const { return _time; }
 
 	/// Returns the maximum depth of all leaf nodes.
 	int max_depth() const

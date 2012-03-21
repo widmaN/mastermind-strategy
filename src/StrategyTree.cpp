@@ -20,10 +20,9 @@ namespace Mastermind {
 StrategyTreeInfo::StrategyTreeInfo(
 	const std::string &name,
 	const StrategyTree &tree,
-	double time,
 	StrategyTree::const_iterator root)
 	: _tree(&tree), _root(root), _total_secrets(0), _total_depth(0),
-	_children(Feedback::size(tree.rules())), _name(name), _time(time)
+	_children(Feedback::size(tree.rules())), _name(name)
 {
 	Feedback perfect = Feedback::perfectValue(tree.rules());
 	auto root_depth = root.depth();
@@ -57,13 +56,13 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 	{
 		//os << "Stategy Statistics" << std::endl;
 		//os << "--------------------" << std::endl;
-		os << "Strategy  Total   Avg 1     2     3     4     5     6     7     8    >8   Time" << std::endl;
+		os << "Strategy   Total   Avg   1     2     3     4     5     6     7     8    >8" << std::endl;
 		os << util::noheader;
 	}
 
 	// Display label.
 	os  << std::setw(8) << info.name()
-		<< std::setw(7) << info.total_depth() << " "
+		<< std::setw(8) << info.total_depth() << " "
 		<< std::setw(5) << std::setprecision(3)
 		<< std::fixed << info.average_depth();
 
@@ -81,16 +80,14 @@ std::ostream& operator << (std::ostream &os, const StrategyTreeInfo &info)
 		{
 			count = (unsigned int)info.total_depth() - running_total;
 		}
-		os << std::setw(d == 1? 2 : 6);
+		os << std::setw(d == 1? 4 : 6);
 		if (count > 0)
 			os << count;
 		else
 			os << '-';
 	}
 
-	// Display time
-	os  << std::fixed << std::setw(7) << std::setprecision(1)
-		<< info.time() << std::endl;
+	os << std::endl;
 
 	return os;
 }
@@ -114,7 +111,7 @@ void WriteState_TextFormat(
 	const Rules rules = tree.rules();
 
 	// Get info about this strategy branch.
-	StrategyTreeInfo state("", tree, 0.0, root);
+	StrategyTreeInfo state("", tree, root);
 
 	// Write the number of remaining secrets in this state.
 	os << state.total_secrets();
