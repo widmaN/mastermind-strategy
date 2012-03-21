@@ -297,7 +297,7 @@ extern void pause_output();
 
 static int build_heuristic_strategy_tree(
 	const Engine *e, const EquivalenceFilter *filter, int /* verbose */,
-	const std::string &name, bool pos_only, bool no_correction,
+	const std::string &name, bool pos_only, bool no_correction, bool no_obvious,
 	StrategyTree &tree)
 {
 	using namespace Mastermind::Heuristics;
@@ -320,7 +320,7 @@ static int build_heuristic_strategy_tree(
 		USAGE_ERROR("unknown strategy: " << name);
 
 	CodeBreakerOptions options;
-	options.optimize_obvious = true;
+	options.optimize_obvious = (name == "simple")? false : !no_obvious;
 	options.possibility_only = pos_only;
 	std::unique_ptr<EquivalenceFilter> copy(filter->clone());
 	tree = BuildStrategyTree(e, strat, copy.get(), options);
@@ -334,7 +334,8 @@ extern StrategyTree build_optimal_strategy_tree(
 static int build_strategy(
 	const Engine *e, const EquivalenceFilter *filter, int verbose,
 	const std::string &name, const std::string & /* file */,
-	int max_depth, bool pos_only, bool no_correction, bool summary)
+	int max_depth, bool pos_only, bool no_correction, bool no_obvious,
+	bool summary)
 {
 	using namespace Mastermind::Heuristics;
 
@@ -355,7 +356,7 @@ static int build_strategy(
 	else
 	{
 		int ret = build_heuristic_strategy_tree(e, filter, verbose, name, 
-			pos_only, no_correction, tree);
+			pos_only, no_correction, no_obvious, tree);
 		if (ret)
 			return ret;
 	}
@@ -415,6 +416,7 @@ int main(int argc, char* argv[])
 	bool pos_only = false;
 	bool prof = false; // whether to enable profiling (call counting)
 	bool no_correction = false;
+	bool no_obvious = false;
 	bool summary = false;
 
 	// Parse command line arguments.
@@ -469,6 +471,10 @@ int main(int argc, char* argv[])
 		{
 			usage();
 			return 0;
+		}
+		else if (s == "-no")
+		{
+			no_obvious = true;
 		}
 		else if (s == "-nc")
 		{
@@ -604,7 +610,7 @@ int main(int argc, char* argv[])
 	{
 	case StrategyMode:
 		ret = build_strategy(e, filter, verbose, strat_name, strat_file,
-			max_depth, pos_only, no_correction, summary);
+			max_depth, pos_only, no_correction, no_obvious, summary);
 		break;
 	case PlayerMode:
 		ret = interactive_player(e, verbose, secret);

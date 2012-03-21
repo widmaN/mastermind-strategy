@@ -19,6 +19,7 @@ my $failed = 0;
 my @test_cases = (
 
 	# Test heuristic strategies for standard Mastermind rules.
+	"-r mm -s simple",          "6962:8:4",
 	"-r mm -s minmax",          "5778:5:663",
 	"-r mm -s minmax -no",      "5778:5:663",
 	"-r mm -s minmax -nc",      "5780:5:663",
@@ -33,16 +34,16 @@ my @test_cases = (
 	"-r mm -s entropy -po",     "5787:6:58",
 	"-r mm -s parts",           "5668:6:7",
 	"-r mm -s parts -no",       "5668:6:7",
-	"-r mm -s parts -nc",       "x",
+	"-r mm -s parts -nc",       "5684:6:7",
 	"-r mm -s parts -po",       "5714:7:2",
 
 	# Test optimal strategies.
 	"-r mm -s optimal",         "5625:6:7",
 	"-r mm -s optimal -O 1",    "5625:6:7",
 	"-r mm -s optimal -po",     "x",
-	"-r mm -s optimal -md 10",  "x",
-	"-r mm -s optimal -md 6",   "x",
-	"-r mm -s optimal -md 5",   "x",
+	"-r mm -s optimal -md 10",  "5625:6:7",
+	"-r mm -s optimal -md 6",   "5625:6:7",
+	"-r mm -s optimal -md 5",   "5626:5:x",
 	"-r mm -s optimal -md 4",   "x",
 
 	# Test different equivalence filters.
@@ -57,6 +58,19 @@ my @test_cases = (
 	"-r mm -mt 2 -s entropy",   "5719:6:18",
 	"-r mm -mt 2 -s parts",     "5668:6:7",
 	"-r mm -mt 2 -s optimal",   "5625:6:7",
+
+	# Test Bulls and Cows rule for selected strategies.
+	"-r bc -s simple",          "27511:8:41",
+	"-r bc -s minmax",          "27030:7:181",
+	"-r bc -s minavg",          "26551:7:87",
+	"-r bc -s entropy",         "26409:8:1",
+	"-r bc -s parts",           "26751:8:3",
+	
+	# Test other rules.
+	"-r lg -s minavg",          "180287:7:789",
+	"-r p1c2r -s optimal",      "3:2:1",
+	"-r p3c9r -s optimal",      "3596:7:3",
+	"-r p4c8n -s entropy",      "7880:7:2",
 );
 
 for (my $i = 0; $i < $#test_cases; $i += 2)
