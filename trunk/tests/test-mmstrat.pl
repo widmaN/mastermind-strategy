@@ -40,11 +40,12 @@ my @test_cases = (
 	# Test optimal strategies.
 	"-r mm -s optimal",         "5625:6:7",
 	"-r mm -s optimal -O 1",    "5625:6:7",
-	"-r mm -s optimal -po",     "x",
+	"-r mm -s optimal -po",     "5629:6:7",
 	"-r mm -s optimal -md 10",  "5625:6:7",
 	"-r mm -s optimal -md 6",   "5625:6:7",
 	"-r mm -s optimal -md 5",   "5626:5:x",
 	"-r mm -s optimal -md 4",   "x",
+	"-r bc -s optimal -po",     "26374:7:126",
 
 	# Test different equivalence filters.
 	"-r mm -s minavg -e default",    "5696:6:3",
@@ -67,7 +68,7 @@ my @test_cases = (
 	"-r bc -s parts",           "26751:8:3",
 	
 	# Test other rules.
-	"-r lg -s minavg",          "180287:7:789",
+	"-r lg -mt 2 -s minavg",    "180287:7:789",
 	"-r p1c2r -s optimal",      "3:2:1",
 	"-r p3c9r -s optimal",      "3596:7:3",
 	"-r p4c8n -s entropy",      "7880:7:2",
