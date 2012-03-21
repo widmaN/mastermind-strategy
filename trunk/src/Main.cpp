@@ -58,7 +58,6 @@
 #include "CodeBreaker.hpp"
 #include "Heuristics.hpp"
 #include "util/io_format.hpp"
-#include "util/hr_timer.hpp"
 
 using namespace Mastermind;
 
@@ -340,9 +339,7 @@ static int build_strategy(
 	using namespace Mastermind::Heuristics;
 
 	StrategyTree tree(e->rules());
-	util::hr_timer timer;
 
-	timer.start();
 	if (name == "file")
 	{
 		USAGE_ERROR("Not implemented");
@@ -362,11 +359,10 @@ static int build_strategy(
 		if (ret)
 			return ret;
 	}
-	double t = timer.stop();
 
 	// WriteStrategy_TextFormat(std::cout, tree);
 
-	StrategyTreeInfo info(name, tree, t, tree.root());
+	StrategyTreeInfo info(name, tree, tree.root());
 	if (verbose)
 	{
 		std::cout << util::header;
