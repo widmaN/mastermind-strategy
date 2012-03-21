@@ -427,7 +427,10 @@ static StrategyCost fill_strategy_tree(
 				// so a single run can be used for all response classes.
 				if (pre_filtered.empty())
 				{
-					pre_filtered = pre_filter->get_canonical_guesses(e->universe());
+					if (c.pos_only)
+						pre_filtered = pre_filter->get_canonical_guesses(secrets);
+					else
+						pre_filtered = pre_filter->get_canonical_guesses(e->universe());
 				}
 
 				// Apply color filter on the pre-filtered candidates.
@@ -503,7 +506,7 @@ static StrategyCost fill_strategy_tree(
 }
 
 StrategyTree build_optimal_strategy_tree(
-	const Engine *e, bool min_depth = false, int max_depth = 100)
+	const Engine *e, StrategyObjective obj, StrategyConstraints constraints)
 {
 	CodewordList all = e->generateCodewords();
 
@@ -517,10 +520,10 @@ StrategyTree build_optimal_strategy_tree(
 	StrategyTree tree(e->rules());
 
 	// Set options.
-	StrategyObjective obj = min_depth ? MinDepth : MinSteps;
-	StrategyConstraints c;
-	c.max_depth = (unsigned char)std::min(100, max_depth);
-	c.find_last = false;
+	// StrategyObjective obj = min_depth ? MinDepth : MinSteps;
+	//StrategyConstraints c;
+	//c.max_depth = (unsigned char)std::min(100, max_depth);
+	//c.find_last = false;
 
 	// Create a cost lower-bound estimator.
 	LowerBoundEstimator estimator(e, Heuristics::MinimizeLowerBound(e));
@@ -532,7 +535,7 @@ StrategyTree build_optimal_strategy_tree(
 	StrategyCost threshold(1000000, 100, 0);
 	/* int best = */ fill_strategy_tree(e, all, initial, 
 		filter.first(), filter.second(), estimator,
-		0, obj, c, threshold, tree, tree.root());
+		0, obj, constraints, threshold, tree, tree.root());
 	// std::cout << "OPTIMAL: " << best << std::endl;
 	return tree;
 }

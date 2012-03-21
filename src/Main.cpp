@@ -297,8 +297,8 @@ extern void pause_output();
 
 static int build_heuristic_strategy_tree(
 	const Engine *e, const EquivalenceFilter *filter, int /* verbose */,
-	const std::string &name, bool pos_only, bool no_correction, bool no_obvious,
-	StrategyTree &tree)
+	const std::string &name, StrategyConstraints constraints,
+	bool no_correction, StrategyTree &tree)
 {
 	using namespace Mastermind::Heuristics;
 
@@ -320,22 +320,22 @@ static int build_heuristic_strategy_tree(
 		USAGE_ERROR("unknown strategy: " << name);
 
 	CodeBreakerOptions options;
-	options.optimize_obvious = (name == "simple")? false : !no_obvious;
-	options.possibility_only = pos_only;
+	options.optimize_obvious = (name == "simple")? false : constraints.use_obvious;
+	options.possibility_only = constraints.pos_only;
 	std::unique_ptr<EquivalenceFilter> copy(filter->clone());
 	tree = BuildStrategyTree(e, strat, copy.get(), options);
 	return 0;
 }
 
 extern StrategyTree build_optimal_strategy_tree(
-	const Engine *e, bool min_depth = false, int max_depth = 100);
+	const Engine *e, StrategyObjective obj, StrategyConstraints constraints);
 
 // verbose: 0 = quiet, 1 = verbose, 2 = very verbose
 static int build_strategy(
 	const Engine *e, const EquivalenceFilter *filter, int verbose,
 	const std::string &name, const std::string & /* file */,
-	int max_depth, bool pos_only, bool no_correction, bool no_obvious,
-	bool summary)
+	StrategyConstraints constraints, bool no_correction,
+	StrategyObjective obj, bool summary)
 {
 	using namespace Mastermind::Heuristics;
 
@@ -347,16 +347,12 @@ static int build_strategy(
 	}
 	else if (name == "optimal")
 	{
-		tree = build_optimal_strategy_tree(e, false, max_depth);
-	}
-	else if (name == "optimal+")
-	{
-		tree = build_optimal_strategy_tree(e, true, max_depth);
+		tree = build_optimal_strategy_tree(e, obj, constraints);
 	}
 	else
 	{
-		int ret = build_heuristic_strategy_tree(e, filter, verbose, name, 
-			pos_only, no_correction, no_obvious, tree);
+		int ret = build_heuristic_strategy_tree(e, filter, verbose, name,
+			constraints, no_correction, tree);
 		if (ret)
 			return ret;
 	}
@@ -412,11 +408,10 @@ int main(int argc, char* argv[])
 #ifdef _OPENMP
 	int mt = 1;
 #endif
-	int max_depth = 1000;
-	bool pos_only = false;
+	StrategyConstraints constraints;
+	StrategyObjective obj = MinSteps;
 	bool prof = false; // whether to enable profiling (call counting)
 	bool no_correction = false;
-	bool no_obvious = false;
 	bool summary = false;
 
 	// Parse command line arguments.
@@ -439,6 +434,15 @@ int main(int argc, char* argv[])
 				USAGE_REQUIRE(ss >> setrules(rules) >> secret,
 					"expecting secret after -p");
 			}
+		}
+		else if (s == "-O")
+		{
+			USAGE_REQUIRE(++i < argc, "missing argument for option -O");
+			std::string level = argv[i];
+			if (level == "1")
+				obj = MinSteps;
+			else
+				USAGE_ERROR("invalid optimization level '" << level << "'");
 		}
 		else if (s == "-S")
 		{
@@ -474,7 +478,7 @@ int main(int argc, char* argv[])
 		}
 		else if (s == "-no")
 		{
-			no_obvious = true;
+			constraints.use_obvious = false;
 		}
 		else if (s == "-nc")
 		{
@@ -503,12 +507,14 @@ int main(int argc, char* argv[])
 		{
 			USAGE_REQUIRE(++i < argc, "missing argument for option -md");
 			std::string cnt(argv[i]);
+			int max_depth;
 			USAGE_REQUIRE((std::istringstream(cnt) >> max_depth) && (max_depth > 0),
 				"positive integer argument expected for option -md");
+			constraints.max_depth = (unsigned char)std::min(100, max_depth);
 		}
 		else if (s == "-po")
 		{
-			pos_only = true;
+			constraints.pos_only = true;
 		}
 		else if (s == "-prof")
 		{
@@ -609,8 +615,8 @@ int main(int argc, char* argv[])
 	switch (mode)
 	{
 	case StrategyMode:
-		ret = build_strategy(e, filter, verbose, strat_name, strat_file,
-			max_depth, pos_only, no_correction, no_obvious, summary);
+		ret = build_strategy(e, filter, verbose, strat_name, strat_file, 
+			constraints, no_correction, obj, summary);
 		break;
 	case PlayerMode:
 		ret = interactive_player(e, verbose, secret);
