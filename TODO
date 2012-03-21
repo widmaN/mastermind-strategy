@@ -5,9 +5,6 @@ Scope:
 
 Functionality:
   Able to output a strategy in Knuth, Irving, Enhanced, or XML notation.
-  Enable strategy mode (mmstrat).
-  Able to find heuristic strategies for the four most popular heuristics.
-  Able to find optimal strategy for the MinSteps objective.
   Add -po switch to control the possibility only constraint.
   Make sure command switches are correctly documented and works as documented.
 
@@ -42,9 +39,8 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
+Implement -md switch for optimal strategy.
 Move certain static variables into a CPP file to simplify the code.
-In documentation, classify switches according to the type of strategies 
-  (i.e. heuristic or optimal) they work on.
 Implement Irving notation reading and auto-complete
 Simplify the Irving notation to adopt Knuth's notation for less-obvious guess.
 Move the functionality of ObviousStrategy to a free-standing function.
@@ -96,6 +92,7 @@ Improve 32-bit performance
 
 Finished
 ----------
+[done] Classify switch documentation according to type of strategy.
 [done] Add -nc switch to specify "no correction" for heuristic strategies.
 [done] Fix MSVC level 4 warnings and gcc pedantic warnings.
 [done] Change Engine& to Engine* to prepare for future virtual interface.
