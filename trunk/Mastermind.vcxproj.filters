@@ -21,18 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\CodeBreaker.cpp">
-      <Filter>Strategies</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Compare.cpp">
-      <Filter>Algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Codeword.cpp">
-      <Filter>Types</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StrategyTree.cpp">
-      <Filter>Types</Filter>
-    </ClCompile>
     <ClCompile Include="src\Main.cpp">
       <Filter>Program</Filter>
     </ClCompile>
@@ -42,79 +30,46 @@
     <ClCompile Include="src\Interactive.cpp">
       <Filter>Program</Filter>
     </ClCompile>
-    <ClCompile Include="src\Generation.cpp">
+    <ClCompile Include="lib\Compare.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mask.cpp">
+    <ClCompile Include="lib\Engine.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine.cpp">
+    <ClCompile Include="lib\Generation.cpp">
       <Filter>Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="src\ConstraintEquivalence.cpp">
+    <ClCompile Include="lib\Mask.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ColorEquivalence.cpp">
       <Filter>Equivalence Filters</Filter>
     </ClCompile>
-    <ClCompile Include="src\ColorEquivalence.cpp">
+    <ClCompile Include="lib\ConstraintEquivalence.cpp">
       <Filter>Equivalence Filters</Filter>
     </ClCompile>
-    <ClCompile Include="src\DummyEquivalenceFilter.cpp">
+    <ClCompile Include="lib\DummyEquivalenceFilter.cpp">
       <Filter>Equivalence Filters</Filter>
     </ClCompile>
-    <ClCompile Include="src\OptimalCodeBreaker.cpp">
+    <ClCompile Include="lib\Codeword.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\StrategyTree.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\CodeBreaker.cpp">
       <Filter>Strategies</Filter>
     </ClCompile>
-    <ClCompile Include="src\ObviousStrategy.cpp">
+    <ClCompile Include="lib\ObviousStrategy.cpp">
+      <Filter>Strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\OptimalCodeBreaker.cpp">
       <Filter>Strategies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Algorithm.hpp">
-      <Filter>Algorithms</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Codeword.hpp">
-      <Filter>Types</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Feedback.hpp">
-      <Filter>Types</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rules.hpp">
-      <Filter>Types</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine.hpp">
-      <Filter>Algorithms</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Strategy.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CodeBreaker.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ObviousStrategy.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SimpleStrategy.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\HeuristicStrategy.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Permutation.hpp">
-      <Filter>Types</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Equivalence.hpp">
-      <Filter>Equivalence Filters</Filter>
-    </ClInclude>
-    <ClInclude Include="src\OptimalStrategy.hpp">
-      <Filter>Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StrategyTree.hpp">
-      <Filter>Types</Filter>
-    </ClInclude>
     <ClInclude Include="src\Benchmark.hpp">
       <Filter>Program</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Heuristics.hpp">
-      <Filter>Strategies</Filter>
     </ClInclude>
     <ClInclude Include="lib\util\aligned_allocator.hpp">
       <Filter>Utilities</Filter>
@@ -154,6 +109,51 @@
     </ClInclude>
     <ClInclude Include="lib\util\wrapped_float.hpp">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Algorithm.hpp">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Engine.hpp">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Equivalence.hpp">
+      <Filter>Equivalence Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Codeword.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Feedback.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Permutation.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Rules.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\StrategyTree.hpp">
+      <Filter>Types</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\CodeBreaker.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Heuristics.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\HeuristicStrategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObviousStrategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\OptimalStrategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\SimpleStrategy.hpp">
+      <Filter>Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Strategy.hpp">
+      <Filter>Strategies</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
