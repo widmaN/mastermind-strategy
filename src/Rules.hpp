@@ -9,7 +9,6 @@
 #ifndef MM_MAX_PEGS
 /// The maximum number of pegs supported by the program.
 /// This value must be smaller than or equal to @c 9.
-/// @ingroup Rules
 #define MM_MAX_PEGS 6
 #endif
 
@@ -20,7 +19,6 @@
 #ifndef MM_MAX_COLORS
 /// The maximum number of colors supported by the program.
 /// This value must be smaller than or equal to @c 10.
-/// @ingroup Rules
 #define MM_MAX_COLORS 10
 #endif
 
@@ -31,6 +29,17 @@
 #if (MM_MAX_PEGS + MM_MAX_COLORS) != 16
 #error MM_MAX_PEGS and MM_MAX_COLORS must add to 16.
 #endif
+
+#ifndef MM_VERSION
+/// Version of this library, in the format MAJOR.MINOR.TWEAK.BUILD.
+/// Each token takes one byte and can take values from 0 to 255.
+#define MM_VERSION 0x01000000
+#endif
+
+#define MM_VERSION_MAJOR ((MM_VERSION >> 24) & 0xFF)
+#define MM_VERSION_MINOR ((MM_VERSION >> 16) & 0xFF)
+#define MM_VERSION_TWEAK ((MM_VERSION >>  8) & 0xFF)
+#define MM_VERSION_BUILD ((MM_VERSION >>  0) & 0xFF)
 
 namespace Mastermind {
 

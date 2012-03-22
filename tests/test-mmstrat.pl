@@ -49,11 +49,13 @@ my @test_cases = (
 	"-r mm -s optimal",         "5625:6:7",
 	"-r mm -s optimal -O 1",    "5625:6:7",
 	"-r mm -s optimal -po",     "5629:6:7",
-	"-r mm -s optimal -md 10",  "5625:6:7",
-	"-r mm -s optimal -md 6",   "5625:6:7",
-	"-r mm -s optimal -md 5",   "5626:5:x",
-	"-r mm -s optimal -md 4",   "0:0:0",
 	"-r bc -s optimal -po",     "26374:7:126",
+
+	# Test -md switch for optimal strategies.
+	#"-r mm -s optimal -md 10",  "5625:6:7",
+	#"-r mm -s optimal -md 6",   "5625:6:7",
+	#"-r mm -s optimal -md 5",   "5626:5:x",
+	#"-r mm -s optimal -md 4",   "0:0:0",
 
 	# Test different equivalence filters.
 	"-r mm -s minavg -e default",    "5696:6:3",

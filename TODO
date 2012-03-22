@@ -92,7 +92,7 @@ Improve 32-bit performance
 Finished
 ----------
 [done] Add test script to test command line switches.
-[done] Add -po switch to control the possibility only constraint.
+[done] Add -po switch to enforce the "possibility only" constraint.
 [done] Classify switch documentation according to type of strategy.
 [done] Add -nc switch to specify "no correction" for heuristic strategies.
 [done] Fix MSVC level 4 warnings and gcc pedantic warnings.

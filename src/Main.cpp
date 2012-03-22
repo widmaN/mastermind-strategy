@@ -203,7 +203,7 @@ static void usage()
 {
 	std::cerr <<
 		"Usage: mmstrat [-r rules] -s strategy [options]\n"
-		"Builds the specified strategy for the given rules.\n"
+		"Build the specified strategy for the given rules.\n"
 		"Rules: 'p' pegs 'c' colors 'r'|'n'\n"
 		"    mm,p4c6r    [default] Mastermind (4 pegs, 6 colors, with repetition)\n"
 		"    bc,p4c10n   Bulls and Cows (4 pegs, 10 colors, no repetition)\n"
@@ -228,7 +228,7 @@ static void usage()
 #ifndef NDEBUG
 		"    minlb       min-lowerbound heuristic strategy\n"
 #endif
-		"    optimal     optimal strategy; see -o switch\n"
+		"    optimal     optimal strategy\n"
 		"General Options:\n"
 		"    -h          display this help screen and exit\n"
 #ifdef _OPENMP
@@ -256,9 +256,9 @@ static void usage()
 		"                is different than an obvious guess when one exists.\n"
 		"Options for Optimal Strategies:\n"
 #ifndef NDEBUG
-		"    -md [depth] limit the maximum number of guesses to reveal any secret\n"
+		"    -md depth   limit the maximum number of guesses to reveal any secret\n"
 #endif
-		"    -o [level]  specify the level of optimization, which is one of:\n"
+		"    -O level    specify the level of optimization, which is one of:\n"
 		"                1 - (default) minimize steps\n"
 #ifndef NDEBUG
 		"                2 - minimize steps, then depth\n"
@@ -270,8 +270,9 @@ static void usage()
 static void version()
 {
 	std::cout << 
-		"Mastermind-Strategies Version 1.0 (Mar 2012).\n"
-		"Configured with max " << MM_MAX_PEGS << " pegs and "
+		"Mastermind Strategies Version " << MM_VERSION_MAJOR << "."
+		<< MM_VERSION_MINOR << "." << MM_VERSION_TWEAK << std::endl
+		<< "Configured with max " << MM_MAX_PEGS << " pegs and "
 		<< MM_MAX_COLORS << " colors.\n"
 		"Visit http://code.google.com/p/mastermind-strategy/ for updates.\n"
 		"";
