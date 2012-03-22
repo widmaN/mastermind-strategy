@@ -89,6 +89,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <DisableSpecificWarnings>4127</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -99,6 +100,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <DisableSpecificWarnings>4127</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -114,6 +116,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4127</DisableSpecificWarnings>
       <OpenMPSupport>true</OpenMPSupport>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -132,6 +135,7 @@
       <DisableSpecificWarnings>4127</DisableSpecificWarnings>
       <OpenMPSupport>true</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -157,6 +161,19 @@
     <ClCompile Include="src\Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\util\aligned_allocator.hpp" />
+    <ClInclude Include="lib\util\bitmask.hpp" />
+    <ClInclude Include="lib\util\call_counter.hpp" />
+    <ClInclude Include="lib\util\choose.hpp" />
+    <ClInclude Include="lib\util\frequency_table.hpp" />
+    <ClInclude Include="lib\util\hr_timer.hpp" />
+    <ClInclude Include="lib\util\intrinsic.hpp" />
+    <ClInclude Include="lib\util\io_format.hpp" />
+    <ClInclude Include="lib\util\partition.hpp" />
+    <ClInclude Include="lib\util\range.hpp" />
+    <ClInclude Include="lib\util\simd.hpp" />
+    <ClInclude Include="lib\util\simple_tree.hpp" />
+    <ClInclude Include="lib\util\wrapped_float.hpp" />
     <ClInclude Include="src\Algorithm.hpp" />
     <ClInclude Include="src\Benchmark.hpp" />
     <ClInclude Include="src\CodeBreaker.hpp" />
@@ -169,24 +186,10 @@
     <ClInclude Include="src\ObviousStrategy.hpp" />
     <ClInclude Include="src\OptimalStrategy.hpp" />
     <ClInclude Include="src\Permutation.hpp" />
-    <ClInclude Include="src\Registry.hpp" />
     <ClInclude Include="src\Rules.hpp" />
     <ClInclude Include="src\SimpleStrategy.hpp" />
     <ClInclude Include="src\Strategy.hpp" />
     <ClInclude Include="src\StrategyTree.hpp" />
-    <ClInclude Include="src\util\aligned_allocator.hpp" />
-    <ClInclude Include="src\util\bitmask.hpp" />
-    <ClInclude Include="src\util\call_counter.hpp" />
-    <ClInclude Include="src\util\choose.hpp" />
-    <ClInclude Include="src\util\frequency_table.hpp" />
-    <ClInclude Include="src\util\hr_timer.hpp" />
-    <ClInclude Include="src\util\intrinsic.hpp" />
-    <ClInclude Include="src\util\io_format.hpp" />
-    <ClInclude Include="src\util\partition.hpp" />
-    <ClInclude Include="src\util\range.hpp" />
-    <ClInclude Include="src\util\simd.hpp" />
-    <ClInclude Include="src\util\simple_tree.hpp" />
-    <ClInclude Include="src\util\wrapped_float.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="COPYING" />

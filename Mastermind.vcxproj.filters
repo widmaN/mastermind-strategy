@@ -74,21 +74,6 @@
     <ClInclude Include="src\Codeword.hpp">
       <Filter>Types</Filter>
     </ClInclude>
-    <ClInclude Include="src\Registry.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\simd.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\frequency_table.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\aligned_allocator.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\intrinsic.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Feedback.hpp">
       <Filter>Types</Filter>
     </ClInclude>
@@ -97,9 +82,6 @@
     </ClInclude>
     <ClInclude Include="src\Engine.hpp">
       <Filter>Algorithms</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\range.hpp">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="src\Strategy.hpp">
       <Filter>Strategies</Filter>
@@ -116,20 +98,11 @@
     <ClInclude Include="src\HeuristicStrategy.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\call_counter.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Permutation.hpp">
       <Filter>Types</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\choose.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Equivalence.hpp">
       <Filter>Equivalence Filters</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\bitmask.hpp">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="src\OptimalStrategy.hpp">
       <Filter>Strategies</Filter>
@@ -137,25 +110,49 @@
     <ClInclude Include="src\StrategyTree.hpp">
       <Filter>Types</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\hr_timer.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\io_format.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\wrapped_float.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="src\Benchmark.hpp">
       <Filter>Program</Filter>
     </ClInclude>
     <ClInclude Include="src\Heuristics.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\partition.hpp">
+    <ClInclude Include="lib\util\aligned_allocator.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="src\util\simple_tree.hpp">
+    <ClInclude Include="lib\util\bitmask.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\call_counter.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\choose.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\frequency_table.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\hr_timer.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\intrinsic.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\io_format.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\partition.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\range.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\simd.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\simple_tree.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\util\wrapped_float.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
