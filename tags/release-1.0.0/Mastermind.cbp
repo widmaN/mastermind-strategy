@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Mastermind" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="Types/;Algorithms/;Strategies/;Utilities/;Program/;Equivalence Filters/;" />
+		<Build>
+			<Target title="Debug">
+				<Option output="build/Debug/Mastermind" prefix_auto="1" extension_auto="1" />
+				<Option object_output="build/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-h" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="build/Release/Mastermind" prefix_auto="1" extension_auto="1" />
+				<Option object_output="build/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-v -s optimal -r p4c8n" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-g" />
+					<Add option="-fopenmp" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-fopenmp" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=c++0x" />
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="src/Algorithm.hpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Benchmark.hpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/CodeBreaker.cpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/CodeBreaker.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Codeword.cpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Codeword.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/ColorEquivalence.cpp">
+			<Option virtualFolder="Equivalence Filters/" />
+		</Unit>
+		<Unit filename="src/Compare.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/ConstraintEquivalence.cpp">
+			<Option virtualFolder="Equivalence Filters/" />
+		</Unit>
+		<Unit filename="src/DummyEquivalenceFilter.cpp">
+			<Option virtualFolder="Equivalence Filters/" />
+		</Unit>
+		<Unit filename="src/Engine.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Engine.hpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/Equivalence.hpp">
+			<Option virtualFolder="Equivalence Filters/" />
+		</Unit>
+		<Unit filename="src/Feedback.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Generation.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/HeuristicStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Heuristics.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Interactive.cpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/Main.cpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/Mask.cpp">
+			<Option virtualFolder="Algorithms/" />
+		</Unit>
+		<Unit filename="src/ObviousStrategy.cpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/ObviousStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/OptimalCodeBreaker.cpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/OptimalStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Permutation.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Registry.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/Rules.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/SimpleStrategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/State.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/Strategy.hpp">
+			<Option virtualFolder="Strategies/" />
+		</Unit>
+		<Unit filename="src/StrategyTree.cpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/StrategyTree.hpp">
+			<Option virtualFolder="Types/" />
+		</Unit>
+		<Unit filename="src/Test.cpp">
+			<Option virtualFolder="Program/" />
+		</Unit>
+		<Unit filename="src/util/aligned_allocator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/bitmask.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/call_counter.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/choose.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/frequency_table.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/hr_timer.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/intrinsic.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/io_format.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/partition.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/pool_allocator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/range.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/simd.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/simple_tree.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/wrapped_float.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Unit filename="src/util/zip_iterator.hpp">
+			<Option virtualFolder="Utilities/" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
