@@ -138,7 +138,7 @@ void WriteState_TextFormat(
 	// Now we need to elaborate the sub-strategy for each possible response.
 	// If labelling is allowed, we will create a symbol for this.
 	int p = rules.pegs();
-	bool use_symbol = (symbol_level > 0) && (root > 0) && 
+	bool use_symbol = (symbol_level == 1) && (root > 0) && 
 		(state.total_secrets() >= (unsigned int)(p*(p+3)/2));
 	std::ostringstream strs;
 	std::ostream &ss = use_symbol ? strs : os;

@@ -4,22 +4,21 @@ Scope:
   This release includes the mmstrat executable. It does not include the book.
 
 Functionality:
-  Able to output a strategy in Knuth, Irving, Enhanced, or XML notation.
-  Add -po switch to control the possibility only constraint.
-  Make sure command switches are correctly documented and works as documented.
+  Able to output strategy in Irving format.
 
 Portability:
   The cmake build system should work correctly on both Windows and Linux.
 
 Distribution:
   The source code is distributed under MIT Licence in .zip format.
-  Under Windows, statically-linked binaries are provided for 32-bit and 64-bit.
+  Under Windows, pre-built binaries shoudld be provided for 32-bit and 64-bit.
 
 Plan for Version 1.1 (Apr 2012):
   Enable codemaker mode (mmdeal), codebreaker mode (mmbreak), and debugging
     mode (mmdebug).
   Add a few more less-important heuristics for testing.
   Add various minor optimizations to improve speed.
+  Able to output strategy in Knuth, Irving, Enhanced, or XML notation.
   Able to read strategy in Irving, Knuth, Enhanced, or XML format.
 
 Plan for Version 1.2 (May 2012):
@@ -92,6 +91,8 @@ Improve 32-bit performance
 
 Finished
 ----------
+[done] Add test script to test command line switches.
+[done] Add -po switch to control the possibility only constraint.
 [done] Classify switch documentation according to type of strategy.
 [done] Add -nc switch to specify "no correction" for heuristic strategies.
 [done] Fix MSVC level 4 warnings and gcc pedantic warnings.
