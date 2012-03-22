@@ -1,10 +1,26 @@
-Release Criteria for Version 1.0 (Mar 2012)
-------------------------------------------------
+Release Criteria for Version 1.1 (Apr 2012)
+---------------------------------------------
 Scope:
-  This release includes the mmstrat executable. It does not include the book.
+  This release includes executables and user documentation. It does not 
+  include the book.
 
 Functionality:
-  Able to output strategy in Irving format.
+  Enable codemaker (mmserve), codebreaker (mmbreak), and debugger (mmdebug).
+    These tools should link statically to the Mastermind library.
+  Add user documentation for each of these utilities.
+  Add a few less-important heuristics for testing purpose.
+  Able to output strategy in Knuth, Irving, Enhanced, or XML format.
+  Able to read strategy in Irving, Knuth, or Enhanced format.
+  Able to diff two strategies read from files.
+  Add a replay strategy.
+  Add more commands to the debugger and add documentation for it.
+  Fix various bugs and hacks in the source code to prepare for future
+    releases.
+
+Optimization:
+  Add various minor optimizations to improve speed.
+  Investigate the fact that -po yields a very close optimal strategy as 
+    no -po. This means there can be large room of improvement.
 
 Portability:
   The cmake build system should work correctly on both Windows and Linux.
@@ -13,14 +29,6 @@ Distribution:
   The source code is distributed under MIT Licence in .zip format.
   Under Windows, pre-built binaries shoudld be provided for 32-bit and 64-bit.
 
-Plan for Version 1.1 (Apr 2012):
-  Enable codemaker mode (mmdeal), codebreaker mode (mmbreak), and debugging
-    mode (mmdebug).
-  Add a few more less-important heuristics for testing.
-  Add various minor optimizations to improve speed.
-  Able to output strategy in Knuth, Irving, Enhanced, or XML notation.
-  Able to read strategy in Irving, Knuth, Enhanced, or XML format.
-
 Plan for Version 1.2 (May 2012):
   Add -md switch to control the maximum depth constraint.
   Find optimal strategy for MinDepth objective.
@@ -28,6 +36,7 @@ Plan for Version 1.2 (May 2012):
   Improve lower bound estimate in the first few levels of the game.
   Improve lower bound estimate when there are only a dozen remaining possibilites.
   OpenMP support for optimal strategies.
+  Able to read strategy in Irving, Knuth, Enhanced, or XML format.
 
 Plan for Version 1.3 (Jun 2012):
   Complete the book.
@@ -38,6 +47,7 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
+Find an icon for the project.
 Implement -md switch for optimal strategy.
 Move certain static variables into a CPP file to simplify the code.
 Implement Irving notation reading and auto-complete
