@@ -8,6 +8,14 @@ use warnings;
 
 # Path to executable.
 my $exec = 'mmstrat';
+if ($#ARGV >= 0)
+{
+	$exec = $ARGV[0];
+}
+
+# Run the -v command to check that the executable exists.
+print "$exec -v\n";
+system($exec, "-v") == 0 or exit $?;
 
 # Counter for test number.
 my $number = 0;
@@ -74,37 +82,46 @@ my @test_cases = (
 	"-r p4c8n -s entropy",      "7880:7:2",
 );
 
+my $last_is_ok = 1;
 for (my $i = 0; $i < $#test_cases; $i += 2)
 {
 	my $opt = $test_cases[$i];
 	my $expect = $test_cases[$i+1];
 
-	print "Running test ", sprintf("%2d", ++$number), " ... ";
+	#print "Running test ", sprintf("%2d", ++$number), " ... ";
+	print sprintf("Running test [ %3d / %3d ] ... ", ++$number, ($#test_cases+1)/2);
 
-	my $cmd = "$exec -S -q $opt";
+	my $args = "-S -q $opt";
+	my $cmd = "$exec $args";
 	my $actual = `$cmd`;
 	chomp($actual);
 
 	if ($actual eq $expect)
 	{
-		print "OK\n";
+		#print "OK\n";
+		print "\r";
+		$last_is_ok = 1;
 	}
 	else
 	{
 		print "FAILED\n";
-		print "    Command: $cmd\n";
-		print "    Expect:  $expect\n";
-		print "    Actual:  $actual\n";
+		print "    Args:   $args\n";
+		print "    Expect: $expect\n";
+		print "    Actual: $actual\n";
 		++$failed;
+		$last_is_ok = 0;
 	}
 }
 
 # Display summary.
+print "\n" if $last_is_ok;
 if ($failed == 0)
 {
 	print "All tests passed.\n";
+	exit 0;
 }
 else
 {
 	print "$failed tests failed out of $number.\n";
+	exit 1;
 }

@@ -4,3 +4,4 @@ project(Mastermind)
 
 add_subdirectory(src bin)
 add_subdirectory(wiki man)
+add_subdirectory(tests EXCLUDE_FROM_ALL)
