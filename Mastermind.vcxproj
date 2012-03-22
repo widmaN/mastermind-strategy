@@ -144,23 +144,38 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\CodeBreaker.cpp" />
-    <ClCompile Include="src\Codeword.cpp" />
-    <ClCompile Include="src\ColorEquivalence.cpp" />
-    <ClCompile Include="src\Compare.cpp" />
-    <ClCompile Include="src\ConstraintEquivalence.cpp" />
-    <ClCompile Include="src\DummyEquivalenceFilter.cpp" />
-    <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\Generation.cpp" />
+    <ClCompile Include="lib\CodeBreaker.cpp" />
+    <ClCompile Include="lib\Codeword.cpp" />
+    <ClCompile Include="lib\ColorEquivalence.cpp" />
+    <ClCompile Include="lib\Compare.cpp" />
+    <ClCompile Include="lib\ConstraintEquivalence.cpp" />
+    <ClCompile Include="lib\DummyEquivalenceFilter.cpp" />
+    <ClCompile Include="lib\Engine.cpp" />
+    <ClCompile Include="lib\Generation.cpp" />
+    <ClCompile Include="lib\Mask.cpp" />
+    <ClCompile Include="lib\ObviousStrategy.cpp" />
+    <ClCompile Include="lib\OptimalCodeBreaker.cpp" />
+    <ClCompile Include="lib\StrategyTree.cpp" />
     <ClCompile Include="src\Interactive.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Mask.cpp" />
-    <ClCompile Include="src\ObviousStrategy.cpp" />
-    <ClCompile Include="src\OptimalCodeBreaker.cpp" />
-    <ClCompile Include="src\StrategyTree.cpp" />
     <ClCompile Include="src\Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\Algorithm.hpp" />
+    <ClInclude Include="lib\CodeBreaker.hpp" />
+    <ClInclude Include="lib\Codeword.hpp" />
+    <ClInclude Include="lib\Engine.hpp" />
+    <ClInclude Include="lib\Equivalence.hpp" />
+    <ClInclude Include="lib\Feedback.hpp" />
+    <ClInclude Include="lib\Heuristics.hpp" />
+    <ClInclude Include="lib\HeuristicStrategy.hpp" />
+    <ClInclude Include="lib\ObviousStrategy.hpp" />
+    <ClInclude Include="lib\OptimalStrategy.hpp" />
+    <ClInclude Include="lib\Permutation.hpp" />
+    <ClInclude Include="lib\Rules.hpp" />
+    <ClInclude Include="lib\SimpleStrategy.hpp" />
+    <ClInclude Include="lib\Strategy.hpp" />
+    <ClInclude Include="lib\StrategyTree.hpp" />
     <ClInclude Include="lib\util\aligned_allocator.hpp" />
     <ClInclude Include="lib\util\bitmask.hpp" />
     <ClInclude Include="lib\util\call_counter.hpp" />
@@ -174,22 +189,7 @@
     <ClInclude Include="lib\util\simd.hpp" />
     <ClInclude Include="lib\util\simple_tree.hpp" />
     <ClInclude Include="lib\util\wrapped_float.hpp" />
-    <ClInclude Include="src\Algorithm.hpp" />
     <ClInclude Include="src\Benchmark.hpp" />
-    <ClInclude Include="src\CodeBreaker.hpp" />
-    <ClInclude Include="src\Codeword.hpp" />
-    <ClInclude Include="src\Engine.hpp" />
-    <ClInclude Include="src\Equivalence.hpp" />
-    <ClInclude Include="src\Feedback.hpp" />
-    <ClInclude Include="src\Heuristics.hpp" />
-    <ClInclude Include="src\HeuristicStrategy.hpp" />
-    <ClInclude Include="src\ObviousStrategy.hpp" />
-    <ClInclude Include="src\OptimalStrategy.hpp" />
-    <ClInclude Include="src\Permutation.hpp" />
-    <ClInclude Include="src\Rules.hpp" />
-    <ClInclude Include="src\SimpleStrategy.hpp" />
-    <ClInclude Include="src\Strategy.hpp" />
-    <ClInclude Include="src\StrategyTree.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="COPYING" />
