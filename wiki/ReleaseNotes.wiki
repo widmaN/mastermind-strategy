@@ -10,13 +10,13 @@ This program provides a rich set of features that covers major areas of interest
 
   * Finds optimal strategy that minimizes the expected number of guesses required to reveal a secret.
   * Finds heuristic strategies using the most popular heuristics, namely min-max, min-average, entropy, and max-parts.
-  * Outputs strategy tree in Knuth, Irving, or Enhanced format.
+  * Outputs strategy tree in standard Irving format.
   * Built-in multi-threading support to take advantage of multi-core CPUs if available.
-  * Provides three modes of operations: strategy mode, player mode, and diagnostic mode.
+  * Various options to fine-tune specific features of the strategies.
   
 == Performance Highlights ==
 
-The program is designed with the objective to optimize speed. Below are the running results for building an entire strategy tree. They are run using a single thread on an Intel Core i5 2.4G processor with SSE 2 support.
+The program is designed with the objective to optimize speed. Below are the running results for building an entire strategy tree. They are run using a single thread on an Intel 2.4G processor with SSE 2 support.
 
   * Standard Mastermind rules, optimal strategy: 0.5 seconds
   * Bulls and Cows rules, optimal strategy: 6 minutes
@@ -26,9 +26,9 @@ The program is designed with the objective to optimize speed. Below are the runn
 
 To achieve this performance, several key optimizations techniques are employed:
 
-  * _SIMD instructions_. It uses highly-optimized SSE 2 instructions in critical routines, which provides significant performance enhancement over a straightforward implementation. 
-  * _OpenMP support_. It has built-in OpenMP support that parallels the execution. For heuristic strategies, using two threads can almost double the performance (halves the run-time) over using a single thread.
-  * _Branch pruning_. For optimal strategies, it employs various techniques to prune branches in the search space.
+  * *SIMD instructions*. It uses highly-optimized SSE 2 instructions in critical routines, which provides significant performance enhancement over a straightforward implementation. 
+  * *OpenMP support*. It has built-in OpenMP support that parallels the execution. For heuristic strategies, using two threads can almost double the performance (halves the run-time) over using a single thread.
+  * *Branch pruning*. For optimal strategies, it employs various techniques to prune branches in the search space.
 
 == Portability ==
 

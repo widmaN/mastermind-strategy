@@ -73,13 +73,10 @@ Additional options can be specified to control features of the strategies. In ge
 
 An optimal strategy can be selected by *-s optimal*. It performs an exhaustive search to minimize the total number of steps required to reveal all secrets. Additional options include:
 
-  * *-md* _depth_
-  Specify the maximum number of guesses allowed to reveal any single secret. This option is only supported for an optimal strategy. If not all secrets can be revealed within _depth_ guesses, no strategy will be generated.
-
   * *-O* _level_
   Specify the level of optimization to perform. A higher level of optimization produces a more ideal solution, but takes more time to run. Available values are:
     * *1* 
-    Minimize the total number of guesses required to reveal all secrets. This is the default if no *-o* option is given.
+    Minimize the total number of guesses required to reveal all secrets. This is the default if no *-O* option is given.
 
 = OPTIONS =
 
@@ -114,8 +111,8 @@ If the *-S* option is not specified, the program outputs the strategy tree in Ir
 
 If the *-S* option is specified and the *-q* option is not specified, the program outputs summary statistics of the strategy tree, in the following format:
 
-  Strategy  Total   Avg 1    2    3    4    5    6    7    8   >8
-   optimal   5625 4.340 1    8   95  644  541    7    -    -    -
+  Strategy  Total   Avg   1    2    3    4    5    6    7    8   >8
+  optimal    5625 4.340   1    8   95  644  541    7    -    -    -
 
 where `Strategy` is the strategy name, `Total` is the total number of guesses required to reveal all secrets, `Avg` is the average number of guesses required to reveal a secret, and `1`, `2`, ... are the number of guesses revealed by each given number of guesses.
 
@@ -148,7 +145,15 @@ Visit http://code.google.com/p/mastermind-strategy/ for updates.
 
 = BUGS =
     
-List known bugs.
+We should implement the *-md* _depth_ switch for an optimal strategy to limit the maximum number of guesses allowed to reveal any single secret.
+
+The *-O* _level_ switch should be extended to include more optimization levels.
+
+The output format should be extended to Knuth, Extended, and XML.
+
+The program should be able to read a strategy tree output by itself, and then output it identically.
+
+The performance of finding an optimal strategy should be greatly improved.
 
 = AUTHOR =
 
