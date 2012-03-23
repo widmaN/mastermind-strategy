@@ -41,7 +41,8 @@ struct Registry
 	static int _reg_item_##item() { \
 	Utilities::Registry<std::string,type>::registerItem(id,item); \
 	return 0; } \
-	static int _var_reg_item_##item = _reg_item_##item(); 
+	static int _var_reg_item_##item = _reg_item_##item(); \
+	__pragma(comment(linker, "/include:" "_var_reg_item_" #item))
 #else
 #define REGISTER_ITEM2(type,id,item) \
 	static int _reg_item ## id () { \

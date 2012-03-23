@@ -199,15 +199,26 @@ public:
 #define ENABLE_CALL_COUNTER 1
 #endif
 
+/// Wraps a block of statements in as a single statement.
+#ifdef _MSC_VER
+#define WRAP_STATEMENTS(stmt) \
+	__pragma(warning(push)) \
+	__pragma(warning(disable:4127)) /* conditional expression is constant */ \
+	do { stmt ; } while (0) \
+	__pragma(warning(pop))
+#else
+#define WRAP_STATEMENTS(stmt) do { stmt ; } while (0) 
+#endif
+
 /// Registers a global call counter of the given name (if not already
 /// registered) and updates its call statistics.
 /// @ingroup CallCounter
 #if ENABLE_CALL_COUNTER
-#define UPDATE_CALL_COUNTER(id,nops) do { \
+#define UPDATE_CALL_COUNTER(id,nops) WRAP_STATEMENTS( \
 	if (util::call_counter::enabled()) { \
 		static util::call_counter& _call_counter = util::call_counter::get(id); \
 		_call_counter.add_call(nops); \
-	} } while (0)
+	} )
 #else
 #define UPDATE_CALL_COUNTER(id,nops) do {} while (0)
 #endif

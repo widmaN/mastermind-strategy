@@ -155,9 +155,11 @@
     <ClInclude Include="lib\Strategy.hpp">
       <Filter>Strategies</Filter>
     </ClInclude>
+    <ClInclude Include="lib\Mastermind.hpp">
+      <Filter>Program</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Doxyfile" />
     <None Include="COPYING" />
     <None Include="README" />
     <None Include="TODO" />

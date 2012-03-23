@@ -169,6 +169,7 @@
     <ClInclude Include="lib\Feedback.hpp" />
     <ClInclude Include="lib\Heuristics.hpp" />
     <ClInclude Include="lib\HeuristicStrategy.hpp" />
+    <ClInclude Include="lib\Mastermind.hpp" />
     <ClInclude Include="lib\ObviousStrategy.hpp" />
     <ClInclude Include="lib\OptimalStrategy.hpp" />
     <ClInclude Include="lib\Permutation.hpp" />
@@ -193,7 +194,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="COPYING" />
-    <None Include="Doxyfile" />
     <None Include="README" />
     <None Include="TODO" />
   </ItemGroup>

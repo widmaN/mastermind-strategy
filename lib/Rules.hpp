@@ -89,7 +89,8 @@ public:
 				bool repeatable = (s[4] == 'r' || s[4] == 'R');
 				*this = Rules(pegs, colors, repeatable);
 			}
-			else if ((MM_MAX_COLORS >= 10) && (s[3] == '1') &&
+#if MM_MAX_COLORS >= 10
+			else if ((s[3] == '1') &&
 				(s[4] >= '0' && s[4] <= '0' + MM_MAX_COLORS - 10) &&
 				(s[5] == 'r' || s[5] == 'n' || s[5] == 'R' || s[5] == 'N') &&
 				(s[6] == '\0'))
@@ -98,6 +99,7 @@ public:
 				bool repeatable = (s[5] == 'r' || s[5] == 'R');
 				*this = Rules(pegs, colors, repeatable);
 			}
+#endif
 		}
 	}
 
