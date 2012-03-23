@@ -394,6 +394,7 @@ const SpecializedComparer::simd_t SpecializedComparer::_barrier =
 const SpecializedComparer::lookup_table_t SpecializedComparer::lookup;
 #endif
 
+#if 0
 static void compare_codewords_generic(
 	const Codeword &secret,
 	const Codeword *guesses,
@@ -420,9 +421,7 @@ static void compare_codewords_norepeat(
 {
 	return compare_codewords<NoRepeatComparer>(secret, guesses, count, result, freq);
 }
-
-REGISTER_ROUTINE(ComparisonRoutine, "generic", compare_codewords_generic)
-REGISTER_ROUTINE(ComparisonRoutine, "norepeat", compare_codewords_norepeat)
+#endif
 
 #if 0
 /// [Test] Codeword comparer for generic codewords where the secret doesn't
