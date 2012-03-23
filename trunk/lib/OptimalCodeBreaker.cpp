@@ -85,8 +85,11 @@ static StrategyCost fill_obviously_optimal_strategy(
 	return _cost;
 }
 
-#define VERBOSE_COUT(text) do { if (verbose) { std::cout << std::setw(depth*2) << "" \
-	<< "[" << (depth+1) << "] " << text << std::endl; } } while (0)
+#define VERBOSE_COUT(text) WRAP_STATEMENTS( \
+	if (verbose) { \
+		std::cout << std::setw(depth*2) << "" << "[" << (depth+1) << "] " \
+			<< text << std::endl; \
+	} )
 
 typedef HeuristicStrategy<Heuristics::MinimizeLowerBound> LowerBoundEstimator;
 
