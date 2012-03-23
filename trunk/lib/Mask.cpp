@@ -76,3 +76,8 @@ REGISTER_ROUTINE(MaskRoutine, "generic", ScanDigitMask_v1)
 #if 0
 REGISTER_ROUTINE(MaskRoutine, "unrolled", ScanDigitMask_v2)
 #endif
+
+unsigned short ScanColorMask(const Codeword *first, const Codeword *last)
+{
+	return ScanDigitMask_v1(first, last);
+}
