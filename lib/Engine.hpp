@@ -67,21 +67,21 @@ typedef util::bitmask<unsigned int, MM_MAX_COLORS> ColorMask;
 class Engine
 {
 	Rules _rules;
-	ComparisonRoutine _compare;
-	GenerationRoutine _generate;
-	MaskRoutine _mask;
 	CodewordList _all;
+	ComparisonRoutine1* _compare1;
+	ComparisonRoutine2* _compare2;
+	ComparisonRoutine3* _compare3;
 
 public:
 
 	/// Constructs an algorithm engine for the given rules.
-	Engine(const Rules &rules) : _rules(rules),
-		_compare(RoutineRegistry<ComparisonRoutine>::get(
-			rules.repeatable()? "generic" : "norepeat")),
-		_generate(RoutineRegistry<GenerationRoutine>::get("generic")),
-		_mask(RoutineRegistry<MaskRoutine>::get("generic")),
-		_all(generateCodewords())
+	Engine(const Rules &rules) 
+		: _rules(rules), _all(rules.size()),
+		_compare1(rules.repeatable()? CompareGeneric1 : CompareNorepeat1),
+		_compare2(rules.repeatable()? CompareGeneric2 : CompareNorepeat2),
+		_compare3(rules.repeatable()? CompareGeneric3 : CompareNorepeat3)
 	{
+		GenerateCodewords(rules, _all.data());
 	}
 
 	/// Returns the underlying rules of this engine.
@@ -94,7 +94,7 @@ public:
 	Feedback compare(const Codeword& guess, const Codeword& secret) const
 	{
 		Feedback feedback;
-		_compare(guess, &secret, 1, &feedback, 0);
+		_compare1(guess, &secret, 1, &feedback);
 		return feedback;
 	}
 
@@ -109,7 +109,7 @@ public:
 		// lead to 7-10% performance difference.
 		assert(!secrets.empty());
 		FeedbackFrequencyTable freq(Feedback::size(rules()));
-		_compare(guess, &secrets[0], secrets.size(), 0, freq.data());
+		_compare2(guess, &secrets[0], secrets.size(), freq.data());
 		return freq;
 	}
 
@@ -123,22 +123,14 @@ public:
 		assert(!secrets.empty());
 		feedbacks.resize(secrets.size());
 		FeedbackFrequencyTable freq(Feedback::size(rules()));
-		_compare(guess, &secrets[0], secrets.size(), feedbacks.data(), freq.data());
+		_compare3(guess, &secrets[0], secrets.size(), feedbacks.data(), freq.data());
 		return freq;
 	}
 
 	/// Generates all codewords for the underlying set of rules.
 	CodewordList generateCodewords() const 
 	{
-		// Call the generation routine once to get the count.
-		const size_t count = _generate(_rules, NULL);
-
-		// Create an empty list.
-		CodewordList list(count);
-
-		// Call the generation routine again to fill in the codewords.
-		_generate(_rules, list.data());
-		return list;
+		return CodewordList(_all);
 	}
 
 	/// Returns the elements from match the given response when compared
@@ -179,7 +171,7 @@ public:
 		else
 		{
 			const Codeword *first = &(*codewords.begin());
-			return ColorMask(_mask(first, first + codewords.size()));
+			return ColorMask(ScanColorMask(first, first + codewords.size()));
 		}
 	}
 };

@@ -9,53 +9,52 @@
 
 namespace Mastermind {
 
-/**
- * Prototype of a function that compares a codeword to a list of codewords
- * and stores the feedbacks and/or frequencies of the comparision.
- *
- * @param secret  The secret.
- * @param guesses Array of guesses.
- * @param count   Number of guesses.
- * @param result  If not null, stores the feedback on return.
- * @param freq    If not null, stores the frequencies on return.
- * @remarks The frequencies are not initialized in this function.
- *      The caller must ensure the frequencies are set to zero before
- *      calling the function.
- */
-typedef void (*ComparisonRoutine)(
+/// Type of a function that compares a codeword to a list of codewords and
+/// returns the feedbacks.
+typedef void ComparisonRoutine1(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result);
+
+/// Type of a function that compares a codeword to a list of codewords and
+/// increments the feedback frequencies. The caller is responsible for 
+/// allocating the frequencies and initializing them to zero.
+typedef void ComparisonRoutine2(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	unsigned int *freq);
+
+/// Type of a function that compares a codeword to a list of codewords and
+/// returns the feedbacks as well as increments the feedback frequencies. 
+/// The caller is responsible for allocating the frequencies and initializing
+/// them to zero.
+typedef void ComparisonRoutine3(
 	const Codeword &secret,
 	const Codeword *guesses,
 	size_t count,
 	Feedback *result,
 	unsigned int *freq);
 
-/// Pointer to the routine used for comparing generic codewords.
-//extern ComparisonRoutine const compare_codewords_generic;
+/// Comparison functions for generic codewords.
+extern ComparisonRoutine1 CompareGeneric1;
+extern ComparisonRoutine2 CompareGeneric2;
+extern ComparisonRoutine3 CompareGeneric3;
 
-/// Pointer to the routine used for comparing codewords without repetition.
-//extern ComparisonRoutine const compare_codewords_norepeat;
+/// Comparison functions for norepeat codewords.
+extern ComparisonRoutine1 CompareNorepeat1;
+extern ComparisonRoutine2 CompareNorepeat2;
+extern ComparisonRoutine3 CompareNorepeat3;
 
-#if 0
-void compare_codewords(
-	const Rules &rules,
-	const Codeword &secret,
-	const Codeword *guesses,
-	size_t count,
-	unsigned int *freq);
-#endif
-
-/// Generates all codewords that conforms to the given set of rules.
-typedef size_t (*GenerationRoutine)(
-	const Rules &rules,
-	Codeword *results);
-
-
+/// Generates all codewords conforming to the given set of rules. 
+/// The caller is responsible for allocating memory for the results.
+extern void GenerateCodewords(const Rules &rules, Codeword *results);
 
 /**
- * Scans an array of codewords and returns a 16-bit mask of present 
- * colors.
+ * Scans an array of codewords and returns a 16-bit mask of present colors.
  *
- * In the bit-mask returned, a bit is set if the corresponding color
+ * In the bit-mask returned, a bit is set if the corresponding color 
  * is present in at least one of the codewords. A bit is cleared if 
  * the corresponding color never appears in any of the codewords. 
  * The bits are numbered from LSB to MSB. 
@@ -71,9 +70,7 @@ typedef size_t (*GenerationRoutine)(
  * @param first Begin of the codeword list.
  * @param last  End of the codeword list.
  */
-typedef unsigned short (*MaskRoutine)(
-	const Codeword *first,
-	const Codeword *last);
+extern unsigned short ScanColorMask(const Codeword *first, const Codeword *last);
 
 template <class Routine>
 struct RoutineRegistry : public Utilities::Registry<std::string, Routine>

@@ -515,4 +515,76 @@ static void compare_codewords_test(
 REGISTER_ROUTINE(ComparisonRoutine, "test", compare_codewords_test)
 #endif
 
+/// Compares generic codewords and returns feedbacks.
+void CompareGeneric1(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result)
+{
+	FeedbackUpdater update(result);
+	compare_codewords<GenericComparer>(secret, guesses, count, update);
+}
+
+/// Compares generic codewords and returns frequencies.
+void CompareGeneric2(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	unsigned int *freq)
+{
+	FrequencyUpdater update(freq);
+	compare_codewords<GenericComparer>(secret, guesses, count, update);
+}
+
+/// Compares generic codewords and returns feedbacks and frequencies.
+void CompareGeneric3(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq)
+{
+	FeedbackUpdater u1(result);
+	FrequencyUpdater u2(freq);
+	CompositeUpdater<FeedbackUpdater,FrequencyUpdater> update(u1,u2);
+	compare_codewords<GenericComparer>(secret, guesses, count, update);
+}
+
+/// Compares norepeat codewords and returns feedbacks.
+void CompareNorepeat1(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result)
+{
+	FeedbackUpdater update(result);
+	compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
+}
+
+/// Compares norepeat codewords and returns frequencies.
+void CompareNorepeat2(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	unsigned int *freq)
+{
+	FrequencyUpdater update(freq);
+	compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
+}
+
+/// Compares norepeat codewords and returns feedbacks and frequencies.
+void CompareNorepeat3(
+	const Codeword &secret,
+	const Codeword *guesses,
+	size_t count,
+	Feedback *result,
+	unsigned int *freq)
+{
+	FeedbackUpdater u1(result);
+	FrequencyUpdater u2(freq);
+	CompositeUpdater<FeedbackUpdater,FrequencyUpdater> update(u1,u2);
+	compare_codewords<NoRepeatComparer>(secret, guesses, count, update);
+}
+
 } // namespace Mastermind
