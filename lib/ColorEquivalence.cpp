@@ -174,13 +174,15 @@ CodewordList ColorEquivalenceFilter::filter_norep(
 	return canonical;
 }
 
-static EquivalenceFilter* CreateColorEquivalenceFilter(const Engine *e)
+EquivalenceFilter* CreateColorEquivalenceFilter(const Engine *e)
 {
 	return new ColorEquivalenceFilter(e);
 }
 
+#if 0
 REGISTER_ROUTINE(CreateEquivalenceFilterRoutine,
 				 "Color",
 				 CreateColorEquivalenceFilter)
+#endif
 
 } // namespace Mastermind

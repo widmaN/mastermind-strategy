@@ -47,6 +47,9 @@ Plan for Version 2.0:
 
 High Priority
 ---------------
+If the client program does not control omp(), the library will by default use
+  4 threads. This is not desirable and we should add an initialization function
+  to be called by the client.
 Find an icon for the project.
 Implement -md switch for optimal strategy.
 Move certain static variables into a CPP file to simplify the code.

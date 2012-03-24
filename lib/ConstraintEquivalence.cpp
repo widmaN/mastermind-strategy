@@ -226,13 +226,15 @@ void ConstraintEquivalenceFilter::add_constraint(
 	// will remain.
 }
 
-static EquivalenceFilter* CreateConstraintEquivalenceFilter(const Engine *e)
+EquivalenceFilter* CreateConstraintEquivalenceFilter(const Engine *e)
 {
 	return new ConstraintEquivalenceFilter(e);
 }
 
+#if 0
 REGISTER_ROUTINE(CreateEquivalenceFilterRoutine,
 				 "Constraint",
 				 CreateConstraintEquivalenceFilter)
+#endif
 
 } // namespace Mastermind
