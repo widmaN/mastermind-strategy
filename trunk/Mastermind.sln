@@ -8,6 +8,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmserve", "src\mmserve.vcxp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Mastermind", "lib\Mastermind.vcxproj", "{F166C37B-FBD7-4D5D-B773-B23243E534C2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmstrat", "src\mmstrat.vcxproj", "{6A302A90-1A36-496A-85BD-D26E96A5DFB8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F166C37B-FBD7-4D5D-B773-B23243E534C2} = {F166C37B-FBD7-4D5D-B773-B23243E534C2}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E127D13D-299E-4AD8-8D78-B1F12D24E917}"
+	ProjectSection(SolutionItems) = preProject
+		TODO = TODO
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -32,6 +42,14 @@ Global
 		{F166C37B-FBD7-4D5D-B773-B23243E534C2}.Release|Win32.Build.0 = Release|Win32
 		{F166C37B-FBD7-4D5D-B773-B23243E534C2}.Release|x64.ActiveCfg = Release|x64
 		{F166C37B-FBD7-4D5D-B773-B23243E534C2}.Release|x64.Build.0 = Release|x64
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Debug|Win32.Build.0 = Debug|Win32
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Debug|x64.ActiveCfg = Debug|x64
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Debug|x64.Build.0 = Debug|x64
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Release|Win32.ActiveCfg = Release|Win32
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Release|Win32.Build.0 = Release|Win32
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Release|x64.ActiveCfg = Release|x64
+		{6A302A90-1A36-496A-85BD-D26E96A5DFB8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

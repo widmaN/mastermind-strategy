@@ -2,7 +2,7 @@
 #include "Algorithm.hpp"
 #include "util/simd.hpp"
 
-using namespace Mastermind;
+namespace Mastermind {
 
 // Routine to compute the color mask of an array of codewords.
 
@@ -39,3 +39,5 @@ unsigned short ScanColorMask(const Codeword *first, const Codeword *last)
 {
 	return ScanDigitMask_v1(first, last);
 }
+
+} // namespace Mastermind

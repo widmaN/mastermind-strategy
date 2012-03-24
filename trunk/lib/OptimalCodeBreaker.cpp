@@ -516,8 +516,8 @@ StrategyTree build_optimal_strategy_tree(
 	// Creates a composite equivalence filter by chaining a
 	// response-indepedent filter with a response-dependent filter.
 	CompositeEquivalenceFilter filter(
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Constraint")(e),
-		RoutineRegistry<CreateEquivalenceFilterRoutine>::get("Color")(e));
+		CreateConstraintEquivalenceFilter(e),
+		CreateColorEquivalenceFilter(e));
 
 	// Create a strategy tree.
 	StrategyTree tree(e->rules());

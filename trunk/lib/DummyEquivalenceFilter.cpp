@@ -27,13 +27,15 @@ public:
 	}
 };
 
-static EquivalenceFilter* CreateDummyEquivalenceFilter(const Engine *)
+EquivalenceFilter* CreateDummyEquivalenceFilter(const Engine *)
 {
 	return new DummyEquivalenceFilter();
 }
 
+#if 0
 REGISTER_ROUTINE(CreateEquivalenceFilterRoutine,
 				 "Dummy",
 				 CreateDummyEquivalenceFilter)
+#endif
 
 } // namespace Mastermind
