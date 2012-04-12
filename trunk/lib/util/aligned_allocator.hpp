@@ -6,7 +6,7 @@
 #ifndef UTILITIES_ALIGNED_ALLOCATOR_HPP
 #define UTILITIES_ALIGNED_ALLOCATOR_HPP
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory>
 
 namespace util {
