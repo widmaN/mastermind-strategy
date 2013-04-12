@@ -38,7 +38,7 @@ static StrategyCost fill_obviously_optimal_strategy(
 	// guesses.
 	StrategyCost _cost;
 	Codeword guess = make_obvious_guess(e, secrets, c.max_depth, obj, _cost, obj);
-	if (!guess)
+	if (guess.IsEmpty())
 		return StrategyCost();
 
 	//	VERBOSE_COUT << "Found obvious guess: " << obvious << std::endl;
@@ -60,7 +60,7 @@ static StrategyCost fill_obviously_optimal_strategy(
 		{
 			if (fbs[i] == Feedback(j))
 			{
-				if (!first)
+				if (first.IsEmpty())
 				{
 					++cost;
 					first = secrets[i];

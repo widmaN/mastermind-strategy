@@ -22,37 +22,40 @@
 
 namespace Mastermind {
 
-/**
- * Strategy that makes the guess that produces the optimal score for
- * a heuristic function.
- *
- * The heuristic strategy makes a guess by computing a score for each
- * candidate guess using a <i>heuristic function</i>. The heuristic
- * function takes as input the partitioning of the possibility set by
- * the guess, and outputs a scalar score. The guess that produces the
- * optimal (lowest) score is chosen. If more than one guesses have
- * the same score, the guess that is in the possibility set is chosen.
- * If multiple choices still exist, the first one is chosen.
- *
- * The heuristic function used by the strategy is specified in the
- * template parameter <code>Heuristic</code>. It takes as input the
- * frequency table of the partition, and returns a heuristic score.
- * The partition is defined as below.
- *
- * Suppose there are <code>N</code> remaining possibilities. Given
- * a guess, these possibilities can be partitioned into <code>m</code>
- * cells, where the possibilities in each cell have the same feedback
- * when compared to the guess. That is, given that guess, there is
- * no way to distinguish one possibility from another in the same
- * cell.
- *
- * Note that when computing the heuristic score, we always assume that
- * each codeword in the possibility set is equally-likely to be the
- * secret.
- *
- * @ingroup Heuristic
- */
+/// <summary>
+/// Type of a function object that takes as input the partitioning of 
+/// remaining possibilities and returns as output a heuristic score.
+/// </summary>
 template <class Heuristic>
+/// <summary>
+/// Implements a class of strategies that make a guess according to the 
+/// score it produces given a heuristic function.
+/// </summary>
+/// <remarks>
+/// A heuristic strategy makes a guess by computing a score for each of the
+/// candidate guesses using a <i>heuristic function</i>. The heuristic
+/// function takes as input the partitioning of the set of remaining 
+/// possibilities using the guess, and outputs a scalar score. The guess 
+/// that produces the optimal (lowest) score is chosen. If multiple guesses
+/// produce the same score, the guess that is in the possibility set is 
+/// chosen. If multiple choices still exist, the first one is chosen.
+///
+/// The heuristic function used by the strategy is specified by the
+/// template parameter <code>Heuristic</code>. It takes as input the
+/// frequency table of the partition, and returns a heuristic score.
+/// The partition is defined as below.
+///
+/// Suppose there are <code>N</code> remaining possibilities. Given
+/// a guess, these possibilities can be partitioned into <code>m</code>
+/// cells, where the possibilities in each cell have the same feedback
+/// when compared to the guess. That is, given that guess, there is
+/// no way to distinguish one possibility from another in the same
+/// cell.
+///
+/// Note that when computing the heuristic score, we always assume that
+/// each codeword in the possibility set is equally-likely to be the
+/// secret.
+/// </remarks>
 class HeuristicStrategy : public Strategy
 {
 	const Engine *e;
@@ -99,7 +102,11 @@ public:
 
 	typedef typename Heuristic::score_t score_type;
 
-	/// Constructs the strategy.
+	/// <summary>
+    /// Creates a heuristic strategy using the supplied heuristic function.
+    /// </summary>
+    /// <param name="engine">Context.</param>
+    /// <param name="heuristic">Heuristic function object.</param>
 	HeuristicStrategy(const Engine *engine, const Heuristic &heuristic = Heuristic())
 		: e(engine), h(heuristic) { }
 

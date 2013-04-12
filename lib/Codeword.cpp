@@ -113,7 +113,7 @@ std::istream& operator >> (std::istream &is, Codeword &codeword)
 
 	// If the codeword is successfully read, return it.
 	// Otherwise, sets the error flag.
-	if (ok && ret && (!rules || ret.conforming(rules)))
+	if (ok && !ret.IsEmpty() && (!rules || ret.conforming(rules)))
 	{
 		if (c == EOF)
 			is.clear(std::ios_base::eofbit);

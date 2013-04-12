@@ -7,32 +7,36 @@
 
 namespace Mastermind {
 
-/**
- * Defines the objectives of a strategy. Here we implement three types of
- * objectives, in order of their strength (i.e. an objective with a larger
- * numeric value if strictly more optimal than an objective with a smaller
- * numeric value).
- */
+/// <summary>
+/// Defines the objectives of a strategy. Here we implement three types of
+/// objectives, in order of their strength (i.e. an objective with a larger
+/// numeric value if strictly more optimal than an objective with a smaller
+/// numeric value).
+/// </summary>
 enum StrategyObjective
 {
-	// Minimize the total number of guesses needed to reveal all secrets.
+	/// <summary>
+    /// Minimize the total number of guesses needed to reveal all secrets.
+    /// </summary>
 	MinSteps = 1,
 
-	// In addition to @c MinSteps, also minimize the maximum number of
-	// guesses required to reveal any given secret.
+	/// In addition to @c MinSteps, also minimize the maximum number of
+	/// guesses required to reveal any given secret.
  	MinDepth = 2,
 
-	// In addition to @c MinDepth, also minimize the number of secrets
-	// revealed by the most number of guesses.
+	/// In addition to @c MinDepth, also minimize the number of secrets
+	/// revealed by the most number of guesses.
 	MinWorst = 3
 };
 
-/**
- * Defines the constraints of the strategy.
- */
+/// <summary>
+/// Defines a set of constraints that must be satisfied by a strategy.
+/// </summary>
 struct StrategyConstraints
 {
-	/// Maximum number of guesses allowed for any single secret.
+	/// <summary>
+    /// Gets or sets the maximum number of guesses allowed to reveal a secret.
+    /// </summary>
 	unsigned char max_depth;
 
 	/// Flag indicating whether to make a guess only from the remaining
@@ -45,7 +49,10 @@ struct StrategyConstraints
 	/// Flag indicating whether to find the last one among all optimal strategies.
 	bool find_last;
 
-	/// Creates a default set of (non-)constraints.
+	/// <summary>
+    /// Creates a set of default constraints, which puts no restrictions
+    /// on a strategy.
+    /// </summary>
 	StrategyConstraints()
 		: max_depth(100), pos_only(false), use_obvious(true), find_last(false)
 	{ }

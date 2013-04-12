@@ -133,20 +133,24 @@ public:
 		return CodewordList(_all);
 	}
 
-	/// Returns the elements from match the given response when compared
+	/// <summary>
+    /// Returns the codewords that yield the given response when compared
 	/// to the given guess.
+    /// </summary>
 	CodewordList filterByFeedback(
 		const CodewordList &list,
 		const Codeword &guess, 
 		const Feedback &response) const;
 
-	/**
-	 * Partitions a list of codewords by their response when compared to
-	 * a given guess. The codewords in the list are re-ordered in-place
-	 * such that codewords with the same feedback are stored consecutively.
-	 * In addition, the partition is stable, i.e. any two codewords with 
-	 * the same feedback will retain the same relative order.
-	 */
+	/// <summary>
+	/// Partitions a list of codewords by their response when compared to
+	/// the given guess. The codewords are reordered in-place so that
+    /// codewords that yield the same response are stored consecutively.
+	/// In addition, the partitioning is stable, i.e. any two codewords that
+	/// produce the same response will retain their relative order.
+    /// </summary>
+    /// <param name="codewords">List of codewords to partition.</param>
+    /// <param name="guess">The guess used to partition the codewords.</param>
 	CodewordPartition partition(
 		CodewordRange codewords, 
 		const Codeword &guess) const;
@@ -171,7 +175,7 @@ public:
 		else
 		{
 			const Codeword *first = &(*codewords.begin());
-			return ColorMask(ScanColorMask(first, first + codewords.size()));
+			return ColorMask(GetPresentColors(first, first + codewords.size()));
 		}
 	}
 };
