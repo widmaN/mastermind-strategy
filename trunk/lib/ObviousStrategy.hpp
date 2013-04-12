@@ -135,14 +135,14 @@ public:
 				*max_depth = 2;
 				return guess;
 			}
-			if (nonzero == count - 1 && less_obvious_guess.empty())
+			if (nonzero == count - 1 && less_obvious_guess.IsEmpty())
 			{
 				less_obvious_guess = guess;
 			}
 		}
 
 		// Returns the less obvious guess if one exists.
-		if (less_obvious_guess)
+		if (!less_obvious_guess.IsEmpty())
 		{
 			*max_depth = 3;
 		}
@@ -172,7 +172,7 @@ public:
 	{
 		int max_depth = -1;
 		Codeword guess = make_guess(possibilities, &max_depth);
-		if (guess && max_depth <= 2)
+		if (!guess.IsEmpty() && max_depth <= 2)
 			return guess;
 		else
 			return Codeword();

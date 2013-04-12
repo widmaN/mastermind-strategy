@@ -141,7 +141,7 @@ static int serve(const Engine *e, bool verbose, const Codeword &given_secret)
 
 	// Generate a random secret if one is not specified.
 	Codeword secret = given_secret;
-	if (secret.empty())
+	if (secret.IsEmpty())
 	{
 		srand((unsigned int)time(NULL));
 		rand();

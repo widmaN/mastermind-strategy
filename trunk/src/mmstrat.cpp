@@ -208,7 +208,7 @@ static void usage()
 		"                is different than an obvious guess when one exists.\n"
 		"Options for Optimal Strategies:\n"
 #ifndef NDEBUG
-		"    -md depth   limit the maximum number of guesses to reveal any secret\n"
+		"    -md depth   set the maximum number of guesses allowed to reveal a secret\n"
 #endif
 		"    -O level    specify the level of optimization, which is one of:\n"
 		"                1 - (default) minimize steps\n"
@@ -437,7 +437,7 @@ int main(int argc, char* argv[])
 		else if (s == "-r")
 		{
 			USAGE_REQUIRE(++i < argc, "missing argument for option -r");
-			USAGE_REQUIRE(secret.empty(), "-r rules must be specified before -p secret");
+			USAGE_REQUIRE(secret.IsEmpty(), "-r rules must be specified before -p secret");
 			std::string name = argv[i];
 			if (name == "mm")
 				rules = Rules(4, 6, true);

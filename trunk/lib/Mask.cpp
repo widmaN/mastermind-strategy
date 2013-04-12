@@ -35,7 +35,7 @@ static unsigned short ScanDigitMask_v1(
 // Interface Routines
 //
 
-unsigned short ScanColorMask(const Codeword *first, const Codeword *last)
+unsigned short GetPresentColors(const Codeword *first, const Codeword *last)
 {
 	return ScanDigitMask_v1(first, last);
 }

@@ -51,26 +51,26 @@ extern ComparisonRoutine3 CompareNorepeat3;
 /// The caller is responsible for allocating memory for the results.
 extern void GenerateCodewords(const Rules &rules, Codeword *results);
 
-/**
- * Scans an array of codewords and returns a 16-bit mask of present colors.
- *
- * In the bit-mask returned, a bit is set if the corresponding color 
- * is present in at least one of the codewords. A bit is cleared if 
- * the corresponding color never appears in any of the codewords. 
- * The bits are numbered from LSB to MSB. 
- *
- * For example, if the codeword is <code>4169</code>, then bits 1, 4, 
- * 6, and 9 are set, and the rest are unset. The mask returned will  
- * be <code>0000-0010-0101-0010</code>, or <code>0x0252</code>.
- *
- * Note that the highest bit (corresponding to color 0xF) is never set
- * in the returned mask, even if it exists in the codeword, because
- * <code>0xF</code> is reserved for special use.
- *
- * @param first Begin of the codeword list.
- * @param last  End of the codeword list.
- */
-extern unsigned short ScanColorMask(const Codeword *first, const Codeword *last);
+/// <summary>
+/// Gets a bit-mask of the colors present in a list of codewords.
+/// </summary>
+/// <param name="first">Pointer to the first element of the codeword list.</param>
+/// <param name="last">Pointer to one past the last element of the codeword list.</param>
+/// <remarks>
+/// In the bit-mask returned, a bit is set if the corresponding color 
+/// is present in at least one of the codewords. A bit is cleared if 
+/// the corresponding color never appears in any of the codewords. 
+/// The bits are numbered from LSB to MSB. 
+///
+/// For example, if the codeword is <code>4169</code>, then bits 1, 4, 
+/// 6, and 9 are set, and the rest are unset. The mask returned will  
+/// be <code>0000-0010-0101-0010</code>, or <code>0x0252</code>.
+///
+/// Note that the highest bit (corresponding to color 0xF) is never set
+/// in the returned mask, even if it exists in the codeword, because
+/// <code>0xF</code> is reserved for special use.
+/// </remarks>
+extern unsigned short GetPresentColors(const Codeword *first, const Codeword *last);
 
 template <class Routine>
 struct RoutineRegistry : public Utilities::Registry<std::string, Routine>

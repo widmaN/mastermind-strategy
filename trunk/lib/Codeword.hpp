@@ -12,9 +12,10 @@
 
 namespace Mastermind {
 
-/// Represents a codeword.
-/// For performance reason, a codeword must be aligned on a 16-byte boundary.
-/// @ingroup Codeword
+/// <summary>Represents a codeword (such as 2587).</summary>
+/// <remarks>
+/// For performance reasons, a codeword must be aligned on a 16-byte boundary.
+/// </remarks>
 class 
 #ifdef _MSC_VER
 	__declspec(align(16))
@@ -36,23 +37,29 @@ public:
 	/// Constant representing an 'empty' color.
 	static const int EmptyColor = -1;
 		
-	/// Creates an empty codeword.
+	/// <summary>Creates an empty codeword.</summary>
 	Codeword()
 	{
 		std::memset(_counter, 0, sizeof(_counter));
 		std::memset(_digit, -1, sizeof(_digit));
 	}
 
-	/// Tests whether the codeword is empty.
-	bool empty() const { return _digit[0] < 0; }
+	/// <summary>Checks whether the codeword is empty.</summary>
+    /// <return><code>true</code> if the codeword is empty, otherwise
+    /// <code>false</code>.</return>
+	bool IsEmpty() const { return _digit[0] < 0; }
 
+#if 0
 	/// Tests whether the codeword is non-empty.
 	operator void* () const { return empty()? 0 : (void*)this; }
 
 	/// Tests whether the codeword is empty.
 	bool operator ! () const { return empty(); }
+#endif
 
-	/// Returns the color on a given peg.
+	/// <summary>Gets the color in the given peg.</summary>
+    /// <param name="peg">Zero-based index of the peg.</param>
+    /// <return>Color in the given peg.</return>
 	int operator [] (int peg) const
 	{
 		assert(peg >= 0 && peg < MM_MAX_PEGS);

@@ -22,7 +22,7 @@ Codeword MakeGuess(
 	if (options.optimize_obvious)
 	{
 		Codeword guess = ObviousStrategy(e).make_guess(secrets, secrets);
-		if (!guess.empty())
+		if (!guess.IsEmpty())
 		{
 			//stat->NCandidates = (it - possibilities.begin()) + 1;
 			//stat->Guess = *it;
@@ -63,7 +63,7 @@ static void FillStrategy(
 {
 	// Make a guess.
 	Codeword guess = MakeGuess(e, secrets, strat, filter, options);
-	if (guess.empty())
+	if (guess.IsEmpty())
 		return;
 
 	// Partition the possibility set using this guess.
